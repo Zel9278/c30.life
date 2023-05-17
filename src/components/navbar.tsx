@@ -1,11 +1,6 @@
-import { ReactNode } from "react"
 import Link from "next/link"
 
-type Props = {
-    children?: ReactNode
-}
-
-export default function NavBar(progs: Props) {
+export default function NavBar() {
     return (
         <>
             <header className="sticky top-0 z-50">
@@ -41,9 +36,6 @@ export default function NavBar(progs: Props) {
                                         <Link href="/misskey">
                                             Misskey Links
                                         </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/music">Music</Link>
                                     </li>
                                     <li>
                                         <Link href="/mdic">
