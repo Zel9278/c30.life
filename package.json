@@ -1,25 +1,35 @@
 {
-  "name": "c30.life",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@types/node": "20.1.7",
-    "@types/react": "18.2.6",
-    "@types/react-dom": "18.2.4",
-    "autoprefixer": "10.4.14",
-    "eslint": "8.40.0",
-    "eslint-config-next": "13.4.2",
-    "next": "13.4.2",
-    "postcss": "8.4.23",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "tailwindcss": "3.3.2",
-    "typescript": "5.0.4"
-  }
+    "name": "c30.life",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev --port 8866",
+        "build": "next build",
+        "start": "next start --port 8866",
+        "lint": "next lint",
+        "pretty": "prettier --write ."
+    },
+    "dependencies": {
+        "@types/node": "20.1.7",
+        "@types/react": "18.2.6",
+        "@types/react-dom": "18.2.4",
+        "axios": "^1.4.0",
+        "canvas-confetti": "^1.6.0",
+        "daisyui": "^2.51.6",
+        "eslint": "8.40.0",
+        "eslint-config-next": "13.4.2",
+        "next": "13.4.2",
+        "react": "18.2.0",
+        "react-dom": "18.2.0",
+        "swr": "^2.1.5",
+        "typescript": "5.0.4"
+    },
+    "devDependencies": {
+        "@types/canvas-confetti": "^1.6.0",
+        "autoprefixer": "^10.4.14",
+        "postcss": "^8.4.23",
+        "prettier": "^2.8.8",
+        "prettier-plugin-tailwindcss": "^0.3.0",
+        "tailwindcss": "^3.3.2"
+    }
 }
