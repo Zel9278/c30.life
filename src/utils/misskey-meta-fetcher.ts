@@ -4,15 +4,14 @@ type Args = {
     host: string
 }
 
-type Data = {
-    version: string
+export type MetaData = {
     name: string
-    uri: string
     iconUrl: string
+    version: string
     disableRegistration: boolean
 }
 
 export const misskeyMetaFetcher = (args: Args) =>
     axios
         .post(`https://${args.host}/api/meta`, { detail: false })
-        .then((data: AxiosResponse<Data>) => data.data)
+        .then((data: AxiosResponse<MetaData>) => data.data)

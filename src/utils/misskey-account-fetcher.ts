@@ -5,14 +5,21 @@ type Args = {
     userid: string
 }
 
-export type UserData = {
+type Role = {
+    name: string
+    color: string
+    iconUrl: string
+}
+
+export type AccountData = {
     name: string
     username: string
-    avatarUrl: string
-    followersCount: number
-    followingCount: number
-    notesCount: number
     description: string
+    avatarUrl: string
+    notesCount: number
+    followingCount: number
+    followersCount: number
+    roles: Role[]
 }
 
 export const misskeyAccountFetcher = (args: Args) =>
@@ -21,4 +28,4 @@ export const misskeyAccountFetcher = (args: Args) =>
             username: args.userid,
             host: null,
         })
-        .then((data: AxiosResponse<UserData>) => data.data)
+        .then((data: AxiosResponse<AccountData>) => data.data)

@@ -24,12 +24,15 @@ function getAge(data: string) {
 
 const getCounter = async () => {
     if (existsSync("./.counter")) writeFileSync("./.counter", `0`)
-    const counter = readFileSync("./.counter", "utf8")
-    let count = parseInt(counter, 10)
 
-    count++
+    const counter: string = readFileSync("./.counter", "utf8")
+    let count: number = parseInt(counter, 10)
+
+    count = count + 1
 
     writeFileSync("./.counter", `${count}`)
+
+    console.log(count)
 
     return count
 }

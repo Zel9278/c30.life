@@ -1,13 +1,7 @@
-import { ReactNode } from "react"
-
-type Props = {
-    children?: ReactNode
-}
-
-export default function Footer(progs: Props) {
+export default function Footer() {
     return (
         <>
-            <footer className="footer footer-center p-4 bg-base-300 text-base-content sticky-footer row-start-2 row-end-3">
+            <footer className="footer footer-center p-4 bg-base-300 text-base-content sticky-footer">
                 <div>
                     <p>
                         Copyright © {new Date().getFullYear()} - All right

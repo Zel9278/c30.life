@@ -105,6 +105,15 @@ export default function Home() {
                                     Keyoxide
                                 </Link>
                             </li>
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://discord.gg/m5X4u2qWgZ"
+                                    className="btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    Discord
+                                </Link>
+                            </li>
                         </ul>
 
                         <div className="bg-zinc-800 w-full h-0.5 rounded" />

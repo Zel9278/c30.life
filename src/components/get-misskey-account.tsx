@@ -6,28 +6,12 @@ import Link from "next/link"
 import useSWR from "swr"
 import { misskeyAccountFetcher } from "@/utils/misskey-account-fetcher"
 import { misskeyMetaFetcher } from "@/utils/misskey-meta-fetcher"
+import { lookupService, resolveSoa } from "dns"
 
 type Props = {
     children?: ReactNode
     userid: string
     host: string
-    isCannotHost?: boolean
-}
-
-type AccountData = {
-    name: string
-    description: string
-    avatarUrl: string
-    notesCount: number
-    followingCount: number
-    followersCount: number
-}
-
-type MetaData = {
-    name: string
-    iconUrl: string
-    version: string
-    disableRegistration: boolean
 }
 
 export default function GetMisskeyAccount(progs: Props) {
@@ -39,7 +23,6 @@ export default function GetMisskeyAccount(progs: Props) {
         {
             host: progs.host,
             userid: progs.userid,
-            isCannotHost: progs.isCannotHost,
         },
         misskeyAccountFetcher
     )
@@ -116,6 +99,41 @@ export default function GetMisskeyAccount(progs: Props) {
                     >
                         @{accountData?.username}@{progs.host}
                     </Link>
+
+                    <div className="bg-zinc-800 w-full h-0.5 rounded my-2" />
+
+                    <ul className="flex">
+                        {accountData?.roles ? (
+                            accountData?.roles.length > 0 ? (
+                                accountData?.roles.map((role) => {
+                                    return (
+                                        <li key={role.name} className="flex">
+                                            <div
+                                                className="badge"
+                                                style={{
+                                                    borderColor: role.color,
+                                                }}
+                                            >
+                                                {role.iconUrl && (
+                                                    <Image
+                                                        src={role.iconUrl}
+                                                        alt={role.name}
+                                                        height={16}
+                                                        width={16}
+                                                    />
+                                                )}
+                                                {role.name}
+                                            </div>
+                                        </li>
+                                    )
+                                })
+                            ) : (
+                                <p>ロールなし</p>
+                            )
+                        ) : (
+                            <p>ロールが対応していないバージョンです。</p>
+                        )}
+                    </ul>
 
                     <div className="bg-zinc-800 w-full h-0.5 rounded my-2" />
 
