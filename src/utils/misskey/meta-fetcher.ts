@@ -11,7 +11,7 @@ export type MetaData = {
     disableRegistration: boolean
 }
 
-export const misskeyMetaFetcher = (args: Args) =>
-    axios
+export const misskeyMetaFetcher = async (args: Args) =>
+    await axios
         .post(`https://${args.host}/api/meta`, { detail: false })
         .then((data: AxiosResponse<MetaData>) => data.data)

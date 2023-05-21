@@ -1,5 +1,6 @@
 import GetMisskeyAccount from "@/components/get-misskey-account"
 import styles from "@/styles/Misskey.module.css"
+import { Metadata } from "next"
 import Head from "next/head"
 
 type UserData = {
@@ -138,31 +139,6 @@ const users: UserData[] = [
 export default function Home() {
     return (
         <>
-            <Head>
-                <title>c30 life - Misskey Links</title>
-                <meta
-                    name="description"
-                    content="c30のMisskeyのアカウントリストです。"
-                />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1"
-                />
-                <meta property="og:title" content="c30 life - Misskey Links" />
-                <meta property="og:locale" content="ja_JP" />
-                <meta property="og:site_name" content="c30 life" />
-                <meta property="og:type" content="homepage" />
-                <meta
-                    property="og:description"
-                    content="c30のMisskeyのアカウントリストです。"
-                />
-                <meta
-                    property="og:image"
-                    content="https://c30.life/c30_rounded.png"
-                />
-                <meta property="og:url" content="https://c30.life/misskey" />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
             <main>
                 <div className="text-center">
                     <p>c30が入ってるサーバーの数: {users.length}</p>
@@ -181,4 +157,15 @@ export default function Home() {
             </main>
         </>
     )
+}
+
+export function generateMetadata(): Metadata {
+    return {
+        description: "c30のMisskeyのアカウントリストです。",
+        openGraph: {
+            title: "misskey - c30 life",
+            description: "c30のMisskeyのアカウントリストです。",
+            url: "https://c30.life/misskey",
+        },
+    }
 }

@@ -22,8 +22,8 @@ export type AccountData = {
     roles: Role[]
 }
 
-export const misskeyAccountFetcher = (args: Args) =>
-    axios
+export const misskeyAccountFetcher = async (args: Args) =>
+    await axios
         .post(`https://${args.host}/api/users/show`, {
             username: args.userid,
             host: null,

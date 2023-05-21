@@ -1,28 +1,10 @@
+import { Metadata } from "next"
 import Head from "next/head"
 import Link from "next/link"
 
 export default function Home() {
     return (
         <>
-            <Head>
-                <title>c30 life - Links</title>
-                <meta name="description" content="c30のリンク集です。" />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1"
-                />
-                <meta property="og:title" content="c30 life - Links" />
-                <meta property="og:locale" content="ja_JP" />
-                <meta property="og:site_name" content="c30 life" />
-                <meta property="og:type" content="homepage" />
-                <meta property="og:description" content="c30のリンク集です。" />
-                <meta
-                    property="og:image"
-                    content="https://c30.life/c30_rounded.png"
-                />
-                <meta property="og:url" content="https://c30.life/links" />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
             <main>
                 <div className="card w-auto bg-base-300 shadow-xl m-5">
                     <div className="card-body items-center text-center">
@@ -163,4 +145,18 @@ export default function Home() {
             </main>
         </>
     )
+}
+
+export function generateMetadata(): Metadata {
+    return {
+        description: "c30のリンク集です。",
+        openGraph: {
+            title: "links - c30 life",
+            description: "c30のリンク集です。",
+            url: "https://c30.life/links",
+        },
+        twitter: {
+            description: "c30のリンク集です。",
+        },
+    }
 }

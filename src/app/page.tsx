@@ -3,6 +3,7 @@ import Image from "next/image"
 import { readFileSync, writeFileSync, existsSync } from "fs"
 import homeStyles from "@/styles/Home.module.css"
 import Fireworks from "@/components/fireworks"
+import { Metadata, MetadataRoute } from "next"
 
 function getAge(data: string) {
     let splitData = data.split("/")
@@ -23,16 +24,12 @@ function getAge(data: string) {
 }
 
 const getCounter = async () => {
-    if (existsSync("./.counter")) writeFileSync("./.counter", `0`)
-
     const counter: string = readFileSync("./.counter", "utf8")
     let count: number = parseInt(counter, 10)
 
     count = count + 1
 
     writeFileSync("./.counter", `${count}`)
-
-    console.log(count)
 
     return count
 }
@@ -42,28 +39,6 @@ export default async function Home() {
 
     return (
         <>
-            <Head>
-                <title>c30 life</title>
-                <meta name="description" content="c30のホームページです。" />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1"
-                />
-                <meta property="og:title" content="c30 life" />
-                <meta property="og:locale" content="ja_JP" />
-                <meta property="og:site_name" content="c30 life" />
-                <meta property="og:type" content="homepage" />
-                <meta
-                    property="og:description"
-                    content="c30のホームページです。"
-                />
-                <meta
-                    property="og:image"
-                    content="https://c30.life/c30_rounded.png"
-                />
-                <meta property="og:url" content="https://c30.life" />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
             <main>
                 <div className="text-center text-2xl">
                     <p>

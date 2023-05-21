@@ -4,9 +4,8 @@ import { ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import useSWR from "swr"
-import { misskeyAccountFetcher } from "@/utils/misskey-account-fetcher"
-import { misskeyMetaFetcher } from "@/utils/misskey-meta-fetcher"
-import { lookupService, resolveSoa } from "dns"
+import { misskeyAccountFetcher } from "@/utils/misskey/account-fetcher"
+import { misskeyMetaFetcher } from "@/utils/misskey/meta-fetcher"
 
 type Props = {
     children?: ReactNode
@@ -102,31 +101,29 @@ export default function GetMisskeyAccount(progs: Props) {
 
                     <div className="bg-zinc-800 w-full h-0.5 rounded my-2" />
 
-                    <ul className="flex">
+                    <ul className="flex flex-wrap">
                         {accountData?.roles ? (
-                            accountData?.roles.length > 0 ? (
-                                accountData?.roles.map((role) => {
-                                    return (
-                                        <li key={role.name} className="flex">
-                                            <div
-                                                className="badge"
-                                                style={{
-                                                    borderColor: role.color,
-                                                }}
-                                            >
-                                                {role.iconUrl && (
-                                                    <Image
-                                                        src={role.iconUrl}
-                                                        alt={role.name}
-                                                        height={16}
-                                                        width={16}
-                                                    />
-                                                )}
-                                                {role.name}
-                                            </div>
-                                        </li>
-                                    )
-                                })
+                            accountData?.roles?.length ? (
+                                accountData?.roles.map((role) => (
+                                    <li key={role.name} className="flex">
+                                        <div
+                                            className="badge"
+                                            style={{
+                                                borderColor: role.color,
+                                            }}
+                                        >
+                                            {role.iconUrl && (
+                                                <Image
+                                                    src={role.iconUrl}
+                                                    alt={role.name}
+                                                    height={16}
+                                                    width={16}
+                                                />
+                                            )}
+                                            {role.name}
+                                        </div>
+                                    </li>
+                                ))
                             ) : (
                                 <p>ロールなし</p>
                             )
