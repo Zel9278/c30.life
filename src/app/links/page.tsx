@@ -1,5 +1,4 @@
 import { Metadata } from "next"
-import Head from "next/head"
 import Link from "next/link"
 
 export default function Home() {
@@ -40,6 +39,15 @@ export default function Home() {
                                     target="_blank"
                                 >
                                     Fedibird
+                                </Link>
+                            </li>
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://bsky.app/profile/c30.life"
+                                    className="btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    Bluesky
                                 </Link>
                             </li>
                             <li className="p-0.5">
@@ -137,6 +145,62 @@ export default function Home() {
                                     target="_blank"
                                 >
                                     Progress Bar for Days Web
+                                </Link>
+                            </li>
+                        </ul>
+
+                        <div className="bg-zinc-800 w-full h-0.5 rounded" />
+
+                        <h2 className="text-stone-400">My Fediverse Server</h2>
+
+                        <ul className="flex flex-wrap text-center">
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://m.c30.life"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    せどすきー(Misskey)
+                                </Link>
+                            </li>
+
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://a.c30.life"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    せどこま(Akkoma)
+                                </Link>
+                            </li>
+
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://fb.c30.life"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    せどばーど(fedibird)
+                                </Link>
+                            </li>
+
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://ck.c30.life"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    せどくっきー(calckey)
+                                </Link>
+                            </li>
+
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://d.c30.life"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    せどぴん(dolphin)
                                 </Link>
                             </li>
                         </ul>

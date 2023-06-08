@@ -3,7 +3,6 @@ import Image from "next/image"
 import { readFileSync, writeFileSync, existsSync } from "fs"
 import homeStyles from "@/styles/Home.module.css"
 import Fireworks from "@/components/fireworks"
-import { Metadata, MetadataRoute } from "next"
 
 function getAge(data: string) {
     let splitData = data.split("/")

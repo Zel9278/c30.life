@@ -1,7 +1,6 @@
 import GetMisskeyAccount from "@/components/get-misskey-account"
 import styles from "@/styles/Misskey.module.css"
 import { Metadata } from "next"
-import Head from "next/head"
 
 type UserData = {
     host: string
@@ -22,6 +21,10 @@ const users: UserData[] = [
         userId: "c30",
     },
     {
+        host: "ck.c30.life",
+        userId: "c30",
+    },
+    {
         host: "mi-wo.site",
         userId: "c30",
     },
@@ -30,15 +33,19 @@ const users: UserData[] = [
         userId: "c30",
     },
     {
+        host: "soukun.xyz",
+        userId: "c30",
+    },
+    {
+        host: "nijimiss.moe",
+        userId: "c30",
+    },
+    {
         host: "otoskey.tarbin.net",
         userId: "c30",
     },
     {
         host: "novelskey.tarbin.net",
-        userId: "c30",
-    },
-    {
-        host: "nullskey.com",
         userId: "c30",
     },
     {
@@ -59,6 +66,10 @@ const users: UserData[] = [
     },
     {
         host: "kokuzei.cyou",
+        userId: "c30",
+    },
+    {
+        host: "nekomiya.net",
         userId: "c30",
     },
     {
@@ -106,6 +117,10 @@ const users: UserData[] = [
         userId: "c30",
     },
     {
+        host: "mk.shumihub.net",
+        userId: "c30",
+    },
+    {
         host: "misskey.noellabo.jp",
         userId: "c30",
     },
@@ -115,6 +130,10 @@ const users: UserData[] = [
     },
     {
         host: "misskey.yukineko.me",
+        userId: "c30",
+    },
+    {
+        host: "misskey.kindworld.one",
         userId: "c30",
     },
     {

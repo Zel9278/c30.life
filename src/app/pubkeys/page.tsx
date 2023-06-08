@@ -1,5 +1,4 @@
 import { Metadata } from "next"
-import Head from "next/head"
 
 export default function Home() {
     return (
@@ -19,6 +18,10 @@ export default function Home() {
                 <div>
                     <h1>Switch</h1>
                     <p>SW-2401-9682-4232</p>
+                </div>
+                <div>
+                    <h1>Steam</h1>
+                    <p>1012960934 / fuji_midi</p>
                 </div>
             </main>
         </>

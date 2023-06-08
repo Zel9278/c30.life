@@ -45,6 +45,7 @@ export function generateMetadata(): Metadata {
             description,
             site: "@c30_eo",
             creator: "@c30_eo",
+            images: `${url}/c30_rounded.png`,
         },
     }
 }
