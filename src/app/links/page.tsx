@@ -176,16 +176,6 @@ export default function Home() {
 
                             <li className="p-0.5">
                                 <Link
-                                    href="https://fb.c30.life"
-                                    className=" btn btn-outline btn-info"
-                                    target="_blank"
-                                >
-                                    せどばーど(fedibird)
-                                </Link>
-                            </li>
-
-                            <li className="p-0.5">
-                                <Link
                                     href="https://ck.c30.life"
                                     className=" btn btn-outline btn-info"
                                     target="_blank"
@@ -201,6 +191,36 @@ export default function Home() {
                                     target="_blank"
                                 >
                                     せどぴん(dolphin)
+                                </Link>
+                            </li>
+
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://gs.c30.life"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    GS30(gotosocial)
+                                </Link>
+                            </li>
+
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://md.c30.life"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    せどん(mastodon)
+                                </Link>
+                            </li>
+
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://sk.c30.life"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    せしむ(simkey)
                                 </Link>
                             </li>
                         </ul>

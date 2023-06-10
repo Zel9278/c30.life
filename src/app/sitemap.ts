@@ -24,5 +24,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
             url: `${root}/pubkeys`,
             lastModified: new Date(),
         },
+        {
+            url: `${root}/info`,
+            lastModified: new Date(),
+        },
     ]
 }

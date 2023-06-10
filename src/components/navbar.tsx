@@ -45,6 +45,9 @@ export default function NavBar() {
                                     <li>
                                         <Link href="/pubkeys">Public keys</Link>
                                     </li>
+                                    <li>
+                                        <Link href="/info">Info</Link>
+                                    </li>
                                 </ul>
                             </li>
                         </ul>

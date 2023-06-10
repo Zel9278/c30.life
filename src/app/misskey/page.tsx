@@ -29,6 +29,10 @@ const users: UserData[] = [
         userId: "c30",
     },
     {
+        host: "sk.c30.life",
+        userId: "c30",
+    },
+    {
         host: "premis.one",
         userId: "c30",
     },
