@@ -135,6 +135,26 @@ export default async function Home() {
                         </div>
                     </div>
                 </div>
+                <div>
+                    <div className="card w-auto bg-base-300 shadow-xl m-5">
+                        <div className="card-body items-center text-center">
+                            <h2 className="card-title">ユーザーリンク</h2>
+                            <div id="user-links">
+                                <ul>
+                                    <li>
+                                        <a
+                                            href="http://aratamapalace.web.fc2.com/"
+                                            target="_blank"
+                                            className="link link-primary"
+                                        >
+                                            ルート45
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <p className="text-base-100 hover:text-white text-center">
                     特になにもないよ
                 </p>

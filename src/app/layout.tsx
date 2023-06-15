@@ -2,6 +2,7 @@ import NavBar from "@/components/navbar"
 import "@/styles/globals.css"
 import Footer from "@/components/footer"
 import { Metadata } from "next"
+import Drawer from "@/components/drawer"
 
 const siteName = "c30 life"
 const description = "c30のホームページです。"
@@ -16,8 +17,24 @@ export default function RootLayout({
         <html lang="ja">
             <body>
                 <NavBar />
-                {children}
-                <Footer />
+                <Drawer>
+                    {children}
+                    <a
+                        rel="me"
+                        href="https://fedibird.com/@c30"
+                        style={{ display: "none" }}
+                    >
+                        Fedibird
+                    </a>
+                    <a
+                        rel="me"
+                        href="https://misskey.art/@c30"
+                        style={{ display: "none" }}
+                    >
+                        Misskey.art
+                    </a>
+                    <Footer />
+                </Drawer>
             </body>
         </html>
     )

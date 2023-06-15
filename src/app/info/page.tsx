@@ -28,8 +28,12 @@ export default async function Home() {
                     <li>Node.jsバージョン: {data.nodeVersion}</li>
                     <li>TypeScriptバージョン: {data.tsVersion}</li>
                     <li>Next.jsバージョン: {data.nextVersion}</li>
-                    <li>Sitemap: <Link href="/sitemap.xml">sitemap.xml</Link></li>
-                    <li>Robots: <Link href="/robots.txt">robots.txt</Link></li>
+                    <li>
+                        Sitemap: <Link href="/sitemap.xml">sitemap.xml</Link>
+                    </li>
+                    <li>
+                        Robots: <Link href="/robots.txt">robots.txt</Link>
+                    </li>
                 </ul>
             </main>
         </>
