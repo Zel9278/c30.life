@@ -29,10 +29,13 @@ export default async function Home() {
                     <li>TypeScriptバージョン: {data.tsVersion}</li>
                     <li>Next.jsバージョン: {data.nextVersion}</li>
                     <li>
-                        Sitemap: <Link href="/sitemap.xml">sitemap.xml</Link>
+                        Sitemap: <Link href="/sitemap.xml" className="link link-primary" target="_blank">sitemap.xml</Link>
                     </li>
                     <li>
-                        Robots: <Link href="/robots.txt">robots.txt</Link>
+                        Robots: <Link href="/robots.txt" className="link link-primary" target="_blank">robots.txt</Link>
+                    </li>
+                    <li>
+                        Repository: <Link href="https://github.com/Zel9278/c30.life" className="link link-primary" target="_blank">git:zel9278/c30.life</Link>
                     </li>
                 </ul>
             </main>
