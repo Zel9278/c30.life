@@ -10,6 +10,7 @@ import { misskeyMetaFetcher } from "@/utils/misskey/meta-fetcher"
 type Props = {
     children?: ReactNode
     userid: string
+    isNSFW?: boolean
     host: string
 }
 
@@ -74,7 +75,13 @@ export default function GetMisskeyAccount(progs: Props) {
 
     return (
         <>
-            <li className="card w-auto bg-base-300 shadow-xl flex flex-row">
+            <li
+                className={
+                    progs.isNSFW
+                        ? "card w-auto bg-base-300 shadow-xl flex flex-row blur-md hover:blur-none"
+                        : "card w-auto bg-base-300 shadow-xl flex flex-row"
+                }
+            >
                 <figure>
                     {accountData?.avatarUrl && (
                         <Image

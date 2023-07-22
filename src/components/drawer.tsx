@@ -20,6 +20,12 @@ export default function Drawer(progs: Props) {
                         <Link href="/misskey">Misskey Links</Link>
                     </li>
                     <li>
+                        <Link href="/servers">My Fediverse Servers</Link>
+                    </li>
+                    <li>
+                        <Link href="/midis">MIDI Downloads</Link>
+                    </li>
+                    <li>
                         <Link href="/mdic">Misskey Default Icon Checker</Link>
                     </li>
                     <li>

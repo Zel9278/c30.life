@@ -28,5 +28,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
             url: `${root}/info`,
             lastModified: new Date(),
         },
+        {
+            url: `${root}/servers`,
+            lastModified: new Date(),
+        },
     ]
 }

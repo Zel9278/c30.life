@@ -156,71 +156,11 @@ export default function Home() {
                         <ul className="flex flex-wrap text-center">
                             <li className="p-0.5">
                                 <Link
-                                    href="https://m.c30.life"
+                                    href="https://mi-wo.site"
                                     className=" btn btn-outline btn-info"
                                     target="_blank"
                                 >
-                                    せどすきー(Misskey)
-                                </Link>
-                            </li>
-
-                            <li className="p-0.5">
-                                <Link
-                                    href="https://a.c30.life"
-                                    className=" btn btn-outline btn-info"
-                                    target="_blank"
-                                >
-                                    せどこま(Akkoma)
-                                </Link>
-                            </li>
-
-                            <li className="p-0.5">
-                                <Link
-                                    href="https://ck.c30.life"
-                                    className=" btn btn-outline btn-info"
-                                    target="_blank"
-                                >
-                                    せどくっきー(calckey)
-                                </Link>
-                            </li>
-
-                            <li className="p-0.5">
-                                <Link
-                                    href="https://d.c30.life"
-                                    className=" btn btn-outline btn-info"
-                                    target="_blank"
-                                >
-                                    せどぴん(dolphin)
-                                </Link>
-                            </li>
-
-                            <li className="p-0.5">
-                                <Link
-                                    href="https://gs.c30.life"
-                                    className=" btn btn-outline btn-info"
-                                    target="_blank"
-                                >
-                                    GS30(gotosocial)
-                                </Link>
-                            </li>
-
-                            <li className="p-0.5">
-                                <Link
-                                    href="https://md.c30.life"
-                                    className=" btn btn-outline btn-info"
-                                    target="_blank"
-                                >
-                                    せどん(mastodon)
-                                </Link>
-                            </li>
-
-                            <li className="p-0.5">
-                                <Link
-                                    href="https://sk.c30.life"
-                                    className=" btn btn-outline btn-info"
-                                    target="_blank"
-                                >
-                                    せしむ(simkey)
+                                    Misskeyをしよう
                                 </Link>
                             </li>
                         </ul>

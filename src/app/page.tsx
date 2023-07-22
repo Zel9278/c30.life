@@ -61,7 +61,16 @@ export default async function Home() {
                                 </figure>
                                 <h2 className="card-title">自己紹介</h2>
                                 <p className="text-lg">
-                                    いろいろな趣味を持っている変なポットであり空の存在です、最近はMisskeyのサーバー「Misskey.art」の運営をしています。
+                                    いろいろな趣味を持っている変なポットであり空の存在です。
+                                    <br />
+                                    Misskey系列のサーバーの
+                                    <a
+                                        href="https://mi-wo.site"
+                                        className="text-sky-500 hover:text-sky-700"
+                                    >
+                                        Misskeyをしよう
+                                    </a>
+                                    の運営をしています。
                                 </p>
                                 <div className="bg-zinc-800 w-full h-0.5 rounded" />
                                 <h3 className="text-sm text-stone-400">
@@ -94,8 +103,8 @@ export default async function Home() {
                                         <p className="text-sm text-stone-400">
                                             生地
                                         </p>
-                                        <p>Misskey</p>
-                                        <p className="text-sm">art町</p>
+                                        <p>Aichi</p>
+                                        <p className="text-sm">Nagoya</p>
                                     </div>
                                 </div>
                                 <div className="bg-zinc-800 w-full h-0.5 rounded" />
@@ -135,23 +144,47 @@ export default async function Home() {
                         </div>
                     </div>
                 </div>
-                <div>
+                <div className="bg-zinc-800 w-full h-0.5 rounded" />
+                <div className={homeStyles["self-introduction"]}>
                     <div className="card w-auto bg-base-300 shadow-xl m-5">
                         <div className="card-body items-center text-center">
-                            <h2 className="card-title">ユーザーリンク</h2>
-                            <div id="user-links">
-                                <ul>
-                                    <li>
-                                        <a
-                                            href="http://aratamapalace.web.fc2.com/"
-                                            target="_blank"
-                                            className="link link-primary"
-                                        >
-                                            ルート45
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+                            <h2 className="card-title">ログ</h2>
+                            <ul>
+                                <li>
+                                    <p className="text-lg">
+                                        2016～2018:
+                                        MCPEのmodをすこし作る、Discordのbot(ZeriaBot)を作る
+                                    </p>
+                                </li>
+                                <li>
+                                    <p className="text-lg">
+                                        2017～:
+                                        BlackMIDI、黒楽譜を作り始める、動画投稿をし始める
+                                    </p>
+                                </li>
+                                <li>
+                                    <p className="text-lg">
+                                        2022/11/15:
+                                        Misskey.ioに登録した、色々な人と関わり始めた
+                                    </p>
+                                </li>
+                                <li>
+                                    <p className="text-lg">
+                                        2022/12/24: Misskeyをしようを開設した
+                                    </p>
+                                </li>
+                                <li>
+                                    <p className="text-lg">
+                                        2023/02/06: Misskey.artを開設した
+                                    </p>
+                                </li>
+                                <li>
+                                    <p className="text-lg">
+                                        2023/07/09: Misskey.art運営
+                                        辞退、裏方へ移動
+                                    </p>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
