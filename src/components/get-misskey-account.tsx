@@ -14,6 +14,27 @@ type Props = {
     host: string
 }
 
+type Softwares =
+    | "https://github.com/misskey-dev/misskey"
+    | "https://codeberg.org/calckey/calckey"
+    | "https://github.com/sim1222/misskey"
+    | "https://git.joinfirefish.org/firefish/firefish"
+    | "https://codeberg.org/firefish/firefish"
+    | "https://akkoma.dev/FoundKeyGang/FoundKey"
+    | "https://github.com/taiyme/misskey"
+    | "no software"
+
+const softwares: { [key in Softwares]: string } = {
+    "https://github.com/misskey-dev/misskey": "Misskey",
+    "https://codeberg.org/calckey/calckey": "Calckey",
+    "https://github.com/sim1222/misskey": "Simkey",
+    "https://git.joinfirefish.org/firefish/firefish": "Firefish",
+    "https://codeberg.org/firefish/firefish": "Firefish",
+    "https://akkoma.dev/FoundKeyGang/FoundKey": "FoundKey",
+    "https://github.com/taiyme/misskey": "Submarin",
+    "no software": "Old or Hidden Misskey Fork",
+}
+
 export default function GetMisskeyAccount(progs: Props) {
     const {
         data: accountData,
@@ -72,6 +93,8 @@ export default function GetMisskeyAccount(progs: Props) {
                 </li>
             </>
         )
+
+    const software = (metaData?.repositoryUrl || "no software") as Softwares
 
     return (
         <>
@@ -196,6 +219,11 @@ export default function GetMisskeyAccount(progs: Props) {
                                 >
                                     {metaData?.name}
                                 </Link>
+                            </p>
+
+                            <p>
+                                Software:{" "}
+                                {softwares[software] || "Other Misskey Fork"}
                             </p>
 
                             <p>Version: {metaData?.version}</p>

@@ -25,7 +25,7 @@ export default function Home() {
                             </li>
                             <li className="p-0.5">
                                 <Link
-                                    href="https://twitter.com/c30_eo"
+                                    href="https://twitter.com/c30_life"
                                     className=" btn btn-outline btn-info"
                                     target="_blank"
                                 >

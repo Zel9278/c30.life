@@ -111,6 +111,13 @@ const privateServers: Server[] = [
         created_at: "2023-07-09",
         status: "active",
     },
+    {
+        name: "ab62",
+        url: "https://ab62.icu",
+        software: "Misskey",
+        created_at: "2023-07-22",
+        status: "active",
+    },
 ]
 
 export default function Home() {

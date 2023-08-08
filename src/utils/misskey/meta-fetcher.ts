@@ -9,6 +9,7 @@ export type MetaData = {
     iconUrl: string
     version: string
     disableRegistration: boolean
+    repositoryUrl: string
 }
 
 export const misskeyMetaFetcher = async (args: Args) =>

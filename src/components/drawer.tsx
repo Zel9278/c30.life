@@ -14,7 +14,12 @@ export default function Drawer(progs: Props) {
                 <label htmlFor="drawer" className="drawer-overlay"></label>
                 <ul className="menu p-4 w-80 h-full bg-base-200 text-base-content">
                     <li>
-                        <Link href="/links">Links</Link>
+                        <Link href="https://blog.c30.life" target="_blank">
+                            Blog
+                        </Link>
+                    </li>
+                    <li>
+                        <Link href="/links">Links(external link)</Link>
                     </li>
                     <li>
                         <Link href="/misskey">Misskey Links</Link>
@@ -30,6 +35,11 @@ export default function Drawer(progs: Props) {
                     </li>
                     <li>
                         <Link href="/pubkeys">Public keys</Link>
+                    </li>
+                    <li>
+                        <Link href="/underbar-server-block-list">
+                            Underbar Server Block List
+                        </Link>
                     </li>
                     <li>
                         <Link href="/info">Info</Link>
