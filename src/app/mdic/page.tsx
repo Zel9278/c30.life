@@ -2,7 +2,7 @@
 
 import Head from "next/head"
 import Image from "next/image"
-import { useState } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 
 export default function Home() {

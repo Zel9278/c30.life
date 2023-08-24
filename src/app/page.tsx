@@ -1,6 +1,5 @@
-import Head from "next/head"
 import Image from "next/image"
-import { readFileSync, writeFileSync, existsSync } from "fs"
+import { readFileSync, writeFileSync } from "fs"
 import homeStyles from "@/styles/Home.module.css"
 import Fireworks from "@/components/fireworks"
 

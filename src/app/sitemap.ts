@@ -17,6 +17,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
             lastModified: new Date(),
         },
         {
+            url: `${root}/mastodon`,
+            lastModified: new Date(),
+        },
+        {
             url: `${root}/mdic`,
             lastModified: new Date(),
         },

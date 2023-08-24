@@ -15,14 +15,17 @@ export default function Drawer(progs: Props) {
                 <ul className="menu p-4 w-80 h-full bg-base-200 text-base-content">
                     <li>
                         <Link href="https://blog.c30.life" target="_blank">
-                            Blog
+                            Blog(external link)
                         </Link>
                     </li>
                     <li>
-                        <Link href="/links">Links(external link)</Link>
+                        <Link href="/links">Links</Link>
                     </li>
                     <li>
                         <Link href="/misskey">Misskey Links</Link>
+                    </li>
+                    <li>
+                        <Link href="/mastodon">Mastodon Links</Link>
                     </li>
                     <li>
                         <Link href="/servers">My Fediverse Servers</Link>

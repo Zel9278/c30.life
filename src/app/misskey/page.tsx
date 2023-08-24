@@ -42,7 +42,19 @@ const users: UserData[] = [
         userId: "c30",
     },
     {
+        host: "192.95.21.213",
+        userId: "c30",
+    },
+    {
+        host: "[2400:8902::f03c:93ff:fe6d:ba4f]",
+        userId: "c30",
+    },
+    {
         host: "9ineverse.com",
+        userId: "c30",
+    },
+    {
+        host: "oekakiskey.com",
         userId: "c30",
     },
     {

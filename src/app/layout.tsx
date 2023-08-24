@@ -33,6 +33,13 @@ export default function RootLayout({
                     >
                         Misskey.art
                     </a>
+                    <a
+                        rel="me"
+                        href="https://kizzkey.cloud/@c30"
+                        style={{ display: "none" }}
+                    >
+                        kizzkey.cloud
+                    </a>
                     <Footer />
                 </Drawer>
             </body>
