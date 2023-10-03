@@ -6,9 +6,10 @@ type UserData = {
     host: string
     userId: string
     isNSFW?: boolean
+    isPleroma?: boolean
 }
 
-const users: UserData[] = [
+const mastodonUsers: UserData[] = [
     {
         host: "fedibird.com",
         userId: "c30",
@@ -18,16 +19,40 @@ const users: UserData[] = [
         userId: "clive64",
     },
     {
+        host: "mstdn.kizzkey.cloud",
+        userId: "c30",
+    },
+    {
         host: "mastodon.art",
         userId: "c30",
+    },
+]
+
+const pleromaUsers: UserData[] = [
+    {
+        host: "aa.nikola.love",
+        userId: "c30",
+        isPleroma: true,
+    },
+    {
+        host: "ple.kizzkey.cloud",
+        userId: "c30",
+        isPleroma: true,
     },
     {
         host: "blob.cat",
         userId: "c30",
+        isPleroma: true,
     },
     {
         host: "fedi.absturztau.be",
         userId: "c30",
+        isPleroma: true,
+    },
+    {
+        host: "hkgk.nishi.boats",
+        userId: "c30",
+        isPleroma: true,
     },
 ]
 
@@ -36,17 +61,36 @@ export default function Home() {
         <>
             <main>
                 <div className="text-center">
-                    <p>c30が入ってるサーバーの数: {users.length}</p>
+                    <p>
+                        c30が入ってるサーバーの数:{" "}
+                        {mastodonUsers.length + pleromaUsers.length}
+                    </p>
                 </div>
                 <div className="bg-zinc-800 w-full h-0.5 rounded mt-4 mb-4" />
-                <h1 className="text-center">アカウント</h1>
+                <h1 className="text-center">Mastodonのアカウント</h1>
                 <ul className={styles["card-container"]}>
-                    {users.map((user, i) => {
+                    {mastodonUsers.map((user, i) => {
                         return (
                             <GetMastodonAccount
                                 host={user.host}
                                 userid={user.userId}
                                 isNSFW={user.isNSFW}
+                                isPleroma={user.isPleroma}
+                                key={i}
+                            />
+                        )
+                    })}
+                </ul>
+                <div className="bg-zinc-800 w-full h-0.5 rounded mt-4 mb-4" />
+                <h1 className="text-center">Pleroma / Akkomaのアカウント</h1>
+                <ul className={styles["card-container"]}>
+                    {pleromaUsers.map((user, i) => {
+                        return (
+                            <GetMastodonAccount
+                                host={user.host}
+                                userid={user.userId}
+                                isNSFW={user.isNSFW}
+                                isPleroma={user.isPleroma}
                                 key={i}
                             />
                         )

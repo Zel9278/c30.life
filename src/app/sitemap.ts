@@ -37,7 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
             lastModified: new Date(),
         },
         {
-            url: `${root}/underbar-server-block-list`,
+            url: `${root}/server-block-list`,
             lastModified: new Date(),
         },
     ]

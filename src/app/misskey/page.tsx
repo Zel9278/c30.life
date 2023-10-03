@@ -18,16 +18,24 @@ const mainUsedUsers: UserData[] = [
         userId: "c30",
     },
     {
-        host: "mi-wo.site",
+        host: "shelter.kizzkey.cloud",
         userId: "c30",
     },
     {
-        host: "ab62.icu",
+        host: "mi-wo.site",
         userId: "c30",
     },
 ]
 
 const users: UserData[] = [
+    {
+        host: "mi.kizzkey.cloud",
+        userId: "c30",
+    },
+    {
+        host: "fk.kizzkey.cloud",
+        userId: "c30",
+    },
     {
         host: "soukun.xyz",
         userId: "c30",
@@ -39,14 +47,6 @@ const users: UserData[] = [
     },
     {
         host: "ddoskey.com",
-        userId: "c30",
-    },
-    {
-        host: "192.95.21.213",
-        userId: "c30",
-    },
-    {
-        host: "[2400:8902::f03c:93ff:fe6d:ba4f]",
         userId: "c30",
     },
     {
@@ -83,10 +83,6 @@ const users: UserData[] = [
     },
     {
         host: "kokt.club",
-        userId: "c30",
-    },
-    {
-        host: "kokuzei.cyou",
         userId: "c30",
     },
     {

@@ -40,8 +40,8 @@ export default function Drawer(progs: Props) {
                         <Link href="/pubkeys">Public keys</Link>
                     </li>
                     <li>
-                        <Link href="/underbar-server-block-list">
-                            Underbar Server Block List
+                        <Link href="/server-block-list">
+                            Server Block List
                         </Link>
                     </li>
                     <li>

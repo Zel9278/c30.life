@@ -11,6 +11,7 @@ type Props = {
     children?: ReactNode
     userid: string
     isNSFW?: boolean
+    isPleroma?: boolean
     host: string
 }
 
@@ -102,7 +103,9 @@ export default function GetMastodonAccount(progs: Props) {
                     </div>
 
                     <Link
-                        href={`https://${progs.host}/@${progs.userid}`}
+                        href={`https://${progs.host}/${
+                            !progs.isPleroma ? "@" : ""
+                        }${progs.userid}`}
                         className="text-green-300 hover:text-green-500"
                         target="_blank"
                     >

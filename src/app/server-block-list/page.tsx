@@ -7,12 +7,24 @@ type Server = {
 
 const servers: Server[] = [
     {
-        uri: "xxxxxxxxx.xx",
+        uri: "gnusocial.jp",
         reason: "Server administrator suspicious.",
     },
     {
-        uri: "xxxxxxx.xxxx",
+        uri: "micolor.link",
         reason: "Because of offensive behaviour by the server operator towards me and attacks on certain servers.",
+    },
+    {
+        uri: "prismisskey.space",
+        reason: "Same reason as micolor.link",
+    },
+    {
+        uri: "tech.lgbt",
+        reason: "Trying to impose the laws of your own country despite the fact that countries have different laws from each other (an act of self-governance), and pretending that the function of NSFW does not exist despite the fact that it does, and exposing the post.",
+    },
+    {
+        uri: "kids.0px.io",
+        reason: "Servers dealing with users under the age of 13, lawless.",
     },
 ]
 
@@ -20,15 +32,9 @@ export default async function Home() {
     return (
         <>
             <main>
-                <h1 className="text-4xl font-bold">
-                    Underbar Server Block List
-                </h1>
+                <h1 className="text-4xl font-bold">Server Block List</h1>
                 <p className="text-lg">
-                    Misskeyのサーバー「あんだーばー」のサーバーブロックリストです。
-                </p>
-                <p>xで隠されているのは検索回避です。</p>
-                <p>
-                    このブロックリストは「木月（kizzkey）」「mi-wo.site」でも適用されます。
+                    kizzkey.cloudのサーバーブロックリストです。
                 </p>
                 <table className="table w-full">
                     <thead>
@@ -61,13 +67,11 @@ export default async function Home() {
 
 export function generateMetadata(): Metadata {
     return {
-        description:
-            "Misskeyのサーバー「あんだーばー」のサーバーブロックリストです。",
+        description: "kizzkey.cloudのサーバーブロックリストです。",
         openGraph: {
-            title: "Underbar Server Block List - c30 life",
-            description:
-                "Misskeyのサーバー「あんだーばー」のサーバーブロックリストです。",
-            url: "https://c30.life/underbar-server-block-list",
+            title: "Server Block List - c30 life",
+            description: "kizzkey.cloudのサーバーブロックリストです。",
+            url: "https://c30.life/server-block-list",
         },
     }
 }
