@@ -1,7 +1,8 @@
 import Image from "next/image"
-import { readFileSync, writeFileSync } from "fs"
+import { writeFileSync } from "fs"
 import homeStyles from "@/styles/Home.module.css"
 import Fireworks from "@/components/fireworks"
+import Counter from "@/.counter.json"
 
 function getAge(data: string) {
     let splitData = data.split("/")
@@ -22,12 +23,11 @@ function getAge(data: string) {
 }
 
 const getCounter = async () => {
-    const counter: string = readFileSync("./.counter", "utf8")
-    let count: number = parseInt(counter, 10)
+    let count: number = Counter.count
 
-    count = count + 1
+    count++
 
-    writeFileSync("./.counter", `${count}`)
+    writeFileSync("./src/.counter.json", JSON.stringify(Counter, null, 2))
 
     return count
 }
@@ -70,6 +70,8 @@ export default async function Home() {
                                         Misskeyをしよう
                                     </a>
                                     の運営をしています。
+                                    <br />
+                                    知的障害、うつ病、自閉症スペクトラム持ちです。
                                 </p>
                                 <div className="bg-zinc-800 w-full h-0.5 rounded" />
                                 <h3 className="text-sm text-stone-400">
@@ -151,14 +153,23 @@ export default async function Home() {
                             <ul>
                                 <li>
                                     <p className="text-lg">
-                                        2016～2018:
-                                        MCPEのmodをすこし作る、Discordのbot(ZeriaBot)を作る
+                                        2023/10/29: Misskey.art運営再開
                                     </p>
                                 </li>
                                 <li>
                                     <p className="text-lg">
-                                        2017～:
-                                        BlackMIDI、黒楽譜を作り始める、動画投稿をし始める
+                                        2023/07/09: Misskey.artのリーダーを
+                                        辞退、裏方へ移動
+                                    </p>
+                                </li>
+                                <li>
+                                    <p className="text-lg">
+                                        2023/02/06: Misskey.artを開設した
+                                    </p>
+                                </li>
+                                <li>
+                                    <p className="text-lg">
+                                        2022/12/24: Misskeyをしようを開設した
                                     </p>
                                 </li>
                                 <li>
@@ -169,18 +180,14 @@ export default async function Home() {
                                 </li>
                                 <li>
                                     <p className="text-lg">
-                                        2022/12/24: Misskeyをしようを開設した
+                                        2017～:
+                                        BlackMIDI、黒楽譜を作り始める、動画投稿をし始める
                                     </p>
                                 </li>
                                 <li>
                                     <p className="text-lg">
-                                        2023/02/06: Misskey.artを開設した
-                                    </p>
-                                </li>
-                                <li>
-                                    <p className="text-lg">
-                                        2023/07/09: Misskey.art運営
-                                        辞退、裏方へ移動
+                                        2016～2018:
+                                        MCPEのmodをすこし作る、Discordのbot(ZeriaBot)を作る
                                     </p>
                                 </li>
                             </ul>
