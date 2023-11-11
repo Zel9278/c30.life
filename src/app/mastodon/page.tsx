@@ -19,10 +19,6 @@ const mastodonUsers: UserData[] = [
         userId: "clive64",
     },
     {
-        host: "mstdn.kizzkey.cloud",
-        userId: "c30",
-    },
-    {
         host: "mastodon.art",
         userId: "c30",
     },
@@ -31,11 +27,6 @@ const mastodonUsers: UserData[] = [
 const pleromaUsers: UserData[] = [
     {
         host: "aa.nikola.love",
-        userId: "c30",
-        isPleroma: true,
-    },
-    {
-        host: "ple.kizzkey.cloud",
         userId: "c30",
         isPleroma: true,
     },

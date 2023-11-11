@@ -1,6 +1,6 @@
 {
     "name": "c30.life",
-    "version": "3.5.14",
+    "version": "3.5.30",
     "private": true,
     "scripts": {
         "dev": "next dev --port 8867",

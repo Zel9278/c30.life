@@ -1,8 +1,7 @@
 import Image from "next/image"
-import { writeFileSync } from "fs"
 import homeStyles from "@/styles/Home.module.css"
 import Fireworks from "@/components/fireworks"
-import Counter from "@/.counter.json"
+import Counter from "@/components/counter"
 
 function getAge(data: string) {
     let splitData = data.split("/")
@@ -22,19 +21,7 @@ function getAge(data: string) {
     return today < thisYearBirthday ? age - 1 : age
 }
 
-const getCounter = async () => {
-    let count: number = Counter.count
-
-    count++
-
-    writeFileSync("./src/.counter.json", JSON.stringify(Counter, null, 2))
-
-    return count
-}
-
 export default async function Home() {
-    const counter = await getCounter()
-
     return (
         <>
             <main>
@@ -43,9 +30,7 @@ export default async function Home() {
                         c30
                         lifeへようこそ、ここはc30(ced)のホームページになっております。
                     </p>
-                    <p className="text-sm">
-                        あなたは今、{counter}個目のポットです。
-                    </p>
+                    <Counter />
                     <div className={homeStyles["self-introduction"]}>
                         <div className="card w-auto bg-base-300 shadow-xl m-5">
                             <div className="card-body items-center text-center">

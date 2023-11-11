@@ -1,7 +1,7 @@
 import { Metadata } from "next"
 import Link from "next/link"
 
-type Status = "gone" | "retired" | "active"
+type Status = "gone" | "active"
 type Softwares =
     | "Misskey"
     | "Akkoma"
@@ -24,7 +24,6 @@ type Server = {
 
 const serverStatus: { [key in Status]: string } = {
     gone: "text-red-500",
-    retired: "text-yellow-500",
     active: "text-green-500",
 }
 
@@ -61,7 +60,7 @@ const bigServers: Server[] = [
         url: "https://misskey.art",
         software: "Misskey",
         created_at: "2023-02-06",
-        status: "retired",
+        status: "active",
     },
 ]
 
@@ -141,7 +140,7 @@ const privateServers: Server[] = [
         url: "https://kizzkey.cloud",
         software: "Firefish",
         created_at: "2023-07-09",
-        status: "active",
+        status: "gone",
     },
     {
         name: "ab62",
@@ -162,41 +161,48 @@ const privateServers: Server[] = [
         url: "https://shelter.kizzkey.cloud",
         software: "Firefish",
         created_at: "2023-09-05",
-        status: "active",
+        status: "gone",
     },
     {
         name: "木月 Misskey",
         url: "https://mi.kizzkey.cloud",
         software: "Misskey",
         created_at: "2023-09-17",
-        status: "active",
+        status: "gone",
     },
     {
         name: "木月 Foundkey",
         url: "https://fk.kizzkey.cloud",
         software: "Foundkey",
         created_at: "2023-09-25",
-        status: "active",
+        status: "gone",
     },
     {
         name: "なんかものすごい木月ではなさそうな鯖へ来た感じのそういうあれみたいな...",
         url: "https://gts.kizzkey.cloud",
         software: "GotoSocial",
         created_at: "2023-09-28",
-        status: "active",
+        status: "gone",
     },
     {
         name: "木月 Mastodon店",
         url: "https://mstdn.kizzkey.cloud",
         software: "Mastodon",
         created_at: "2023-09-29",
-        status: "active",
+        status: "gone",
     },
     {
         name: "木月 Pleroma店",
         url: "https://ple.kizzkey.cloud",
         software: "Pleroma",
         created_at: "2023-09-30",
+        status: "gone",
+    },
+    {
+        name: "tro鯖",
+        url: "https://tro9.life",
+        software: "Firefish",
+        created_at: "2023-10-07",
         status: "active",
     },
 ]

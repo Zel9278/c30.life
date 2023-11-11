@@ -25,6 +25,15 @@ export default function Home() {
                             </li>
                             <li className="p-0.5">
                                 <Link
+                                    href="/mastodon"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    Mastodon Accounts
+                                </Link>
+                            </li>
+                            <li className="p-0.5">
+                                <Link
                                     href="https://twitter.com/c30_life"
                                     className=" btn btn-outline btn-info"
                                     target="_blank"
@@ -147,6 +156,15 @@ export default function Home() {
                                     Progress Bar for Days Web
                                 </Link>
                             </li>
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://er.mi-wo.site"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    Fediverse Emoji Count Ranking
+                                </Link>
+                            </li>
                         </ul>
 
                         <div className="bg-zinc-800 w-full h-0.5 rounded" />
@@ -161,6 +179,24 @@ export default function Home() {
                                     target="_blank"
                                 >
                                     Misskeyをしよう
+                                </Link>
+                            </li>
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://misskey.art"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    Misskey.art
+                                </Link>
+                            </li>
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://tro9.life"
+                                    className=" btn btn-outline btn-info"
+                                    target="_blank"
+                                >
+                                    tro鯖
                                 </Link>
                             </li>
                         </ul>
