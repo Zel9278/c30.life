@@ -22,6 +22,10 @@ const mastodonUsers: UserData[] = [
         host: "mastodon.art",
         userId: "c30",
     },
+    {
+        host: "mstdn.y-zu.org",
+        userId: "c30",
+    },
 ]
 
 const pleromaUsers: UserData[] = [

@@ -35,10 +35,10 @@ export default function RootLayout({
                     </a>
                     <a
                         rel="me"
-                        href="https://kizzkey.cloud/@c30"
+                        href="https://tro9.life/@tro"
                         style={{ display: "none" }}
                     >
-                        kizzkey.cloud
+                        てぃーろさば
                     </a>
                     <Footer />
                 </Drawer>
