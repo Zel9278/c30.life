@@ -19,7 +19,7 @@ dependencies:
     version: 1.5.1
   canvas-confetti:
     specifier: ^1.9.0
-    version: 1.9.0
+    version: 1.9.2
   daisyui:
     specifier: ^4.0.0
     version: 4.0.1(postcss@8.4.31)
@@ -48,7 +48,7 @@ dependencies:
 devDependencies:
   '@types/canvas-confetti':
     specifier: ^1.6.1
-    version: 1.6.1
+    version: 1.6.4
   autoprefixer:
     specifier: ^10.4.16
     version: 10.4.16(postcss@8.4.31)
@@ -290,8 +290,8 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@types/canvas-confetti@1.6.1:
-    resolution: {integrity: sha512-wTSI/k/586KnzL8Inm0yXe/U9x0sO2tc4j/osIAZVsE+hyj2S/M+sdR5zDDLygEkohhlG948zNVBG5QiI4Z2mw==}
+  /@types/canvas-confetti@1.6.4:
+    resolution: {integrity: sha512-fNyZ/Fdw/Y92X0vv7B+BD6ysHL4xVU5dJcgzgxLdGbn8O3PezZNIJpml44lKM0nsGur+o/6+NZbZeNTt00U1uA==}
     dev: true
 
   /@types/json5@0.0.29:
@@ -643,8 +643,8 @@ packages:
   /caniuse-lite@1.0.30001547:
     resolution: {integrity: sha512-W7CrtIModMAxobGhz8iXmDfuJiiKg1WADMO/9x7/CLNin5cpSbuBjooyoIUVB5eyCc36QuTVlkVa1iB2S5+/eA==}
 
-  /canvas-confetti@1.9.0:
-    resolution: {integrity: sha512-0UGU/T5Un/Cd4Aj4fu/p/oVQm8Il+brK5xcmY+y77u7PXuyNJD4ODUWe01A5o3GUI9Bb8lOBlQ10VdaDsY1FBA==}
+  /canvas-confetti@1.9.2:
+    resolution: {integrity: sha512-6Xi7aHHzKwxZsem4mCKoqP6YwUG3HamaHHAlz1hTNQPCqXhARFpSXnkC9TWlahHY5CG6hSL5XexNjxK8irVErg==}
     dev: false
 
   /chalk@4.1.2:
