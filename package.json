@@ -1,6 +1,6 @@
 {
     "name": "c30.life",
-    "version": "3.5.30",
+    "version": "3.5.36",
     "private": true,
     "scripts": {
         "dev": "next dev --port 8867",
@@ -10,6 +10,8 @@
         "pretty": "prettier --write ."
     },
     "dependencies": {
+        "@cronitorio/cronitor-rum": "^0.4.1",
+        "@cronitorio/cronitor-rum-nextjs": "^0.4.0",
         "@types/node": "20.9.0",
         "@types/react": "18.2.37",
         "@types/react-dom": "18.2.15",
@@ -21,8 +23,10 @@
         "next": "14.0.2",
         "react": "18.2.0",
         "react-dom": "18.2.0",
+        "socket.io-client": "^4.7.2",
         "swr": "^2.2.4",
-        "typescript": "5.2.2"
+        "typescript": "5.2.2",
+        "ws": "^8.15.1"
     },
     "devDependencies": {
         "@types/canvas-confetti": "^1.6.1",

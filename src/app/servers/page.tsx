@@ -46,7 +46,7 @@ const bigServers: Server[] = [
         url: "https://mi-wo.site",
         software: "Misskey",
         created_at: "2022-12-24",
-        status: "active",
+        status: "gone",
     },
     {
         name: "Beta Misskeyをしよう",
@@ -203,6 +203,20 @@ const privateServers: Server[] = [
         url: "https://tro9.life",
         software: "Firefish",
         created_at: "2023-10-07",
+        status: "gone",
+    },
+    {
+        name: "tty7",
+        url: "https://p.tty7.uk",
+        software: "Pleroma",
+        created_at: "2023-11-??",
+        status: "active",
+    },
+    {
+        name: "tty7 Misskey",
+        url: "https://m.tty7.uk",
+        software: "Misskey",
+        created_at: "2024-01-05",
         status: "active",
     },
 ]
@@ -213,7 +227,7 @@ const friendsServers: Server[] = [
         url: "https://soukun.xyz",
         software: "Foundkey",
         created_at: "2023-06-02",
-        status: "active",
+        status: "gone",
     },
     {
         name: "腋すきー",

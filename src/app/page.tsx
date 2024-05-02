@@ -1,7 +1,8 @@
 import Image from "next/image"
+import Link from "next/link"
 import homeStyles from "@/styles/Home.module.css"
-import Fireworks from "@/components/fireworks"
 import Counter from "@/components/counter"
+import CronitorComponent from "@/components/Cronitor"
 
 function getAge(data: string) {
     let splitData = data.split("/")
@@ -24,6 +25,7 @@ function getAge(data: string) {
 export default async function Home() {
     return (
         <>
+            <CronitorComponent />
             <main>
                 <div className="text-center text-2xl">
                     <p>
@@ -49,10 +51,10 @@ export default async function Home() {
                                     <br />
                                     Misskey系列のサーバーの
                                     <a
-                                        href="https://mi-wo.site"
+                                        href="https://misskey.art"
                                         className="text-sky-500 hover:text-sky-700"
                                     >
-                                        Misskeyをしよう
+                                        Misskey.art
                                     </a>
                                     の運営をしています。
                                     <br />
@@ -87,10 +89,10 @@ export default async function Home() {
                                     </div>
                                     <div className="border-2 border-stone-800 border-opacity-25 text-center rounded p-2">
                                         <p className="text-sm text-stone-400">
-                                            生地
+                                            住居
                                         </p>
-                                        <p>Aichi</p>
-                                        <p className="text-sm">Nagoya</p>
+                                        <p>神奈川</p>
+                                        <p className="text-sm">横浜</p>
                                     </div>
                                 </div>
                                 <div className="bg-zinc-800 w-full h-0.5 rounded" />
@@ -106,7 +108,7 @@ export default async function Home() {
                                         プログラミング
                                     </div>
                                     <div className="badge bg-zinc-900">
-                                        Misskey
+                                        Fediverse, Discord
                                     </div>
                                 </div>
                                 <h3 className="text-xl text-stone-400">
@@ -120,22 +122,53 @@ export default async function Home() {
                                         TypeScript
                                     </div>
                                     <div className="badge bg-red-600">Rust</div>
+                                    <div className="badge bg-blue-900">C</div>
                                     <div className="badge bg-blue-800">C++</div>
                                     <div className="badge bg-purple-600">
                                         C#
                                     </div>
                                     <div className="badge">ShellScript</div>
                                 </div>
+                                <div className="bg-zinc-800 w-full h-0.5 rounded" />
+                                <h3 className="text-xl text-stone-400">
+                                    お気に入りの曲
+                                </h3>
+                                <iframe
+                                    className="rounded-lg"
+                                    src="https://open.spotify.com/embed/playlist/2TGuhJg6Z9vb0hws7PVMMv?utm_source=generator"
+                                    width="50%"
+                                    height="352"
+                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                    loading="lazy"
+                                ></iframe>
+                                <Link
+                                    href="https://open.spotify.com/playlist/364dwlI9me6sZtqbSaqlbC?si=97c131a893134ad4"
+                                    target="_blank"
+                                >
+                                    フル
+                                </Link>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div className="bg-zinc-800 w-full h-0.5 rounded" />
                 <div className={homeStyles["self-introduction"]}>
                     <div className="card w-auto bg-base-300 shadow-xl m-5">
                         <div className="card-body items-center text-center">
                             <h2 className="card-title">ログ</h2>
                             <ul>
+                                <li>
+                                    <p className="text-lg">
+                                        2024/xx/xx: 名古屋から横浜へ移動
+                                    </p>
+                                </li>
+                                <li>
+                                    <p className="text-lg">
+                                        2024/01/05: m.tty7.uk (現
+                                        至り来たり宿)を開設した
+                                    </p>
+                                </li>
                                 <li>
                                     <p className="text-lg">
                                         2023/10/29: Misskey.art運営再開
@@ -179,11 +212,22 @@ export default async function Home() {
                         </div>
                     </div>
                 </div>
+                <Link
+                    href="https://c30.life"
+                    target="_blank"
+                    className="text-center"
+                >
+                    <Image
+                        src="https://c30.life/c30-life-banner.png"
+                        width="234"
+                        height="60"
+                        alt="ホームページ"
+                    />
+                </Link>
                 <p className="text-base-100 hover:text-white text-center">
                     特になにもないよ
                 </p>
             </main>
-            <Fireworks />
         </>
     )
 }

@@ -14,12 +14,8 @@ const mainUsedUsers: UserData[] = [
         userId: "c30_eo",
     },
     {
-        host: "tro9.life",
-        userId: "tro",
-    },
-    {
-        host: "mi-wo.site",
-        userId: "c30",
+        host: "m.tty7.uk",
+        userId: "c",
     },
     {
         host: "misskey.art",
@@ -28,16 +24,6 @@ const mainUsedUsers: UserData[] = [
 ]
 
 const users: UserData[] = [
-    {
-        host: "soukun.xyz",
-        userId: "c30",
-        isNSFW: true,
-    },
-    {
-        host: "soukun.io",
-        userId: "c30",
-        isNSFW: true,
-    },
     {
         host: "premis.one",
         userId: "c30",
@@ -69,10 +55,6 @@ const users: UserData[] = [
     {
         host: "mk.absturztau.be",
         userId: "c30",
-    },
-    {
-        host: "mattyaski.co",
-        userId: "l",
     },
     {
         host: "kokt.club",
@@ -127,10 +109,6 @@ const users: UserData[] = [
         userId: "c30",
     },
     {
-        host: "mk.shumihub.net",
-        userId: "c30",
-    },
-    {
         host: "misskey.noellabo.jp",
         userId: "c30",
     },
@@ -143,11 +121,11 @@ const users: UserData[] = [
         userId: "c30",
     },
     {
-        host: "misskey.kindworld.one",
+        host: "misskey.io",
         userId: "c30",
     },
     {
-        host: "misskey.io",
+        host: "m.tty7.uk",
         userId: "c30",
     },
     {
@@ -161,10 +139,6 @@ const users: UserData[] = [
     {
         host: "misskey.design",
         userId: "c30",
-    },
-    {
-        host: "prismisskey.space",
-        userId: "v30",
     },
 ]
 

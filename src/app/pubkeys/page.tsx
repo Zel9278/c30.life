@@ -13,7 +13,7 @@ export default function Home() {
                 </div>
                 <div>
                     <h1>PGP</h1>
-                    <p>E722127605C973DFD9A4629824A483BAC7ED3A0D</p>
+                    <p>9EF8EC1FD53DE71F282013BEC4A74B9FB980BF72</p>
                 </div>
                 <div>
                     <h1>Switch</h1>

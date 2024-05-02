@@ -32,6 +32,9 @@ export default function Drawer(progs: Props) {
                         <Link href="/mdic">Misskey Default Icon Checker</Link>
                     </li>
                     <li>
+                        <Link href="/images/face.png">My Face</Link>
+                    </li>
+                    <li>
                         <Link href="/pubkeys">Public keys</Link>
                     </li>
                     <li>

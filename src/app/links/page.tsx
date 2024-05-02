@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function Home() {
     return (
@@ -34,7 +35,7 @@ export default function Home() {
                             </li>
                             <li className="p-0.5">
                                 <Link
-                                    href="https://twitter.com/c30_life"
+                                    href="https://twitter.com/fuji_ced"
                                     className=" btn btn-outline btn-info"
                                     target="_blank"
                                 >
@@ -43,11 +44,11 @@ export default function Home() {
                             </li>
                             <li className="p-0.5">
                                 <Link
-                                    href="https://fedibird.com/@c30"
+                                    href="https://vrchat.com/home/user/usr_e18c90ac-ac01-434f-a10e-c96fe3deeffc"
                                     className="btn btn-outline btn-info"
                                     target="_blank"
                                 >
-                                    Fedibird
+                                    VRChat
                                 </Link>
                             </li>
                             <li className="p-0.5">
@@ -97,7 +98,7 @@ export default function Home() {
                             </li>
                             <li className="p-0.5">
                                 <Link
-                                    href="https://keyoxide.org/E722127605C973DFD9A4629824A483BAC7ED3A0D"
+                                    href="https://keyoxide.org/9EF8EC1FD53DE71F282013BEC4A74B9FB980BF72"
                                     className="btn btn-outline btn-info"
                                     target="_blank"
                                 >
@@ -158,7 +159,7 @@ export default function Home() {
                             </li>
                             <li className="p-0.5">
                                 <Link
-                                    href="https://er.mi-wo.site"
+                                    href="https://er.tty7.uk"
                                     className=" btn btn-outline btn-info"
                                     target="_blank"
                                 >
@@ -174,15 +175,6 @@ export default function Home() {
                         <ul className="flex flex-wrap text-center">
                             <li className="p-0.5">
                                 <Link
-                                    href="https://mi-wo.site"
-                                    className=" btn btn-outline btn-info"
-                                    target="_blank"
-                                >
-                                    Misskeyをしよう
-                                </Link>
-                            </li>
-                            <li className="p-0.5">
-                                <Link
                                     href="https://misskey.art"
                                     className=" btn btn-outline btn-info"
                                     target="_blank"
@@ -192,11 +184,41 @@ export default function Home() {
                             </li>
                             <li className="p-0.5">
                                 <Link
-                                    href="https://tro9.life"
+                                    href="https://m.tty7.uk"
                                     className=" btn btn-outline btn-info"
                                     target="_blank"
                                 >
-                                    tro鯖
+                                    tty7.uk
+                                </Link>
+                            </li>
+                        </ul>
+
+                        <div className="bg-zinc-800 w-full h-0.5 rounded" />
+
+                        <h2 className="text-stone-400">相互リンク</h2>
+
+                        <ul className="flex flex-wrap text-center">
+                            <li className="p-0.5">
+                                <Link
+                                    href="https://nullnyat.nca10.moe"
+                                    target="_blank"
+                                >
+                                    <Image
+                                        src="https://nullnyat.nca10.moe/nullnyat-banner.png"
+                                        width="234"
+                                        height="60"
+                                        alt="ぬるきゃのホームページ"
+                                    />
+                                </Link>
+                            </li>
+                            <li className="p-0.5">
+                                <Link href="https://miriel.net" target="_blank">
+                                    <Image
+                                        src="https://miriel.net/images/mirielnet.png"
+                                        width="234"
+                                        height="60"
+                                        alt="みりえるさんのホームページ"
+                                    />
                                 </Link>
                             </li>
                         </ul>
