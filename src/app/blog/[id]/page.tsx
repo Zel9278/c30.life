@@ -1,6 +1,6 @@
 import { getPostData } from "@/utils/blog"
 import Link from "next/link"
-import Style from "../../../styles/Blog.module.css"
+import "../../../styles/blog.css"
 
 export default function Home({ params }: { params: { id: string } }) {
     const postData = getPostData(params.id)
@@ -30,7 +30,7 @@ export default function Home({ params }: { params: { id: string } }) {
                             dangerouslySetInnerHTML={{
                                 __html: postData.contentHtml,
                             }}
-                            className="grid gap-4 mt-4"
+                            className="blog-content"
                         />
                     </div>
                 </div>

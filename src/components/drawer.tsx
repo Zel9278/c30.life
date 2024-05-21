@@ -17,6 +17,9 @@ export default function Drawer(progs: Props) {
                         <Link href="/links">Links</Link>
                     </li>
                     <li>
+                        <Link href="/blog">Blog</Link>
+                    </li>
+                    <li>
                         <Link href="/misskey">Misskey Links</Link>
                     </li>
                     <li>
