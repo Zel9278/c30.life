@@ -49,11 +49,6 @@ const pleromaUsers: UserData[] = [
         userId: "c30",
         isPleroma: true,
     },
-    {
-        host: "hkgk.nishi.boats",
-        userId: "c30",
-        isPleroma: true,
-    },
 ]
 
 export default function Home() {

@@ -2,7 +2,6 @@ import Image from "next/image"
 import Link from "next/link"
 import homeStyles from "@/styles/Home.module.css"
 import Counter from "@/components/counter"
-import CronitorComponent from "@/components/Cronitor"
 
 function getAge(data: string) {
     let splitData = data.split("/")
@@ -25,7 +24,6 @@ function getAge(data: string) {
 export default async function Home() {
     return (
         <>
-            <CronitorComponent />
             <main>
                 <div className="text-center text-2xl">
                     <p>
@@ -144,6 +142,7 @@ export default async function Home() {
                                 <Link
                                     href="https://open.spotify.com/playlist/364dwlI9me6sZtqbSaqlbC?si=97c131a893134ad4"
                                     target="_blank"
+                                    className="btn btn-info"
                                 >
                                     フル
                                 </Link>
@@ -212,18 +211,6 @@ export default async function Home() {
                         </div>
                     </div>
                 </div>
-                <Link
-                    href="https://c30.life"
-                    target="_blank"
-                    className="text-center"
-                >
-                    <Image
-                        src="https://c30.life/c30-life-banner.png"
-                        width="234"
-                        height="60"
-                        alt="ホームページ"
-                    />
-                </Link>
                 <p className="text-base-100 hover:text-white text-center">
                     特になにもないよ
                 </p>

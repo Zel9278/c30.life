@@ -17,8 +17,8 @@ export default function RootLayout({
     return (
         <html lang="ja">
             <body>
-                <NavBar />
                 <Drawer>
+                    <NavBar />
                     {children}
                     <Fireworks />
                     <a
@@ -37,10 +37,10 @@ export default function RootLayout({
                     </a>
                     <a
                         rel="me"
-                        href="https://m.tty7.uk/@c"
+                        href="https://mk.c30.life/@c30"
                         style={{ display: "none" }}
                     >
-                        てぃーろさば
+                        至り来たり宿
                     </a>
                     <Footer />
                 </Drawer>
@@ -51,7 +51,7 @@ export default function RootLayout({
 
 export function generateMetadata(): Metadata {
     return {
-        metadataBase: new URL("https://c30.life"),
+        metadataBase: new URL(url),
         title: {
             default: siteName,
             template: `%s - ${siteName}`,

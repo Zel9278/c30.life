@@ -13,10 +13,7 @@ const mainUsedUsers: UserData[] = [
         host: "misskey.io",
         userId: "c30_eo",
     },
-    {
-        host: "m.tty7.uk",
-        userId: "c",
-    },
+    { host: "mk.c30.life", userId: "c30" },
     {
         host: "misskey.art",
         userId: "c30",
@@ -24,6 +21,10 @@ const mainUsedUsers: UserData[] = [
 ]
 
 const users: UserData[] = [
+    {
+        host: "m.tty7.uk",
+        userId: "c",
+    },
     {
         host: "premis.one",
         userId: "c30",

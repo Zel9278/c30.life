@@ -12,7 +12,7 @@ export default function Drawer(progs: Props) {
             <div className="drawer-content">{progs.children}</div>
             <div className="drawer-side">
                 <label htmlFor="drawer" className="drawer-overlay"></label>
-                <ul className="menu p-4 w-80 h-full bg-base-200 text-base-content">
+                <ul className="menu p-4 w-80 h-full bg-base-100/[.06] backdrop-blur-sm shadow-lg text-base-content">
                     <li>
                         <Link href="/links">Links</Link>
                     </li>

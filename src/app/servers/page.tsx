@@ -1,7 +1,7 @@
 import { Metadata } from "next"
 import Link from "next/link"
 
-type Status = "gone" | "active"
+type Status = "gone" | "active" | "unknown"
 type Softwares =
     | "Misskey"
     | "Akkoma"
@@ -25,6 +25,7 @@ type Server = {
 const serverStatus: { [key in Status]: string } = {
     gone: "text-red-500",
     active: "text-green-500",
+    unknown: "text-gray-500",
 }
 
 const softwares: { [key in Softwares]: string } = {
@@ -210,13 +211,20 @@ const privateServers: Server[] = [
         url: "https://p.tty7.uk",
         software: "Pleroma",
         created_at: "2023-11-??",
-        status: "active",
+        status: "unknown",
     },
     {
-        name: "tty7 Misskey",
+        name: "至り来たり宿",
         url: "https://m.tty7.uk",
         software: "Misskey",
         created_at: "2024-01-05",
+        status: "unknown",
+    },
+    {
+        name: "至り来たり宿（第二期）",
+        url: "https://mk.c30.life",
+        software: "Misskey",
+        created_at: "2024-05-22",
         status: "active",
     },
 ]
@@ -242,169 +250,176 @@ export default function Home() {
     return (
         <>
             <main>
-                <div>
-                    <p className="text-red-500">Gone済み</p>
-                    <p className="text-yellow-500">辞退済み</p>
-                    <p className="text-green-500">稼働中</p>
-                </div>
-                <table className="border-collapse text-center">
-                    <tr>
-                        <th className="border border-stone-300 border-solid px-1.5">
-                            名前
-                        </th>
-                        <th className="border border-stone-300 border-solid px-1.5">
-                            URL
-                        </th>
-                        <th className="border border-stone-300 border-solid px-1.5">
-                            ソフトウェア
-                        </th>
-                        <th className="border border-stone-300 border-solid px-1.5">
-                            作成日
-                        </th>
-                    </tr>
-                    <tr>
-                        <th>大型鯖</th>
-                    </tr>
-                    {bigServers.map((server, i) => (
-                        <tr key={i}>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                {server.name}
-                            </td>
+                <div className="card w-full bg-base-100 shadow-xl">
+                    <div className="card-body">
+                        <h2 className="card-title">My Fediverse Servers</h2>
+                        <div className="bg-zinc-400 w-full h-0.5 rounded" />
+                        <div>
+                            <p className="text-gray-500">Unknown</p>
+                            <p className="text-red-500">Gone済み</p>
+                            <p className="text-yellow-500">辞退済み</p>
+                            <p className="text-green-500">稼働中</p>
+                        </div>
+                        <table className="border-collapse text-center">
+                            <tr>
+                                <th className="border border-stone-300 border-solid px-1.5">
+                                    名前
+                                </th>
+                                <th className="border border-stone-300 border-solid px-1.5">
+                                    URL
+                                </th>
+                                <th className="border border-stone-300 border-solid px-1.5">
+                                    ソフトウェア
+                                </th>
+                                <th className="border border-stone-300 border-solid px-1.5">
+                                    作成日
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>大型鯖</th>
+                            </tr>
+                            {bigServers.map((server, i) => (
+                                <tr key={i}>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        {server.name}
+                                    </td>
 
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                <Link
-                                    href={server.url}
-                                    className="underline"
-                                    target="_blank"
-                                >
-                                    {server.url}
-                                </Link>
-                            </td>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                <Link
-                                    href={softwares[server.software]}
-                                    className="underline"
-                                    target="_blank"
-                                >
-                                    {server.software}
-                                </Link>
-                            </td>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                {server.created_at}
-                            </td>
-                        </tr>
-                    ))}
-                    <tr>
-                        <th>個人鯖</th>
-                    </tr>
-                    {privateServers.map((server, i) => (
-                        <tr key={i}>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                {server.name}
-                            </td>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                <Link
-                                    href={server.url}
-                                    className="underline"
-                                    target="_blank"
-                                >
-                                    {server.url}
-                                </Link>
-                            </td>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                <Link
-                                    href={softwares[server.software]}
-                                    className="underline"
-                                    target="_blank"
-                                >
-                                    {server.software}
-                                </Link>
-                            </td>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                {server.created_at}
-                            </td>
-                        </tr>
-                    ))}
-                    <tr>
-                        <th>友人鯖</th>
-                    </tr>
-                    {friendsServers.map((server, i) => (
-                        <tr key={i}>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                {server.name}
-                            </td>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                <Link
-                                    href={server.url}
-                                    className="underline"
-                                    target="_blank"
-                                >
-                                    {server.url}
-                                </Link>
-                            </td>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                <Link
-                                    href={softwares[server.software]}
-                                    className="underline"
-                                    target="_blank"
-                                >
-                                    {server.software}
-                                </Link>
-                            </td>
-                            <td
-                                className={`border border-stone-300 border-solid px-1.5 ${
-                                    serverStatus[server.status]
-                                }`}
-                            >
-                                {server.created_at}
-                            </td>
-                        </tr>
-                    ))}
-                </table>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        <Link
+                                            href={server.url}
+                                            className="underline"
+                                            target="_blank"
+                                        >
+                                            {server.url}
+                                        </Link>
+                                    </td>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        <Link
+                                            href={softwares[server.software]}
+                                            className="underline"
+                                            target="_blank"
+                                        >
+                                            {server.software}
+                                        </Link>
+                                    </td>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        {server.created_at}
+                                    </td>
+                                </tr>
+                            ))}
+                            <tr>
+                                <th>個人鯖</th>
+                            </tr>
+                            {privateServers.map((server, i) => (
+                                <tr key={i}>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        {server.name}
+                                    </td>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        <Link
+                                            href={server.url}
+                                            className="underline"
+                                            target="_blank"
+                                        >
+                                            {server.url}
+                                        </Link>
+                                    </td>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        <Link
+                                            href={softwares[server.software]}
+                                            className="underline"
+                                            target="_blank"
+                                        >
+                                            {server.software}
+                                        </Link>
+                                    </td>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        {server.created_at}
+                                    </td>
+                                </tr>
+                            ))}
+                            <tr>
+                                <th>友人鯖</th>
+                            </tr>
+                            {friendsServers.map((server, i) => (
+                                <tr key={i}>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        {server.name}
+                                    </td>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        <Link
+                                            href={server.url}
+                                            className="underline"
+                                            target="_blank"
+                                        >
+                                            {server.url}
+                                        </Link>
+                                    </td>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        <Link
+                                            href={softwares[server.software]}
+                                            className="underline"
+                                            target="_blank"
+                                        >
+                                            {server.software}
+                                        </Link>
+                                    </td>
+                                    <td
+                                        className={`border border-stone-300 border-solid px-1.5 ${
+                                            serverStatus[server.status]
+                                        }`}
+                                    >
+                                        {server.created_at}
+                                    </td>
+                                </tr>
+                            ))}
+                        </table>
+                    </div>
+                </div>
             </main>
         </>
     )
