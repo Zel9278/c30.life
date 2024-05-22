@@ -162,6 +162,7 @@ export default function Home() {
                                     <Link
                                         href={link.href}
                                         className="btn btn-outline btn-info"
+                                        target="_blank"
                                     >
                                         {link.title}
                                     </Link>
@@ -178,6 +179,7 @@ export default function Home() {
                                     <Link
                                         href={link.href}
                                         className="btn btn-outline btn-info"
+                                        target="_blank"
                                     >
                                         {link.title}
                                     </Link>
@@ -194,6 +196,7 @@ export default function Home() {
                                     <Link
                                         href={link.href}
                                         className="btn btn-outline btn-info"
+                                        target="_blank"
                                     >
                                         {link.title}
                                     </Link>
@@ -210,6 +213,7 @@ export default function Home() {
                                     <Link
                                         href={link.href}
                                         className="btn btn-outline btn-info"
+                                        target="_blank"
                                     >
                                         {link.title}
                                     </Link>

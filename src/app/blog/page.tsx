@@ -7,7 +7,7 @@ export default function Home() {
     return (
         <>
             <main>
-                <ul>
+                <ul className="grid">
                     {allPostsData.map(({ id, date, title }) => (
                         <li key={id}>
                             <div className="card w-96 bg-base-300 shadow-xl">
