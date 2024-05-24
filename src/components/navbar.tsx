@@ -3,7 +3,7 @@ import Link from "next/link"
 export default function NavBar() {
     return (
         <>
-            <header className="sticky top-0 z-50">
+            <header className="sticky top-0 z-10">
                 <div className="navbar bg-base-50 backdrop-blur-sm shadow-lg">
                     <div className="flex-1">
                         <label htmlFor="drawer" className="btn btn-ghost">

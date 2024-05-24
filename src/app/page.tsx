@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import homeStyles from "@/styles/Home.module.css"
 import Counter from "@/components/counter"
+import Timeline from "@/components/timeline"
 
 function getAge(data: string) {
     let splitData = data.split("/")
@@ -41,6 +42,7 @@ export default async function Home() {
                                         width={48}
                                         height={48}
                                         className="rounded-full"
+                                        unoptimized
                                     />
                                 </figure>
                                 <h2 className="card-title">自己紹介</h2>
@@ -153,63 +155,14 @@ export default async function Home() {
 
                 <div className="bg-zinc-800 w-full h-0.5 rounded" />
                 <div className={homeStyles["self-introduction"]}>
-                    <div className="card w-auto bg-base-300 shadow-xl m-5">
-                        <div className="card-body items-center text-center">
-                            <h2 className="card-title">ログ</h2>
-                            <ul>
-                                <li>
-                                    <p className="text-lg">
-                                        2024/xx/xx: 名古屋から横浜へ移動
-                                    </p>
-                                </li>
-                                <li>
-                                    <p className="text-lg">
-                                        2024/01/05: m.tty7.uk (現
-                                        至り来たり宿)を開設した
-                                    </p>
-                                </li>
-                                <li>
-                                    <p className="text-lg">
-                                        2023/10/29: Misskey.art運営再開
-                                    </p>
-                                </li>
-                                <li>
-                                    <p className="text-lg">
-                                        2023/07/09: Misskey.artのリーダーを
-                                        辞退、裏方へ移動
-                                    </p>
-                                </li>
-                                <li>
-                                    <p className="text-lg">
-                                        2023/02/06: Misskey.artを開設した
-                                    </p>
-                                </li>
-                                <li>
-                                    <p className="text-lg">
-                                        2022/12/24: Misskeyをしようを開設した
-                                    </p>
-                                </li>
-                                <li>
-                                    <p className="text-lg">
-                                        2022/11/15:
-                                        Misskey.ioに登録した、色々な人と関わり始めた
-                                    </p>
-                                </li>
-                                <li>
-                                    <p className="text-lg">
-                                        2017～:
-                                        BlackMIDI、黒楽譜を作り始める、動画投稿をし始める
-                                    </p>
-                                </li>
-                                <li>
-                                    <p className="text-lg">
-                                        2016～2018:
-                                        MCPEのmodをすこし作る、Discordのbot(ZeriaBot)を作る
-                                    </p>
-                                </li>
-                            </ul>
+                    <details className="collapse collapse-arrow bg-base-200">
+                        <summary className="collapse-title text-xl font-medium">
+                            ログ
+                        </summary>
+                        <div className="collapse-content max-h-full">
+                            <Timeline />
                         </div>
-                    </div>
+                    </details>
                 </div>
                 <p className="text-base-100 hover:text-white text-center">
                     特になにもないよ

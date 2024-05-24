@@ -85,7 +85,7 @@ export default async function Home() {
 
                         <div className="bg-zinc-400 w-full h-0.5 rounded my-2" />
 
-                        <details className="collapse bg-base-200">
+                        <details className="collapse collapse-arrow bg-base-200">
                             <summary className="collapse-title text-xl font-medium">
                                 Dependencies
                             </summary>

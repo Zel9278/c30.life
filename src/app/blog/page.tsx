@@ -1,4 +1,6 @@
 import { getSortedPostsData } from "@/utils/blog"
+import { generate } from "@/utils/metadata"
+import { Metadata } from "next"
 import Link from "next/link"
 
 export default function Home() {
@@ -29,4 +31,8 @@ export default function Home() {
             </main>
         </>
     )
+}
+
+export function generateMetadata(): Metadata {
+    return generate("Blog", "c30のブログです。", "/blog")
 }

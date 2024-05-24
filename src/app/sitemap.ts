@@ -1,9 +1,11 @@
 import { MetadataRoute } from "next"
+import { getSortedPostsData } from "../utils/blog"
+import moment from "moment-timezone"
 
 const root = "https://c30.life"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    return [
+    let pages = [
         {
             url: root,
             lastModified: new Date(),
@@ -18,6 +20,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
         {
             url: `${root}/mastodon`,
+            lastModified: new Date(),
+        },
+        {
+            url: `${root}/midis`,
             lastModified: new Date(),
         },
         {
@@ -37,8 +43,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
             lastModified: new Date(),
         },
         {
-            url: `${root}/server-block-list`,
+            url: `${root}/blog`,
             lastModified: new Date(),
         },
     ]
+
+    const posts = getSortedPostsData()
+
+    posts.forEach((post) => {
+        const date = moment(post.date)
+
+        pages.push({
+            url: `${root}/blog/${post.id}`,
+            lastModified: date.toDate(),
+        })
+    })
+
+    return pages
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ReactNode } from "react"
+import { ReactNode, useEffect, useState } from "react"
 
 type Props = {
     children?: ReactNode
@@ -22,15 +22,28 @@ const links = [
 ]
 
 export default function Drawer(progs: Props) {
+    const [isOpen, setIsOpen] = useState(false)
     const pathname = usePathname()
 
+    useEffect(() => {
+        setIsOpen(false)
+    }, [pathname])
+
     return (
-        <div className="drawer lg:drawer-open">
-            <input id="drawer" type="checkbox" className="drawer-toggle" />
-            <div className="drawer-content">{progs.children}</div>
+        <div className="drawer">
+            <input
+                id="drawer"
+                type="checkbox"
+                className="drawer-toggle"
+                checked={isOpen}
+                onChange={() => setIsOpen(!isOpen)}
+            />
+            <div className="drawer-content min-h-screen pb-12 relative">
+                {progs.children}
+            </div>
             <div className="drawer-side">
                 <label htmlFor="drawer" className="drawer-overlay"></label>
-                <ul className="menu rounded-box p-4 w-80 h-full bg-base-100/[.06] backdrop-blur-sm shadow-lg text-base-content border-r-slate-700 border-r-2">
+                <ul className="menu rounded-box overflow-y-auto flex-nowrap p-4 w-80 h-full bg-base-100/[.06] backdrop-blur-sm shadow-lg text-base-content border-r-slate-700 border-r-2 top-[64px] fixed">
                     {links.map(({ href, label }) => (
                         <li key={`${href}${label}`} className="mb-4">
                             <Link

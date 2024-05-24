@@ -60,6 +60,13 @@ export function generateMetadata(): Metadata {
         //viewport: "width=device-width, initial-scale=1",
         openGraph: {
             images: `/c30_rounded.png`,
+            url,
+            type: "website",
+            siteName,
+            title: {
+                default: siteName,
+                template: `%s - ${siteName}`,
+            },
         },
         twitter: {
             card: "summary",
