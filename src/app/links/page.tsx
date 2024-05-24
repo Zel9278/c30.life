@@ -89,9 +89,9 @@ const myFediverseServers = [
         href: "https://misskey.art",
     },
     {
-        title: "tty7.uk",
-        href: "https://m.tty7.uk",
-    },
+        title: "至り来たり宿（第二期）",
+        href: "https://mk.c30.life",
+    }
 ]
 
 const mutualLinks = [
