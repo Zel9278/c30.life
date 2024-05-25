@@ -16,6 +16,7 @@ const getData = async () => {
     return {
         host: "c30.life",
         owner: "c30",
+        hostname: os.hostname(),
         runningAs: `${os.userInfo().username}@${os.hostname()}`,
         thisVersion: packages.version,
         nodeVersion: process.version,

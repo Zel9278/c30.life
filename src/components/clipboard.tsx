@@ -5,10 +5,10 @@ import { useEffect, useState } from "react"
 
 type Props = {
     title: string
-    url: string
+    text: string
 }
 
-export function ClipBoard({ title, url }: Props) {
+export function ClipBoard({ title, text }: Props) {
     const [copied, setCopied] = useState(false)
 
     useEffect(() => {
@@ -24,11 +24,11 @@ export function ClipBoard({ title, url }: Props) {
             href="#"
             className="text-[#00a4de] hover:underline hover:text-[#8bcdf7]"
             onClick={(target) => {
-                navigator.clipboard.writeText(`${title} ${url}`)
+                navigator.clipboard.writeText(text)
                 setCopied(true)
             }}
         >
-            Copy to ClipBoard{copied ? " [Copied!]" : ""}
+            Copy to ClipBoard({title}){copied ? " [Copied!]" : ""}
         </Link>
     )
 }

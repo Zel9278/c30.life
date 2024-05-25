@@ -6,6 +6,7 @@ import Link from "next/link"
 import { generate } from "@/utils/metadata"
 import { ClipBoard } from "@/components/clipboard"
 import { FediverseShare } from "@/components/fediverse"
+import { Window } from "@/components/window"
 
 type Props = {
     params: { id: string }
@@ -30,6 +31,20 @@ export default async function Home({ params }: Props) {
     return (
         <>
             <main>
+                <Window title="広告のテスト">
+                    <div className="p-2">
+                        <h1>Misskey.art</h1>
+                        <p>
+                            創作活動をする人や見る人を歓迎するMisskeyのサーバーです。
+                        </p>
+                        <Link href="https://misskey.art" target="_blank">
+                            <button className="btn btn-primary">
+                                Misskey.art
+                            </button>
+                        </Link>
+                    </div>
+                </Window>
+
                 <div className="card w-full bg-base-100 shadow-xl">
                     <div className="card-body">
                         <h2 className="card-title">{postData.title}</h2>
@@ -52,7 +67,11 @@ export default async function Home({ params }: Props) {
                             Hatena Bookmark
                         </Link>
                         <FediverseShare title={title} url={url} />
-                        <ClipBoard title={title} url={url} />
+                        <ClipBoard title="This URL" text={`${title} ${url}`} />
+                        <ClipBoard
+                            title="RSS Link"
+                            text="https://c30.life/blog/blog.atom"
+                        />
                         <div className="bg-zinc-400 w-full h-0.5 rounded" />
 
                         <details className="collapse collapse-arrow bg-base-200">
@@ -63,7 +82,7 @@ export default async function Home({ params }: Props) {
                                 <ul>
                                     {makeTocElement(
                                         postData.index,
-                                        postData.indexNumbered
+                                        postData.indexNumbered,
                                     )}
                                 </ul>
                             </div>
@@ -86,7 +105,7 @@ export default async function Home({ params }: Props) {
 
 function makeTocElement(
     headings: Headings,
-    headingNumbereds: string | Headings
+    headingNumbereds: string | Headings,
 ): JSX.Element {
     return (
         <ul className="pl-4">
