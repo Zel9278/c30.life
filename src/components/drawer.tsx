@@ -8,8 +8,18 @@ type Props = {
     children?: ReactNode
 }
 
-const links = [
-    { href: "/", label: "Home" },
+type LinkData = {
+    href: string
+    label: string
+    tooltip?: string
+}
+
+const links: LinkData[] = [
+    {
+        href: "/",
+        label: "Home",
+        tooltip: '上の"c30 life"からもHomeに飛べるよ！',
+    },
     { href: "/links", label: "Links" },
     { href: "/blog", label: "Blog" },
     { href: "/misskey", label: "Misskey Links" },
@@ -44,8 +54,12 @@ export default function Drawer(progs: Props) {
             <div className="drawer-side">
                 <label htmlFor="drawer" className="drawer-overlay"></label>
                 <ul className="menu rounded-box overflow-y-auto flex-nowrap p-4 w-80 h-full bg-base-100/[.06] backdrop-blur-sm shadow-lg text-base-content border-r-slate-700 border-r-2 top-[64px] fixed">
-                    {links.map(({ href, label }) => (
-                        <li key={`${href}${label}`} className="mb-4">
+                    {links.map(({ href, label, tooltip }) => (
+                        <li
+                            key={`${href}${label}`}
+                            className={`mb-4 ${tooltip ? "tooltip tooltip-right before:sticky after:sticky" : ""}`}
+                            data-tip={tooltip}
+                        >
                             <Link
                                 href={href}
                                 className={`menu-item ${

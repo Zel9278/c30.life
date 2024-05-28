@@ -31,19 +31,29 @@ export default async function Home({ params }: Props) {
     return (
         <>
             <main>
-                <Window title="広告のテスト">
-                    <div className="p-2">
-                        <h1>Misskey.art</h1>
-                        <p>
-                            創作活動をする人や見る人を歓迎するMisskeyのサーバーです。
-                        </p>
-                        <Link href="https://misskey.art" target="_blank">
-                            <button className="btn btn-primary">
-                                Misskey.art
-                            </button>
-                        </Link>
-                    </div>
-                </Window>
+                <div>
+                    <Window title="広告" id="advertisement" isClose>
+                        <div className="p-2">
+                            <Link
+                                href="https://misskey.art"
+                                target="_blank"
+                                className="text-[#aaa] hover:text-[#fff] hover:underline"
+                            >
+                                [広告] Misskey.art -
+                                創作活動をする人や見る人を歓迎するMisskeyのサーバーです。🔗
+                            </Link>
+                            <br />
+                            <Link
+                                href="https://misskey.io"
+                                target="_blank"
+                                className="text-[#aaa] hover:text-[#fff] hover:underline"
+                            >
+                                [広告] Misskey.io -
+                                株式会社MisskeyHQが運営する地球で生まれた分散マイクロブログSNSです。🔗
+                            </Link>
+                        </div>
+                    </Window>
+                </div>
 
                 <div className="card w-full bg-base-100 shadow-xl">
                     <div className="card-body">

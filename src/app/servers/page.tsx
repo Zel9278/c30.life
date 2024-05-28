@@ -218,7 +218,7 @@ const privateServers: Server[] = [
         url: "https://m.tty7.uk",
         software: "Misskey",
         created_at: "2024-01-05",
-        status: "unknown",
+        status: "gone",
     },
     {
         name: "至り来たり宿（第二期）",

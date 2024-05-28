@@ -9,7 +9,7 @@ export default function Home() {
     return (
         <>
             <main>
-                <ul className="grid">
+                <ul className="w-[90%] flex flex-wrap items-center gap-8">
                     {allPostsData.map(({ id, date, title }) => (
                         <li key={id}>
                             <div className="card w-96 bg-base-300 shadow-xl">

@@ -11,10 +11,6 @@ type UserData = {
 
 const mastodonUsers: UserData[] = [
     {
-        host: "mstdn.y-zu.org",
-        userId: "c30",
-    },
-    {
         host: "fedibird.com",
         userId: "c30",
     },

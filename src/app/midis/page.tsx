@@ -46,6 +46,13 @@ const midis: Data[] = [
         fileName: "SandCanyon V2(ReChannel Set).mid",
         videoID: "ItVSm-H8sCU",
     },
+    {
+        url: "https://files.c30.life/midis/The%20Ced's%20Challenge%20V1%20(TCCV1).mid",
+        name: "The Ced's Challenge V1",
+        category: "BlackMIDI",
+        fileName: "The Ced's Challenge V1 (TCCV1).mid",
+        videoID: "r7-S7kwqhks",
+    },
 ]
 
 export default async function Home() {

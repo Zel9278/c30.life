@@ -1,6 +1,6 @@
 {
     "name": "c30.life",
-    "version": "3.5.7593874543875438759843759",
+    "version": "3.6.20",
     "private": true,
     "scripts": {
         "dev": "next dev --port 8866",
@@ -10,9 +10,7 @@
         "pretty": "prettier --write ."
     },
     "dependencies": {
-        "@types/node": "20.12.12",
-        "@types/react": "18.3.3",
-        "@types/react-dom": "18.3.0",
+        "@discordjs-japan/om-syrinx": "github:discordjs-japan/om-syrinx#fb14fad01a7e3d5812dec77c765921db7781ac6e",
         "axios": "^1.7.2",
         "canvas-confetti": "^1.9.3",
         "daisyui": "^4.11.1",
@@ -22,7 +20,6 @@
         "gray-matter": "^4.0.3",
         "moment-timezone": "^0.5.45",
         "next": "14.2.3",
-        "prettier-plugin-tailwindcss": "^0.5.14",
         "react": "18.3.1",
         "react-dom": "18.3.1",
         "rehype-stringify": "^10.0.0",
@@ -32,7 +29,6 @@
         "remark-parse": "^11.0.0",
         "remark-rehype": "^11.1.0",
         "remark-toc": "^9.0.0",
-        "socket.io-client": "^4.7.5",
         "swr": "^2.2.5",
         "typescript": "5.4.5",
         "unified": "^11.0.4",
@@ -40,10 +36,16 @@
     },
     "devDependencies": {
         "@types/canvas-confetti": "^1.6.4",
+        "@types/node": "20.12.12",
+        "@types/react": "18.3.3",
+        "@types/react-dom": "18.3.0",
+        "@types/ws": "^8.5.10",
         "autoprefixer": "^10.4.19",
         "ignore-loader": "^0.1.2",
         "postcss": "^8.4.38",
         "prettier": "^3.2.5",
+        "prettier-plugin-tailwindcss": "^0.5.14",
         "tailwindcss": "^3.4.3"
-    }
+    },
+    "packageManager": "pnpm@9.1.2+sha512.127dc83b9ea10c32be65d22a8efb4a65fb952e8fefbdfded39bdc3c97efc32d31b48b00420df2c1187ace28c921c902f0cb5a134a4d032b8b5295cbfa2c681e2"
 }

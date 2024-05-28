@@ -30,13 +30,14 @@ export default async function Home() {
     const devDeps: Dependencies = packages.devDependencies
 
     const packageList: Package[] = []
+    const devPackageList: Package[] = []
 
     for (const [name, version] of Object.entries(deps)) {
         packageList.push({ name, version })
     }
 
     for (const [name, version] of Object.entries(devDeps)) {
-        packageList.push({ name, version })
+        devPackageList.push({ name, version })
     }
 
     return (
@@ -93,6 +94,20 @@ export default async function Home() {
                             <div className="collapse-content max-h-full">
                                 <ul>
                                     {packageList.map((pkg, i) => (
+                                        <li key={i}>
+                                            {pkg.name}: {pkg.version}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </details>
+                        <details className="collapse collapse-arrow bg-base-200">
+                            <summary className="collapse-title text-xl font-medium">
+                                DevDependencies
+                            </summary>
+                            <div className="collapse-content max-h-full">
+                                <ul>
+                                    {devPackageList.map((pkg, i) => (
                                         <li key={i}>
                                             {pkg.name}: {pkg.version}
                                         </li>

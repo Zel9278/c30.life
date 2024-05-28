@@ -22,10 +22,6 @@ const mainUsedUsers: UserData[] = [
 
 const users: UserData[] = [
     {
-        host: "m.tty7.uk",
-        userId: "c",
-    },
-    {
         host: "premis.one",
         userId: "c30",
     },
@@ -123,10 +119,6 @@ const users: UserData[] = [
     },
     {
         host: "misskey.io",
-        userId: "c30",
-    },
-    {
-        host: "m.tty7.uk",
         userId: "c30",
     },
     {

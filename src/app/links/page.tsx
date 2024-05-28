@@ -79,7 +79,7 @@ const otherSites = [
     },
     {
         title: "Fediverse Emoji Count Ranking",
-        href: "https://er.tty7.uk",
+        href: "https://er.c30.life",
     },
 ]
 
@@ -91,7 +91,7 @@ const myFediverseServers = [
     {
         title: "至り来たり宿（第二期）",
         href: "https://mk.c30.life",
-    }
+    },
 ]
 
 const mutualLinks = [
