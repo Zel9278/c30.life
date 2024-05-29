@@ -10,7 +10,6 @@
         "pretty": "prettier --write ."
     },
     "dependencies": {
-        "@discordjs-japan/om-syrinx": "github:discordjs-japan/om-syrinx#4b0d4c066255d1c85e29815b1a68074416842fe9",
         "axios": "^1.7.2",
         "canvas-confetti": "^1.9.3",
         "daisyui": "^4.11.1",
@@ -30,7 +29,7 @@
         "remark-parse": "^11.0.0",
         "remark-rehype": "^11.1.0",
         "remark-toc": "^9.0.0",
-        "supports-color": "9.4.0",
+        "supports-color": "8.1.1",
         "swr": "^2.2.5",
         "typescript": "5.4.5",
         "unified": "^11.0.4",
