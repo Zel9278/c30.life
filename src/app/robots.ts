@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: "*",
             allow: "/",
-            disallow: "/private/",
+            disallow: ["/chat/", "/read/"],
         },
         sitemap: "https://c30.life/sitemap.xml",
         host: "https://c30.life",
