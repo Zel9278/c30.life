@@ -29,7 +29,7 @@
         "remark-parse": "^11.0.0",
         "remark-rehype": "^11.1.0",
         "remark-toc": "^9.0.0",
-        "supports-color": "8.1.1",
+        "supports-color": "9.4.0",
         "swr": "^2.2.5",
         "typescript": "5.4.5",
         "unified": "^11.0.4",
