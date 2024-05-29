@@ -5,6 +5,7 @@ import { ReactNode, useEffect, useState } from "react"
 
 type Props = {
     children?: ReactNode
+    blogId?: string
 }
 
 type ResponseData = {
@@ -16,11 +17,17 @@ export default function Counter(progs: Props) {
 
     useEffect(() => {
         axios
-            .post(`/api/v1/counter`, {})
+            .post(`/api/v1/counter`, {
+                blogId: progs.blogId,
+            })
             .then((data: AxiosResponse<ResponseData>) =>
-                setCount(data.data.count)
+                setCount(data.data.count),
             )
-    }, [])
+    }, [progs.blogId])
 
-    return <p className="text-sm">あなたは今、{count}個目のポットです。</p>
+    return progs.blogId ? (
+        <p className="text-sm">{count}回この記事が閲覧されました。</p>
+    ) : (
+        <p className="text-sm">あなたは今、{count}個目のポットです。</p>
+    )
 }

@@ -9,7 +9,6 @@ export default function Home() {
     const [isConnected, setIsConnected] = useState(false)
     const [messages, setMessages] = useState([])
     const [message, setMessage] = useState("")
-    const [reConnectDelay, setReConnectDelay] = useState(1000)
 
     function connect(cli: WebSocket | null): WebSocket {
         if (cli) return cli
@@ -26,7 +25,6 @@ export default function Home() {
         client.onopen = () => {
             console.log("WebSocket is open now.")
             setIsConnected(true)
-            setReConnectDelay(1000)
         }
         client.onclose = () => {
             console.log("WebSocket is closed now.")
@@ -34,11 +32,13 @@ export default function Home() {
             setClient(null)
 
             setTimeout(() => {
-                setReConnectDelay(reConnectDelay + 250)
                 setClient(connect)
-            }, reConnectDelay)
+            }, 3500)
         }
-    }, [client, reConnectDelay])
+        client.onmessage = (msg) => {
+            console.log(msg)
+        }
+    }, [client])
 
     return (
         <>

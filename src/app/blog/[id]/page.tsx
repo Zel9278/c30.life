@@ -7,6 +7,7 @@ import { generate } from "@/utils/metadata"
 import { ClipBoard } from "@/components/clipboard"
 import { FediverseShare } from "@/components/fediverse"
 import { Window } from "@/components/window"
+import Counter from "@/components/counter"
 
 type Props = {
     params: { id: string }
@@ -59,6 +60,7 @@ export default async function Home({ params }: Props) {
                     <div className="card-body">
                         <h2 className="card-title">{postData.title}</h2>
                         <p>Publish: {postData.date}</p>
+                        <Counter blogId={postData.id} />
 
                         <div className="bg-zinc-400 w-full h-0.5 rounded" />
                         <h2>Share</h2>
