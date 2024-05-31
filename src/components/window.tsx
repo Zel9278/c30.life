@@ -6,10 +6,17 @@ type Props = {
     title: string
     id: string
     isClose?: boolean
+    isWindowDVD?: boolean
     children: JSX.Element
 }
 
-export function Window({ title, id, isClose, children }: Props): JSX.Element {
+export function Window({
+    title,
+    id,
+    isClose,
+    isWindowDVD,
+    children,
+}: Props): JSX.Element {
     const [isDragging, setIsDragging] = useState(false)
     const [position, setPosition] = useState({ x: 0, y: 0 })
     const [startPosition, setStartPosition] = useState({ x: 0, y: 0 })

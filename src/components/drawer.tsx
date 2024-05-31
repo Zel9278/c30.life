@@ -54,21 +54,21 @@ export default function Drawer(progs: Props) {
             <div className="drawer-side">
                 <label htmlFor="drawer" className="drawer-overlay"></label>
                 <ul className="menu rounded-box overflow-y-auto flex-nowrap p-4 w-80 h-full bg-base-100/[.06] backdrop-blur-sm shadow-lg text-base-content border-r-slate-700 border-r-2 top-[64px] fixed">
-                    {links.map(({ href, label, tooltip }) => (
+                    {links.map((l, i) => (
                         <li
-                            key={`${href}${label}`}
-                            className={`mb-4 ${tooltip ? "tooltip tooltip-right before:sticky after:sticky" : ""}`}
-                            data-tip={tooltip}
+                            key={i}
+                            className={`mb-4 ${l.tooltip ? "tooltip tooltip-right before:sticky after:sticky" : ""}`}
+                            data-tip={l.tooltip}
                         >
                             <Link
-                                href={href}
+                                href={l.href}
                                 className={`menu-item ${
-                                    pathname === href
+                                    pathname === l.href
                                         ? "bg-[#04ff7552] hover:bg-[#31be7152]"
                                         : ""
                                 }`}
                             >
-                                {label}
+                                {l.label}
                             </Link>
                         </li>
                     ))}

@@ -33,7 +33,7 @@ export default async function Home({ params }: Props) {
         <>
             <main>
                 <div>
-                    <Window title="広告" id="advertisement" isClose>
+                    <Window title="広告" id="advertisement" isClose isWindowDVD>
                         <div className="p-2">
                             <Link
                                 href="https://misskey.art"
