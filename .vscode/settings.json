@@ -6,5 +6,6 @@
     "editor.formatOnSave": true,
     "[typescriptreact]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "debug.console.fontFamily": "Consolas, 'Courier New', monospace"
 }

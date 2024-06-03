@@ -22,6 +22,16 @@ const mainUsedUsers: UserData[] = [
 
 const users: UserData[] = [
     {
+        host: "soukun.io",
+        userId: "c",
+        isNSFW: true,
+    },
+    {
+        host: "45sukey.net",
+        userId: "c30",
+        isNSFW: true,
+    },
+    {
         host: "premis.one",
         userId: "c30",
     },

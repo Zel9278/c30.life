@@ -1,12 +1,14 @@
 "use client"
 
-import { useEffect, useState, useCallback, use } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 
 type Props = {
     title: string
     id: string
     isClose?: boolean
     isWindowDVD?: boolean
+    enableBlur?: boolean
+    onClose?: () => void
     children: JSX.Element
 }
 
@@ -15,6 +17,8 @@ export function Window({
     id,
     isClose,
     isWindowDVD,
+    enableBlur,
+    onClose,
     children,
 }: Props): JSX.Element {
     const [isDragging, setIsDragging] = useState(false)
@@ -23,6 +27,11 @@ export function Window({
     const [windowElement, setWindowElement] = useState<HTMLElement | null>(null)
     const [parentElement, setParentElement] = useState<HTMLElement | null>(null)
     const [bottomSize, setBottomSize] = useState(64)
+
+    const moveX = useRef<number>(1)
+    const moveY = useRef<number>(1)
+    const accelX = useRef(0.1)
+    const accelY = useRef(0.1)
 
     useEffect(() => {
         const element = document.getElementById(`window-${id}`)
@@ -34,15 +43,8 @@ export function Window({
         if (parent) {
             setParentElement(parent)
 
-            const elementIndexOf = Array.prototype.indexOf.call(
-                parent.children,
-                element,
-            )
-
-            const x = elementIndexOf * 20
-            const y = elementIndexOf * 20
-
-            console.log(x, y)
+            const x = 0
+            const y = 0
 
             setPosition({
                 x,
@@ -159,25 +161,79 @@ export function Window({
     ])
 
     useEffect(() => {
+        if (!windowElement) return
+        if (!isWindowDVD) return
+        if (isDragging) return
+
+        const windowWidth = windowElement.offsetWidth
+        const windowHeight = windowElement.offsetHeight
+
+        const width = window.innerWidth
+        const height = window.innerHeight
+
+        let interval: NodeJS.Timeout | null = null
+
+        accelX.current = Math.random() - 0.5
+        accelY.current = Math.random() - 0.5
+
+        function draw() {
+            moveX.current += accelX.current
+            moveY.current += accelY.current
+
+            const nextX = position.x + moveX.current
+            const nextY = position.y + moveY.current
+
+            if (nextX < 0 || nextX + windowWidth > width) {
+                moveX.current = -moveX.current
+                accelX.current = -(Math.random() - 0.5) // Reverse acceleration as well
+            }
+
+            if (nextY < 0 || nextY + windowHeight > height - bottomSize) {
+                moveY.current = -moveY.current
+                accelY.current = -(Math.random() - 0.5) // Reverse acceleration as well
+            }
+
+            setPosition({
+                x: position.x + moveX.current,
+                y: position.y + moveY.current,
+            })
+        }
+
+        interval = setInterval(draw, 1000 / 24)
+
+        return () => {
+            if (interval) {
+                clearInterval(interval)
+            }
+        }
+    }, [
+        bottomSize,
+        isDragging,
+        isWindowDVD,
+        position.x,
+        position.y,
+        windowElement,
+    ])
+
+    useEffect(() => {
         const resize = (event: Event) => {
             event.preventDefault()
 
             const width = window.innerWidth
             const height = window.innerHeight
 
+            const windowWidth = windowElement!.offsetWidth
+            const windowHeight = windowElement!.offsetHeight
+
             let x = position.x
             let y = position.y
 
-            if (x + windowElement!.offsetWidth > width) {
-                x = width - windowElement!.offsetWidth
-            } else if (x < 0) {
-                x = 0
+            if (x + windowWidth > width) {
+                x = width - windowWidth
             }
 
-            if (y + windowElement!.offsetHeight > height - bottomSize) {
-                y = height - windowElement!.offsetHeight - bottomSize
-            } else if (y < 0) {
-                y = 0
+            if (y + windowHeight > height - bottomSize) {
+                y = height - windowHeight - bottomSize
             }
 
             if (position.x !== x || position.y !== y) {
@@ -197,7 +253,7 @@ export function Window({
 
     return (
         <div
-            className="fixed z-50 bg-[#00000085] rounded backdrop-blur-sm shadow-[0_0_6px_6px_#1118] border-[#5f8bdd] border-2"
+            className={`fixed z-50 bg-[#00000085] rounded ${enableBlur ? "backdrop-blur-sm" : ""} shadow-[0_0_6px_6px_#1118] border-[#5f8bdd] border-2`}
             style={{
                 transform: `translate(${position.x}px, ${position.y}px)`,
             }}
@@ -278,7 +334,7 @@ export function Window({
                 className="flex justify-between border-b-[#73474] border-b-2 cursor-move window"
                 id={`window-${id}-titlebar`}
             >
-                <div className="ml-2">
+                <div className="mx-2">
                     <h1>{title}</h1>
                 </div>
                 <div>
@@ -293,6 +349,8 @@ export function Window({
                                 if (parent) {
                                     parent.removeChild(windowElement!)
                                 }
+
+                                if (onClose) onClose()
                             }}
                         >
                             X
