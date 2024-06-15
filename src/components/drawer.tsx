@@ -24,6 +24,7 @@ const links: LinkData[] = [
     { href: "/blog", label: "Blog" },
     { href: "/misskey", label: "Misskey Links" },
     { href: "/mastodon", label: "Mastodon Links" },
+    { href: "/watched-animes", label: "Anime I watched" },
     { href: "/servers", label: "My Fediverse Servers" },
     { href: "/midis", label: "MIDI Downloads" },
     { href: "/mdic", label: "Misskey Default Icon Checker" },

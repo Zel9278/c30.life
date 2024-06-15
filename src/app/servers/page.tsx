@@ -437,7 +437,7 @@ export function generateMetadata(): Metadata {
     return {
         description: "c30のサーバーリストです。",
         openGraph: {
-            title: "My Fediverse Servers - c30 life",
+            title: "My Fediverse Servers",
             description: "c30のサーバーリストです。",
             url: "https://c30.life/servers",
         },

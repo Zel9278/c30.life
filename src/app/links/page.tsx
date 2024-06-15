@@ -318,7 +318,7 @@ export function generateMetadata(): Metadata {
     return {
         description: "c30のリンク集です。",
         openGraph: {
-            title: "links - c30 life",
+            title: "links",
             description: "c30のリンク集です。",
             url: "https://c30.life/links",
         },

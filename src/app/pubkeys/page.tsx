@@ -47,7 +47,7 @@ export function generateMetadata(): Metadata {
     return {
         description: "c30の公開鍵です。",
         openGraph: {
-            title: "pubkeys - c30 life",
+            title: "pubkeys",
             description: "c30の公開鍵です。",
             url: "https://c30.life/pubkeys",
         },

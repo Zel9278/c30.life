@@ -96,7 +96,7 @@ export function generateMetadata(): Metadata {
     return {
         description: "c30のMastodon, Pleroma, Akkomaのアカウントリストです。",
         openGraph: {
-            title: "mastodon - c30 life",
+            title: "mastodon",
             description:
                 "c30のMastodon, Pleroma, Akkomaのアカウントリストです。",
             url: "https://c30.life/mastodon",

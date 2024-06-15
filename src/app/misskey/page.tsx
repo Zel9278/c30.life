@@ -191,7 +191,7 @@ export function generateMetadata(): Metadata {
     return {
         description: "c30のMisskeyのアカウントリストです。",
         openGraph: {
-            title: "misskey - c30 life",
+            title: "misskey",
             description: "c30のMisskeyのアカウントリストです。",
             url: "https://c30.life/misskey",
         },

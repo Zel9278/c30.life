@@ -115,7 +115,7 @@ export function generateMetadata(): Metadata {
     return {
         description: "c30が作ったMIDIです。",
         openGraph: {
-            title: "midis - c30 life",
+            title: "midis",
             description: "c30が作ったMIDIです。",
             url: "https://c30.life/midis",
         },

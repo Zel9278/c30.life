@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 import os from "os"
 import packages from "../../../package.json"
+import pm2 from "../../../../.n/lib/node_modules/pm2/package.json"
 
 type Package = {
     name: string
@@ -20,6 +21,8 @@ const getData = async () => {
         runningAs: `${os.userInfo().username}@${os.hostname()}`,
         thisVersion: packages.version,
         nodeVersion: process.version,
+        pm2Version: pm2.version,
+        pnpmVersion: packages.packageManager,
     }
 }
 
@@ -47,12 +50,19 @@ export default async function Home() {
                     <div className="card-body">
                         <h2 className="card-title">Info</h2>
                         <div className="bg-zinc-400 w-full h-0.5 rounded" />
-                        <ul>
+                        <ul className="px-5">
                             <li>ホスト: {data.host}</li>
                             <li>オーナー: {data.owner}</li>
                             <li>実行ユーザー: {data.runningAs}</li>
-                            <li>バージョン: {data.thisVersion}</li>
-                            <li>Node.jsバージョン: {data.nodeVersion}</li>
+                            <li className="bg-zinc-500 w-full h-0.5 rounded my-1" />
+                            <li>このサイトバージョン: {data.thisVersion}</li>
+                            <li>Node.jsのバージョン: {data.nodeVersion}</li>
+                            <li>PM2のバージョン: {data.pm2Version}</li>
+                            <li>
+                                pnpmのバージョン:{" "}
+                                {data.pnpmVersion.replace("pnpm@", "")}
+                            </li>
+                            <li className="bg-zinc-500 w-full h-0.5 rounded my-1" />
                             <li>
                                 Sitemap:{" "}
                                 <Link
@@ -126,7 +136,7 @@ export function generateMetadata(): Metadata {
     return {
         description: "c30.lifeの情報です。",
         openGraph: {
-            title: "info - c30 life",
+            title: "info",
             description: "c30.lifeの情報です。",
             url: "https://c30.life/info",
         },
