@@ -84,6 +84,24 @@ const AnimeUnknown: Anime[] = [
         url: "http://newgame-anime.com/",
         rating: 10,
     },
+    {
+        title: "ご注文はうさぎですか?（一期）",
+        genre: "アニメ",
+        url: "https://gochiusa.com/",
+        rating: 10,
+    },
+    {
+        title: "らき☆すた",
+        genre: "アニメ",
+        url: "https://ja.wikipedia.org/wiki/%E3%82%89%E3%81%8D%E2%98%86%E3%81%99%E3%81%9F_(%E3%82%A2%E3%83%8B%E3%83%A1)",
+        rating: 10,
+    },
+    {
+        title: "私に天使が舞い降りた!",
+        genre: "アニメ",
+        url: "http://watatentv.com/",
+        rating: 10,
+    },
 ]
 
 export default function Home() {

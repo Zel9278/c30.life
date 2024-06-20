@@ -211,7 +211,7 @@ const privateServers: Server[] = [
         url: "https://p.tty7.uk",
         software: "Pleroma",
         created_at: "2023-11-??",
-        status: "active",
+        status: "gone",
     },
     {
         name: "至り来たり宿",
