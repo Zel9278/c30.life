@@ -58,6 +58,10 @@ const socialLinks = [
         title: "Keyoxide",
         href: "https://keyoxide.org/9EF8EC1FD53DE71F282013BEC4A74B9FB980BF72",
     },
+    {
+        title: "Skeb",
+        href: "https://skeb.jp/@c30",
+    },
 ]
 
 const otherSites = [

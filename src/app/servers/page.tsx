@@ -294,13 +294,17 @@ export default function Home() {
                                                 serverStatus[server.status]
                                             }`}
                                         >
-                                            <Link
-                                                href={server.url}
-                                                className="underline"
-                                                target="_blank"
-                                            >
-                                                {server.url}
-                                            </Link>
+                                            {server.status === "gone" ? (
+                                                `${server.url} (アクセスしないでください)`
+                                            ) : (
+                                                <Link
+                                                    href={server.url}
+                                                    className="underline"
+                                                    target="_blank"
+                                                >
+                                                    {server.url}
+                                                </Link>
+                                            )}
                                         </td>
                                         <td
                                             className={`border border-stone-300 border-solid px-1.5 ${
@@ -343,13 +347,17 @@ export default function Home() {
                                                 serverStatus[server.status]
                                             }`}
                                         >
-                                            <Link
-                                                href={server.url}
-                                                className="underline"
-                                                target="_blank"
-                                            >
-                                                {server.url}
-                                            </Link>
+                                            {server.status === "gone" ? (
+                                                `${server.url} (アクセスしないでください)`
+                                            ) : (
+                                                <Link
+                                                    href={server.url}
+                                                    className="underline"
+                                                    target="_blank"
+                                                >
+                                                    {server.url}
+                                                </Link>
+                                            )}
                                         </td>
                                         <td
                                             className={`border border-stone-300 border-solid px-1.5 ${
@@ -392,13 +400,17 @@ export default function Home() {
                                                 serverStatus[server.status]
                                             }`}
                                         >
-                                            <Link
-                                                href={server.url}
-                                                className="underline"
-                                                target="_blank"
-                                            >
-                                                {server.url}
-                                            </Link>
+                                            {server.status === "gone" ? (
+                                                `${server.url} (アクセスしないでください)`
+                                            ) : (
+                                                <Link
+                                                    href={server.url}
+                                                    className="underline"
+                                                    target="_blank"
+                                                >
+                                                    {server.url}
+                                                </Link>
+                                            )}
                                         </td>
                                         <td
                                             className={`border border-stone-300 border-solid px-1.5 ${

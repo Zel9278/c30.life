@@ -32,6 +32,10 @@ const users: UserData[] = [
         isNSFW: true,
     },
     {
+        host: "misskey.systems",
+        userId: "c30",
+    },
+    {
         host: "premis.one",
         userId: "c30",
     },
