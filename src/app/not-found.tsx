@@ -1,8 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 
 export default function NotFound() {
+    const pathname = usePathname()
     const [text, setText] = useState("")
 
     useEffect(() => {
@@ -35,6 +37,7 @@ export default function NotFound() {
 
     return (
         <div>
+            <pre>{`User> curl c30.life` + pathname}</pre>
             <pre>{text}</pre>
         </div>
     )

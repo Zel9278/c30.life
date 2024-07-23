@@ -91,10 +91,14 @@ const myFediverseServers = [
     {
         title: "Misskey.art",
         href: "https://misskey.art",
+        image: "https://raw.githubusercontent.com/Misskey-art/Assets/main/banner/200x40.png",
+        alt: "Misskey.art",
     },
     {
         title: "至り来たり宿（第二期）",
         href: "https://mk.c30.life",
+        image: "https://mk.c30.life/files/2d68d53f-1316-4953-86c7-92f88e566620",
+        alt: "至り来たり宿（第二期）",
     },
 ]
 
@@ -130,6 +134,12 @@ const mutualLinks = [
         alt: "デデオチャンのホームページ",
     },
     {
+        title: "垂紡町",
+        href: "https://suiboutown.tumblr.com/",
+        image: "https://files.misskey.art//fd270cc0-02e3-49ad-9351-c247f5a466a5.png",
+        alt: "さんめさんのホームページ",
+    },
+    {
         title: "THE MAMA FLY",
         href: "https://the-mama-fly.mystrikingly.com",
         image: "https://custom-images.strikinglycdn.com/res/hrscywv4p/image/upload/c_limit,fl_lossy,h_1440,w_720,f_auto,q_auto/751498/544326_194302.png",
@@ -140,12 +150,6 @@ const mutualLinks = [
         href: "http://aratamapalace.web.fc2.com",
         image: "http://aratamapalace.web.fc2.com/images/banner.png",
         alt: "ヒズさんのホームページ",
-    },
-    {
-        title: "垂紡町",
-        href: "https://suiboutown.tumblr.com/",
-        image: null,
-        alt: "さんめさんのホームページ",
     },
 ]
 
@@ -160,7 +164,7 @@ export default function Home() {
                         <div className="bg-zinc-800 w-full h-0.5 rounded" />
                         <h2 className="text-stone-400">Contacts</h2>
 
-                        <ul className="flex flex-wrap text-center">
+                        <ul className="flex flex-wrap justify-center text-center">
                             {contacts.map((link, i) => (
                                 <li key={i} className="p-0.5">
                                     <Link
@@ -177,7 +181,7 @@ export default function Home() {
                         <div className="bg-zinc-800 w-full h-0.5 rounded" />
                         <h2 className="text-stone-400">Social</h2>
 
-                        <ul className="flex flex-wrap text-center">
+                        <ul className="flex flex-wrap justify-center text-center">
                             {socialLinks.map((link, i) => (
                                 <li key={i} className="p-0.5">
                                     <Link
@@ -194,7 +198,7 @@ export default function Home() {
                         <div className="bg-zinc-800 w-full h-0.5 rounded" />
                         <h2 className="text-stone-400">Other My Sites</h2>
 
-                        <ul className="flex flex-wrap text-center">
+                        <ul className="flex flex-wrap justify-center text-center">
                             {otherSites.map((link, i) => (
                                 <li key={i} className="p-0.5">
                                     <Link
@@ -211,15 +215,31 @@ export default function Home() {
                         <div className="bg-zinc-800 w-full h-0.5 rounded" />
                         <h2 className="text-stone-400">My Fediverse Server</h2>
 
-                        <ul className="flex flex-wrap text-center">
+                        <ul className="flex flex-wrap justify-center text-center">
                             {myFediverseServers.map((link, i) => (
                                 <li key={i} className="p-0.5">
                                     <Link
                                         href={link.href}
-                                        className="btn btn-outline btn-info"
+                                        className="flex flex-col"
                                         target="_blank"
                                     >
-                                        {link.title}
+                                        {link.image ? (
+                                            <>
+                                                <Image
+                                                    src={link.image}
+                                                    alt={link.alt}
+                                                    width={200}
+                                                    height={36}
+                                                />
+                                                <span className="text-sm">
+                                                    {link.title}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <button className="btn btn-outline btn-info">
+                                                {link.title}
+                                            </button>
+                                        )}
                                     </Link>
                                 </li>
                             ))}
@@ -228,7 +248,7 @@ export default function Home() {
                         <div className="bg-zinc-800 w-full h-0.5 rounded" />
                         <h2 className="text-stone-400">相互リンク</h2>
 
-                        <ul className="flex flex-wrap text-center">
+                        <ul className="flex flex-wrap justify-center text-center">
                             {mutualLinks.map((link, i) => (
                                 <li key={i} className="p-0.5">
                                     <Link
@@ -306,6 +326,18 @@ export default function Home() {
                         >
                             <Image
                                 src="https://c30.life/c30-life-banner.png"
+                                width="234"
+                                height="60"
+                                alt="ホームページ"
+                            />
+                        </Link>
+                        <Link
+                            href="https://c30.life"
+                            target="_blank"
+                            className="text-center"
+                        >
+                            <Image
+                                src="https://c30.life/c30-life-banner-2.png"
                                 width="234"
                                 height="60"
                                 alt="ホームページ"
