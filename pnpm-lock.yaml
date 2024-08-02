@@ -36,8 +36,8 @@ importers:
         specifier: 14.2.5
         version: 14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       openapi-typescript:
-        specifier: 7.1.0
-        version: 7.1.0(typescript@5.5.3)
+        specifier: 7.3.0
+        version: 7.3.0(typescript@5.5.3)
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -1593,8 +1593,8 @@ packages:
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
-  openapi-typescript@7.1.0:
-    resolution: {integrity: sha512-qxjGhIO6ODCGximE2HiozkPUNbO4y7F2OQyGa+gcn6TdZMMtmuiyDPqoKmf+Y4VlvQRfhJUTU635w8KfZVeuVA==}
+  openapi-typescript@7.3.0:
+    resolution: {integrity: sha512-EkljRjYWOPwGXiK++uI9MkGv2Y7uhbkZbi9V1z3r3EpmWVO6aFTHXSLNvxIWo6UT6LCTYgEYkUB3BWQjwwXthg==}
     hasBin: true
     peerDependencies:
       typescript: ^5.x
@@ -4155,7 +4155,7 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  openapi-typescript@7.1.0(typescript@5.5.3):
+  openapi-typescript@7.3.0(typescript@5.5.3):
     dependencies:
       '@redocly/openapi-core': 1.18.0(supports-color@9.4.0)
       ansi-colors: 4.1.3
