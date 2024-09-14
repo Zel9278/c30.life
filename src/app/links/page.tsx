@@ -17,7 +17,11 @@ const contacts = [
     },
     {
         title: "Misskey",
-        href: "https://misskey.art/@c30",
+        href: "https://mk.c30.life/@c30",
+    },
+    {
+        title: "Matrix",
+        href: "https://matrix.to/@c30:c30.one#/@c30:c30.one",
     },
 ]
 
@@ -56,7 +60,11 @@ const socialLinks = [
     },
     {
         title: "Keyoxide",
-        href: "https://keyoxide.org/aspe:keyoxide.org:LGMWCRZY45EOFFANOU4GTURQ34",
+        href: "https://keyoxide.org/5717936DE6707ABE284ADB9A4C10C121022E422D",
+    },
+    {
+        title: "Keybase",
+        href: "https://keybase.io/c30",
     },
     {
         title: "Skeb",

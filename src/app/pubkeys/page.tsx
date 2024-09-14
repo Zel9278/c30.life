@@ -8,7 +8,7 @@ const pubkeys = [
     },
     {
         title: "PGP",
-        content: "aspe:keyoxide.org:LGMWCRZY45EOFFANOU4GTURQ34",
+        content: "5717936DE6707ABE284ADB9A4C10C121022E422D",
     },
     {
         title: "Switch",
