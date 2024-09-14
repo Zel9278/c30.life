@@ -7,12 +7,11 @@ import Disconnected from "@/components/chat/disconnected"
 export default function Home() {
     const [client, setClient] = useState<WebSocket | null>(null)
     const [isConnected, setIsConnected] = useState(false)
-    const [messages, setMessages] = useState([])
-    const [message, setMessage] = useState("")
+    const [id, setId] = useState("")
 
     function connect(cli: WebSocket | null): WebSocket {
         if (cli) return cli
-        return new WebSocket("wss://c30-chat-server.tty7.uk")
+        return new WebSocket("wss://chats.c30.life/")
     }
 
     useEffect(() => {
@@ -36,14 +35,18 @@ export default function Home() {
             }, 3500)
         }
         client.onmessage = (msg) => {
-            console.log(msg)
+            const data = JSON.parse(msg.data)
+
+            if (data.type === "id") {
+                setId(data.id)
+            }
         }
     }, [client])
 
     return (
         <>
             <p>testing</p>
-            {isConnected ? <Connected /> : <Disconnected />}
+            {isConnected ? <Connected id={id} ws={client} /> : <Disconnected />}
         </>
     )
 }

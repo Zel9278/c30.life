@@ -25,7 +25,7 @@ export default function GetMastodonAccount(progs: Props) {
             host: progs.host,
             userid: progs.userid,
         },
-        mastodonAccountFetcher
+        mastodonAccountFetcher,
     )
 
     const {
@@ -144,7 +144,7 @@ export default function GetMastodonAccount(progs: Props) {
                     <div className="bg-zinc-800 w-full h-0.5 rounded my-2" />
 
                     <div className="card w-auto bg-base-300 shadow-xl flex flex-row p-2">
-                        <div className="text-stone-300 text-sm">
+                        <div className="text-stone-500 text-sm">
                             <p>
                                 Server:{" "}
                                 <Link

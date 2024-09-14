@@ -56,7 +56,7 @@ const socialLinks = [
     },
     {
         title: "Keyoxide",
-        href: "https://keyoxide.org/9EF8EC1FD53DE71F282013BEC4A74B9FB980BF72",
+        href: "https://keyoxide.org/aspe:keyoxide.org:LGMWCRZY45EOFFANOU4GTURQ34",
     },
     {
         title: "Skeb",

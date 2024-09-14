@@ -4,11 +4,11 @@ const pubkeys = [
     {
         title: "SSH",
         content:
-            "ssh-ed255 AAAAC3NzaC1lZDI1NTE5AAAAIAUPX3H1WYraFO4i9XHZPA7Mytzxjl6buDkIsvP45adw",
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAUPX3H1WYraFO4i9XHZPA7Mytzxjl6buDkIsvP45adw",
     },
     {
         title: "PGP",
-        content: "9EF8EC1FD53DE71F282013BEC4A74B9FB980BF72",
+        content: "aspe:keyoxide.org:LGMWCRZY45EOFFANOU4GTURQ34",
     },
     {
         title: "Switch",
@@ -17,6 +17,10 @@ const pubkeys = [
     {
         title: "Steam",
         content: "1012960934 / fuji_midi",
+    },
+    {
+        title: "Zenless Zone Zero",
+        content: "1305318188",
     },
 ]
 

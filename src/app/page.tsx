@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import homeStyles from "@/styles/Home.module.css"
+import homeStyles from "@/styles/HomePage.module.css"
 import Counter from "@/components/counter"
 import Timeline from "@/components/timeline"
 
@@ -9,13 +9,13 @@ function getAge(data: string) {
     let birthday = new Date(
         parseInt(splitData[0], 0),
         parseInt(splitData[1], 0) - 1,
-        parseInt(splitData[2], 0)
+        parseInt(splitData[2], 0),
     )
     let today = new Date()
     let thisYearBirthday = new Date(
         today.getFullYear(),
         birthday.getMonth(),
-        birthday.getDate()
+        birthday.getDate(),
     )
     let age = today.getFullYear() - birthday.getFullYear()
 
@@ -98,16 +98,16 @@ export default async function Home() {
                                 <div className="bg-zinc-800 w-full h-0.5 rounded" />
                                 <h3 className="text-xl text-stone-400">趣味</h3>
                                 <div id="hobby-badges">
-                                    <div className="badge bg-zinc-900">
+                                    <div className="badge bg-base-100">
                                         イラストレーション
                                     </div>
-                                    <div className="badge bg-zinc-900">
+                                    <div className="badge bg-base-100">
                                         曲制作・耳コピ
                                     </div>
-                                    <div className="badge bg-zinc-900">
+                                    <div className="badge bg-base-100">
                                         プログラミング
                                     </div>
-                                    <div className="badge bg-zinc-900">
+                                    <div className="badge bg-base-100">
                                         Fediverse, Discord
                                     </div>
                                 </div>

@@ -45,7 +45,7 @@ export default function GetMisskeyAccount(progs: Props) {
             host: progs.host,
             userid: progs.userid,
         },
-        misskeyAccountFetcher
+        misskeyAccountFetcher,
     )
 
     const {
@@ -205,7 +205,7 @@ export default function GetMisskeyAccount(progs: Props) {
                                 />
                             )}
                         </div>
-                        <div className="text-stone-300 text-sm">
+                        <div className="text-stone-500 text-sm">
                             <p>
                                 Server:{" "}
                                 <Link

@@ -20,7 +20,7 @@ export default function Home() {
         setImageUrl(
             `https://${url}/identicon/${isAddAtMark ? "@" + id : id}${
                 isAfterAddress ? "@" + url : ""
-            }`
+            }`,
         )
     const onIsAfterAddressClick = (): void => setAfterAddress(!isAfterAddress)
     const onIsAddAtMarkClick = (): void => setAddAtMark(!isAddAtMark)

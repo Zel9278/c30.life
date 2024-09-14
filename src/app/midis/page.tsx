@@ -1,5 +1,5 @@
 import { Metadata } from "next"
-import styles from "@/styles/MIDIs.module.css"
+import styles from "@/styles/MIDIsPage.module.css"
 import Link from "next/link"
 
 type Data = {

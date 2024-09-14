@@ -26,16 +26,6 @@ const mastodonUsers: UserData[] = [
 
 const pleromaUsers: UserData[] = [
     {
-        host: "p.tty7.uk",
-        userId: "c30",
-        isPleroma: true,
-    },
-    {
-        host: "aa.nikola.love",
-        userId: "c30",
-        isPleroma: true,
-    },
-    {
         host: "blob.cat",
         userId: "c30",
         isPleroma: true,

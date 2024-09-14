@@ -10,6 +10,8 @@ module.exports = {
     },
     plugins: ["prettier-plugin-tailwindcss", require("daisyui")],
     daisyui: {
-        themes: ["forest"],
+        themes: ["cupcake", "forest"],
+        darkTheme: "forest",
     },
+    darkMode: ["class", '[data-theme="forest"]'],
 }
