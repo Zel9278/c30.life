@@ -2,7 +2,6 @@ import { Metadata } from "next"
 import Link from "next/link"
 import os from "os"
 import packages from "../../../package.json"
-import pm2 from "../../../../.n/lib/node_modules/pm2/package.json"
 
 type Package = {
     name: string
@@ -21,7 +20,6 @@ const getData = async () => {
         runningAs: `${os.userInfo().username}@${os.hostname()}`,
         thisVersion: packages.version,
         nodeVersion: process.version,
-        pm2Version: pm2.version,
         pnpmVersion: packages.packageManager,
     }
 }
@@ -57,7 +55,6 @@ export default async function Home() {
                             <li className="bg-zinc-500 w-full h-0.5 rounded my-1" />
                             <li>このサイトバージョン: {data.thisVersion}</li>
                             <li>Node.jsのバージョン: {data.nodeVersion}</li>
-                            <li>PM2のバージョン: {data.pm2Version}</li>
                             <li>
                                 pnpmのバージョン:{" "}
                                 {data.pnpmVersion.replace("pnpm@", "")}

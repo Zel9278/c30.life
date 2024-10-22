@@ -1,5 +1,5 @@
 import { getPostData, getPostDataSync } from "@/utils/blog"
-import { Metadata } from "next"
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import "../../../styles/blog.css"
 import Link from "next/link"
@@ -10,13 +10,14 @@ import { Window } from "@/components/window"
 import Counter from "@/components/counter"
 
 type Props = {
-    params: { id: string }
+    params: Promise<{ id: string }>
 }
 
 type Headings = (string | Headings)[]
 
 export default async function Home({ params }: Props) {
-    const postData = await getPostData(params.id)
+    const { id } = await params
+    const postData = await getPostData(id)
 
     if (!postData) {
         return notFound()
@@ -24,7 +25,7 @@ export default async function Home({ params }: Props) {
 
     const title = postData.title + " | Blog"
     const urlEncodedTitle = encodeURI(title)
-    const url = `https://c30.life/blog/${params.id}`
+    const url = `https://c30.life/blog/${id}`
 
     const xURL = `https://x.com/intent/post?url=${url}&text=${urlEncodedTitle}`
     const hatenaBookmarkURL = `https://b.hatena.ne.jp/entry/${url}`
@@ -151,8 +152,9 @@ function makeTocElement(
     )
 }
 
-export function generateMetadata({ params }: Props): Metadata {
-    const postData = getPostDataSync(params.id)
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { id } = await params
+    const postData = await getPostData(id)
 
     if (!postData) {
         return notFound()
@@ -161,5 +163,5 @@ export function generateMetadata({ params }: Props): Metadata {
     const title = postData.title + " | Blog"
     const description = `Publish: ${postData.date}`
 
-    return generate(title, description, `https://c30.life/blog/${params.id}`)
+    return generate(title, description, `https://c30.life/blog/${id}`)
 }
