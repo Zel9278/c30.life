@@ -35,6 +35,11 @@ const pleromaUsers: UserData[] = [
         userId: "c30",
         isPleroma: true,
     },
+    {
+        host: "post.syobon.net",
+        userId: "c30",
+        isPleroma: true,
+    },
 ]
 
 export default function Home() {

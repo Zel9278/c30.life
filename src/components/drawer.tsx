@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ReactNode, useEffect, useState } from "react"
+import { type ReactNode, useEffect, useState } from "react"
 
 type Props = {
     children?: ReactNode
@@ -38,7 +38,7 @@ export default function Drawer(progs: Props) {
 
     useEffect(() => {
         setIsOpen(false)
-    }, [pathname])
+    }, [])
 
     return (
         <div className="drawer">
@@ -53,7 +53,7 @@ export default function Drawer(progs: Props) {
                 {progs.children}
             </div>
             <div className="drawer-side">
-                <label htmlFor="drawer" className="drawer-overlay"></label>
+                <label htmlFor="drawer" className="drawer-overlay" />
                 <ul className="menu rounded-box overflow-y-auto flex-nowrap p-4 w-80 h-full bg-base-100/[.06] backdrop-blur-sm shadow-lg text-base-content border-r-slate-700 border-r-2 top-[64px] fixed">
                     {links.map((l, i) => (
                         <li

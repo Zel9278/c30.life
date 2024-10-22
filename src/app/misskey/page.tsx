@@ -84,7 +84,7 @@ const users: UserData[] = [
         userId: "c30",
     },
     {
-        host: "misskey.backspace.fm",
+        host: "misskey.flowers",
         userId: "c30",
     },
     {
