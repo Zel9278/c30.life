@@ -91,13 +91,15 @@ export async function getPostData(id: string) {
         indexNumbered = makeTocNumbered(matterResult.content)
     }
 
-    return {
+    const data = {
         id,
         processedContent,
         index,
         indexNumbered,
         ...(matterResult.data as { date: string; title: string }),
     }
+
+    return data
 }
 
 export function getPostDataSync(id: string) {
@@ -185,11 +187,14 @@ function makeTocNumbered(markdown: string): Headings {
             isCodeBlock = !isCodeBlock
         }
 
+        console.log(line)
+
         if (isCodeBlock) {
             continue
         }
 
         const match = line.match(/^(#{1,6})\s+(.*)$/)
+
         if (match) {
             num++
 
