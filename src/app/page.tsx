@@ -60,6 +60,24 @@ export default async function Home() {
                                     <br />
                                     知的障害、うつ病、自閉症スペクトラム持ちです。
                                 </p>
+                                <iframe
+                                    title="c30's misskey note"
+                                    src="https://misskey.art/embed/notes/9yulwl0wp0"
+                                    data-misskey-embed-id="v1_7bfe52a6-bd3a-4321-abf9-5cbcc9d0add3"
+                                    loading="lazy"
+                                    referrerPolicy="strict-origin-when-cross-origin"
+                                    style={{
+                                        border: "none",
+                                        width: "100%",
+                                        maxWidth: "500px",
+                                        height: "300px",
+                                        colorScheme: "light dark",
+                                    }}
+                                />
+                                <script
+                                    defer
+                                    src="https://misskey.art/embed.js"
+                                />
                                 <div className="bg-zinc-800 w-full h-0.5 rounded" />
                                 <h3 className="text-sm text-stone-400">
                                     プロフィール

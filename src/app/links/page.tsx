@@ -136,6 +136,12 @@ const mutualLinks = [
         alt: "あさるとのホームページ",
     },
     {
+        title: "kazukazu123123",
+        href: "https://kazu123.net",
+        image: "https://kazu123.net/banner.png",
+        alt: "かずかずのホームページ",
+    },
+    {
         title: "デデオチャンのホームページ",
         href: "https://deryck2000.jp.eu.org/",
         image: "https://github.com/Deryck2000/deryck2000.jp.eu.org/blob/main/d_assets/banner/deryck_banner_234_60.png?raw=true",
