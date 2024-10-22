@@ -64,7 +64,7 @@ importers:
         version: 11.0.0(supports-color@9.4.0)
       remark-rehype:
         specifier: ^11.1.0
-        version: 11.1.0
+        version: 11.1.1
       remark-toc:
         specifier: ^9.0.0
         version: 9.0.0
@@ -325,6 +325,9 @@ packages:
 
   '@types/unist@3.0.2':
     resolution: {integrity: sha512-dqId9J8K/vGi5Zr7oo212BGii5m3q5Hxlkwy3WpYuKPklmBEvsbMYYyLxAQpSffdLl/gdW0XUpKWFvYmyoWCoQ==}
+
+  '@types/unist@3.0.3':
+    resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
 
   '@types/ws@8.5.12':
     resolution: {integrity: sha512-3tPRkv1EtkDpzlgyKyI8pGsGZAGPEaXeu0DOj5DI25Ja91bdAYddYHbADRYVrZMRbfW+1l5YwXVDKohDJNQxkQ==}
@@ -1840,8 +1843,8 @@ packages:
   remark-parse@11.0.0:
     resolution: {integrity: sha512-FCxlKLNGknS5ba/1lmpYijMUzX2esxW5xQqjWxw2eHFfS2MSdaHVINFmhjo+qN1WhZhNimq0dZATN9pH0IDrpA==}
 
-  remark-rehype@11.1.0:
-    resolution: {integrity: sha512-z3tJrAs2kIs1AqIIy6pzHmAHlF1hWQ+OdY4/hv+Wxe35EhyLKcajL33iUEn3ScxtFox9nUvRufR/Zre8Q08H/g==}
+  remark-rehype@11.1.1:
+    resolution: {integrity: sha512-g/osARvjkBXb6Wo0XvAeXQohVta8i84ACbenPpoSsxTOQH/Ae0/RGP4WZgnMH5pMLpsj4FG7OHmcIcXxpza8eQ==}
 
   remark-stringify@11.0.0:
     resolution: {integrity: sha512-1OSmLd3awB/t8qdoEOMazZkNsfVTeY4fTsgzcQFdXNq8ToTN4ZGwrMnlda4K6smTFKD+GRV6O48i6Z4iKgPPpw==}
@@ -2174,6 +2177,9 @@ packages:
   vfile@6.0.2:
     resolution: {integrity: sha512-zND7NlS8rJYb/sPqkb13ZvbbUoExdbi4w3SfRrMq6R3FvnLQmmfpajJNITuuYm6AZ5uao9vy4BAos3EXBPf2rg==}
 
+  vfile@6.0.3:
+    resolution: {integrity: sha512-KzIbH/9tXat2u30jf+smMwFCsno4wHVdNmzFyL+T/L3UGqqk6JKfVqOFOZEpZSHADH1k40ab6NUIXZq422ov3Q==}
+
   web-namespaces@2.0.1:
     resolution: {integrity: sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ==}
 
@@ -2422,13 +2428,13 @@ snapshots:
 
   '@types/hast@3.0.4':
     dependencies:
-      '@types/unist': 3.0.2
+      '@types/unist': 3.0.3
 
   '@types/json5@0.0.29': {}
 
   '@types/mdast@4.0.4':
     dependencies:
-      '@types/unist': 3.0.2
+      '@types/unist': 3.0.3
 
   '@types/ms@0.7.34': {}
 
@@ -2450,6 +2456,8 @@ snapshots:
   '@types/ungap__structured-clone@1.2.0': {}
 
   '@types/unist@3.0.2': {}
+
+  '@types/unist@3.0.3': {}
 
   '@types/ws@8.5.12':
     dependencies:
@@ -3032,7 +3040,7 @@ snapshots:
       debug: 4.3.5(supports-color@9.4.0)
       enhanced-resolve: 5.17.0
       eslint: 9.9.1(jiti@1.21.6)(supports-color@9.4.0)
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-node@0.3.9(supports-color@9.4.0))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-node@0.3.9(supports-color@9.4.0))(eslint-plugin-import@2.29.1)(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0))(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-node@0.3.9(supports-color@9.4.0))(eslint-import-resolver-typescript@3.6.1)(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)
       eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-typescript@3.6.1)(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)
       fast-glob: 3.3.2
       get-tsconfig: 4.7.6
@@ -3044,7 +3052,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-node@0.3.9(supports-color@9.4.0))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-node@0.3.9(supports-color@9.4.0))(eslint-plugin-import@2.29.1)(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0))(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0):
+  eslint-module-utils@2.8.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-node@0.3.9(supports-color@9.4.0))(eslint-import-resolver-typescript@3.6.1)(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0):
     dependencies:
       debug: 3.2.7(supports-color@9.4.0)
     optionalDependencies:
@@ -3065,7 +3073,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.9.1(jiti@1.21.6)(supports-color@9.4.0)
       eslint-import-resolver-node: 0.3.9(supports-color@9.4.0)
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-node@0.3.9(supports-color@9.4.0))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-node@0.3.9(supports-color@9.4.0))(eslint-plugin-import@2.29.1)(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0))(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)(typescript@5.6.3))(eslint-import-resolver-node@0.3.9(supports-color@9.4.0))(eslint-import-resolver-typescript@3.6.1)(eslint@9.9.1(jiti@1.21.6)(supports-color@9.4.0))(supports-color@9.4.0)
       hasown: 2.0.2
       is-core-module: 2.15.0
       is-glob: 4.0.3
@@ -3384,7 +3392,7 @@ snapshots:
       devlop: 1.1.0
       hastscript: 8.0.0
       property-information: 6.5.0
-      vfile: 6.0.2
+      vfile: 6.0.3
       vfile-location: 5.0.3
       web-namespaces: 2.0.1
 
@@ -3404,7 +3412,7 @@ snapshots:
       parse5: 7.1.2
       unist-util-position: 5.0.0
       unist-util-visit: 5.0.0
-      vfile: 6.0.2
+      vfile: 6.0.3
       web-namespaces: 2.0.1
       zwitch: 2.0.4
 
@@ -4345,13 +4353,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  remark-rehype@11.1.0:
+  remark-rehype@11.1.1:
     dependencies:
       '@types/hast': 3.0.4
       '@types/mdast': 4.0.4
       mdast-util-to-hast: 13.2.0
       unified: 11.0.5
-      vfile: 6.0.2
+      vfile: 6.0.3
 
   remark-stringify@11.0.0:
     dependencies:
@@ -4747,7 +4755,7 @@ snapshots:
   vfile-location@5.0.3:
     dependencies:
       '@types/unist': 3.0.2
-      vfile: 6.0.2
+      vfile: 6.0.3
 
   vfile-message@4.0.2:
     dependencies:
@@ -4758,6 +4766,11 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.2
       unist-util-stringify-position: 4.0.0
+      vfile-message: 4.0.2
+
+  vfile@6.0.3:
+    dependencies:
+      '@types/unist': 3.0.3
       vfile-message: 4.0.2
 
   web-namespaces@2.0.1: {}
