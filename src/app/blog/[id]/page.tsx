@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import "../../../styles/blog.css"
 import Link from "next/link"
+import Image from "next/image"
 import { generate } from "@/utils/metadata"
 import { ClipBoard } from "@/components/clipboard"
 import { FediverseShare } from "@/components/fediverse"
@@ -39,10 +40,18 @@ export default async function Home({ params }: Props) {
                             <Link
                                 href="https://misskey.art"
                                 target="_blank"
-                                className="text-[#aaa] hover:text-[#fff] hover:underline"
+                                className="flex text-[#aaa] hover:text-[#fff] hover:underline"
                             >
-                                [広告] Misskey.art -
-                                創作活動をする人や見る人を歓迎するMisskeyのサーバーです。🔗
+                                <p>
+                                    [広告] Misskey.art -
+                                    創作活動をする人や見る人を歓迎するMisskeyのサーバーです。🔗
+                                </p>
+                                <Image
+                                    src="/mi-art.png"
+                                    alt="misskey.art"
+                                    width={150}
+                                    height={150}
+                                />
                             </Link>
                             <br />
                             <Link
