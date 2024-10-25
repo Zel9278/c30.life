@@ -1,0 +1,3 @@
+ancestorEntries = ["src/.counter.json"]
+ourEntries = ["src/.counter.json"]
+theirEntries = ["src/.counter.json"]
