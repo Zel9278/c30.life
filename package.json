@@ -33,7 +33,7 @@
 		"supports-color": "9.4.0",
 		"swr": "^2.2.5",
 		"theme-change": "2.5.0",
-		"typescript": "5.6.3",
+		"typescript": "5.7.3",
 		"unified": "^11.0.4",
 		"ws": "^8.17.0"
 	},
