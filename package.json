@@ -30,7 +30,7 @@
 		"remark-parse": "^11.0.0",
 		"remark-rehype": "^11.1.0",
 		"remark-toc": "^9.0.0",
-		"supports-color": "9.4.0",
+		"supports-color": "10.0.0",
 		"swr": "^2.2.5",
 		"theme-change": "2.5.0",
 		"typescript": "5.7.3",
