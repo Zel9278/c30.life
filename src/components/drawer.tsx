@@ -22,6 +22,7 @@ const links: LinkData[] = [
     },
     { href: "/links", label: "Links" },
     { href: "/blog", label: "Blog" },
+    { href: "/environments", label: "Environments" },
     { href: "/misskey", label: "Misskey Links" },
     { href: "/mastodon", label: "Mastodon Links" },
     { href: "/watched-animes", label: "Anime I watched" },
