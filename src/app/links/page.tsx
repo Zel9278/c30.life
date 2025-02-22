@@ -19,10 +19,6 @@ const contacts = [
         title: "Misskey",
         href: "https://mk.c30.life/@c30",
     },
-    {
-        title: "Matrix",
-        href: "https://matrix.to/@c30:c30.one#/@c30:c30.one",
-    },
 ]
 
 const socialLinks = [
@@ -118,12 +114,6 @@ const mutualLinks = [
         alt: "みりえるさんのホームページ",
     },
     {
-        title: "ぬるきゃのホームページ",
-        href: "https://nullnyat.nca10.moe",
-        image: "https://nullnyat.nca10.moe/nullnyat-banner.png",
-        alt: "ぬるきゃのホームページ",
-    },
-    {
         title: "hi there (assault1892)",
         href: "https://assault1892.boats",
         image: "https://assault1892.boats/banner/assault1892.png",
@@ -144,7 +134,7 @@ const mutualLinks = [
     {
         title: "デデオチャンのホームページ",
         href: "https://deryck2000.jp.eu.org/",
-        image: "https://github.com/Deryck2000/deryck2000.jp.eu.org/blob/main/d_assets/banner/deryck_banner_234_60.png?raw=true",
+        image: "https://deryck2000.jp.eu.org/assets/banner/deryck_banner_200_40.png",
         alt: "デデオチャンのホームページ",
     },
     {

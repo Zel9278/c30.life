@@ -9,10 +9,6 @@ type UserData = {
 }
 
 const mainUsedUsers: UserData[] = [
-    {
-        host: "misskey.io",
-        userId: "c30_eo",
-    },
     { host: "mk.c30.life", userId: "c30" },
     {
         host: "misskey.art",
@@ -30,6 +26,10 @@ const users: UserData[] = [
         host: "45sukey.net",
         userId: "c30",
         isNSFW: true,
+    },
+    {
+        host: "ussr.rumiserver.com",
+        userId: "c",
     },
     {
         host: "misskey.systems",
@@ -116,6 +116,10 @@ const users: UserData[] = [
         userId: "c30",
     },
     {
+        host: "k.lapy.link",
+        userId: "c30",
+    },
+    {
         host: "misskey.life",
         userId: "c30",
     },
@@ -129,10 +133,6 @@ const users: UserData[] = [
     },
     {
         host: "misskey.yukineko.me",
-        userId: "c30",
-    },
-    {
-        host: "misskey.io",
         userId: "c30",
     },
     {
