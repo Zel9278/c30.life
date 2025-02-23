@@ -12,12 +12,11 @@ const url = "https://c30.life"
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ja" suppressHydrationWarning>
       <body className="h-screen w-screen flex flex-col">
+        <NavBar />
         <ThemeProvider storageKey="theme" themes={["forest", "cupcake"]}>
           <Drawer>
             {process.env.npm_lifecycle_event === "dev" && (
@@ -27,32 +26,32 @@ export default function RootLayout({
                 </p>
               </div>
             )}
-            <NavBar />
+
             <main className="flex-grow overflow-y-auto">{children}</main>
-            <Fireworks />
-            <a
-              rel="me"
-              href="https://fedibird.com/@c30"
-              style={{ display: "none" }}
-            >
-              Fedibird
-            </a>
-            <a
-              rel="me"
-              href="https://misskey.art/@c30"
-              style={{ display: "none" }}
-            >
-              Misskey.art
-            </a>
-            <a
-              rel="me"
-              href="https://mk.c30.life/@c30"
-              style={{ display: "none" }}
-            >
-              至り来たり宿
-            </a>
             <Footer />
           </Drawer>
+          <Fireworks />
+          <a
+            rel="me"
+            href="https://fedibird.com/@c30"
+            style={{ display: "none" }}
+          >
+            Fedibird
+          </a>
+          <a
+            rel="me"
+            href="https://misskey.art/@c30"
+            style={{ display: "none" }}
+          >
+            Misskey.art
+          </a>
+          <a
+            rel="me"
+            href="https://mk.c30.life/@c30"
+            style={{ display: "none" }}
+          >
+            至り来たり宿
+          </a>
         </ThemeProvider>
       </body>
     </html>

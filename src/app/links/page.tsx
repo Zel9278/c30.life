@@ -89,6 +89,10 @@ const otherSites = [
     title: "Fediverse Emoji Count Ranking",
     href: "https://er.c30.life",
   },
+  {
+    title: "c30のふぁいるさあばあ",
+    href: "https://f.c30.life",
+  },
 ]
 
 const myFediverseServers = [
@@ -156,8 +160,14 @@ const mutualLinks = [
   {
     title: "ルート45",
     href: "http://aratamapalace.web.fc2.com",
-    image: "http://aratamapalace.web.fc2.com/images/banner.png",
+    image: "https://aratamapalace.web.fc2.com/img/banner/r45banner.png",
     alt: "ヒズさんのホームページ",
+  },
+  {
+    title: "るみさんのホームページ",
+    href: "https://rumi-room.net",
+    image: "https://rumi-room.net/Asset/rumisan_room/BANNR.png",
+    alt: "るみさんのホームページ",
   },
 ]
 
