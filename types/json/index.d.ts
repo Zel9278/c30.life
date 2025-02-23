@@ -1,8 +1,8 @@
 declare module "*/.counter.json" {
-    interface Counter {
-        count: number
-    }
+  interface Counter {
+    count: number
+  }
 
-    const value: Counter
-    export = value
+  const value: Counter
+  export = value
 }

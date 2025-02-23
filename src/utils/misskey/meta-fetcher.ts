@@ -1,18 +1,18 @@
-import axios, { AxiosResponse } from "axios"
+import axios, { type AxiosResponse } from "axios"
 
 type Args = {
-    host: string
+  host: string
 }
 
 export type MetaData = {
-    name: string
-    iconUrl: string
-    version: string
-    disableRegistration: boolean
-    repositoryUrl: string
+  name: string
+  iconUrl: string
+  version: string
+  disableRegistration: boolean
+  repositoryUrl: string
 }
 
 export const misskeyMetaFetcher = async (args: Args) =>
-    await axios
-        .post(`https://${args.host}/api/meta`, { detail: false })
-        .then((data: AxiosResponse<MetaData>) => data.data)
+  await axios
+    .post(`https://${args.host}/api/meta`, { detail: false })
+    .then((data: AxiosResponse<MetaData>) => data.data)
