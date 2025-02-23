@@ -1,5 +1,13 @@
 const timelineData = [
   {
+    year: "2025/01/19",
+    title: "日記をGithubで始めた",
+  },
+  {
+    year: "2025/01/16",
+    title: "自作のファイルサーバーを作ってる",
+  },
+  {
     year: "2024/05/22",
     title: "mk.tty7.uk（至り来たり宿 第二期）を開設した",
   },
