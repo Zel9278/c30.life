@@ -1,5 +1,3 @@
-import axios, { type AxiosResponse } from "axios"
-
 type Args = {
   host: string
   userid: string
@@ -22,10 +20,23 @@ export type AccountData = {
   roles: Role[]
 }
 
-export const misskeyAccountFetcher = async (args: Args) =>
-  await axios
-    .post(`https://${args.host}/api/users/show`, {
+export const misskeyAccountFetcher = async (
+  args: Args,
+): Promise<AccountData> => {
+  const response = await fetch(`https://${args.host}/api/users/show`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
       username: args.userid,
       host: null,
-    })
-    .then((data: AxiosResponse<AccountData>) => data.data)
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+
+  return (await response.json()) as AccountData
+}

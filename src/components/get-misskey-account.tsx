@@ -6,6 +6,10 @@ import Link from "next/link"
 import useSWR from "swr"
 import { misskeyAccountFetcher } from "@/utils/misskey/account-fetcher"
 import { misskeyMetaFetcher } from "@/utils/misskey/meta-fetcher"
+import { useEffect, useState } from "react"
+import EmojiParser from "@/utils/emoji-parser"
+import DOMPurify from "isomorphic-dompurify"
+import parse from "html-react-parser"
 
 type Props = {
   children?: ReactNode
@@ -35,15 +39,20 @@ const softwares: { [key in Softwares]: string } = {
   "no software": "Old or Hidden Misskey Fork",
 }
 
-export default function GetMisskeyAccount(progs: Props) {
+export default function GetMisskeyAccount({ host, userid, isNSFW }: Props) {
+  const [parsedUserName, setParsedUserName] = useState<string | null>(null)
+  const [parsedDescription, setParsedDescription] = useState<string | null>(
+    null,
+  )
+
   const {
     data: accountData,
     error: accountError,
     isLoading: isAccountLoading,
   } = useSWR(
     {
-      host: progs.host,
-      userid: progs.userid,
+      host: host,
+      userid: userid,
     },
     misskeyAccountFetcher,
   )
@@ -52,7 +61,25 @@ export default function GetMisskeyAccount(progs: Props) {
     data: metaData,
     error: metaError,
     isLoading: isMetaLoading,
-  } = useSWR({ host: progs.host }, misskeyMetaFetcher)
+  } = useSWR({ host: host }, misskeyMetaFetcher)
+
+  useEffect(() => {
+    const parseEmojis = async () => {
+      const parser = new EmojiParser(host)
+      const parsedName = await parser.parse(accountData?.name || "")
+      const parsedDescription = await parser.parse(
+        accountData?.description || "",
+      )
+
+      const name = parsedName || accountData?.name || null
+      const description = parsedDescription || accountData?.description || null
+
+      setParsedUserName(name)
+      setParsedDescription(description)
+    }
+
+    parseEmojis()
+  }, [host, accountData])
 
   if (isAccountLoading && isMetaLoading)
     return (
@@ -64,7 +91,7 @@ export default function GetMisskeyAccount(progs: Props) {
             <div className="card-title text-center">
               <p>Feching Account and Meta...</p>
             </div>
-            <p className="text-red-300 hover:text-red-500">at {progs.host}</p>
+            <p className="text-red-300 hover:text-red-500">at {host}</p>
           </div>
         </li>
       </>
@@ -81,7 +108,7 @@ export default function GetMisskeyAccount(progs: Props) {
             </div>
 
             <p className="text-red-300 hover:text-red-500">
-              {"@can't get id"}@{progs.host}
+              {"@can't get id"}@{host}
             </p>
 
             <p className="whitespace-pre-wrap">can&apos;t get description</p>
@@ -96,7 +123,7 @@ export default function GetMisskeyAccount(progs: Props) {
     <>
       <li
         className={
-          progs.isNSFW
+          isNSFW
             ? "card w-auto bg-base-300 shadow-xl flex flex-row blur-md hover:blur-none"
             : "card w-auto bg-base-300 shadow-xl flex flex-row"
         }
@@ -114,15 +141,21 @@ export default function GetMisskeyAccount(progs: Props) {
         </figure>
         <div className="card-body">
           <div className="card-title text-center">
-            <h2>{accountData?.name || "no name"}</h2>
+            <h2>
+              {parse(
+                DOMPurify.sanitize(
+                  parsedUserName || accountData?.name || "no name",
+                ),
+              )}
+            </h2>
           </div>
 
           <Link
-            href={`https://${progs.host}/@${progs.userid}`}
+            href={`https://${host}/@${userid}`}
             className="text-green-300 hover:text-green-500"
             target="_blank"
           >
-            @{accountData?.username}@{progs.host}
+            @{accountData?.username}@{host}
           </Link>
 
           <div className="bg-zinc-800 w-full h-0.5 rounded my-2" />
@@ -161,7 +194,13 @@ export default function GetMisskeyAccount(progs: Props) {
           <div className="bg-zinc-800 w-full h-0.5 rounded my-2" />
 
           <p className="whitespace-pre-wrap">
-            {accountData?.description || "no description"}
+            {parse(
+              DOMPurify.sanitize(
+                parsedDescription ||
+                  accountData?.description ||
+                  "no description",
+              ),
+            )}
           </p>
 
           <div className="bg-zinc-800 w-full h-0.5 rounded my-2" />
@@ -199,7 +238,7 @@ export default function GetMisskeyAccount(progs: Props) {
               <p>
                 Server:{" "}
                 <Link
-                  href={`https://${progs.host}`}
+                  href={`https://${host}`}
                   target="_blank"
                   className={
                     metaData?.disableRegistration

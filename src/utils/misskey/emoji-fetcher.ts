@@ -1,5 +1,3 @@
-import axios, { type AxiosResponse } from "axios"
-
 type Args = {
   host: string
 }
@@ -15,7 +13,19 @@ type ResultData = {
   emojis: EmojiData[]
 }
 
-export const misskeyEmojiFetcher = async (args: Args) =>
-  await axios
-    .post(`https://${args.host}/api/emojis`, {})
-    .then((data: AxiosResponse<ResultData>) => data.data?.emojis)
+export const misskeyEmojiFetcher = async (args: Args): Promise<EmojiData[]> => {
+  const response = await fetch(`https://${args.host}/api/emojis`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+  })
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+
+  const data = (await response.json()) as ResultData
+  return data.emojis
+}

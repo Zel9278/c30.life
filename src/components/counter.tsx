@@ -1,6 +1,5 @@
 "use client"
 
-import axios, { type AxiosResponse } from "axios"
 import { type ReactNode, useEffect, useState } from "react"
 
 type Props = {
@@ -16,11 +15,15 @@ export default function Counter(progs: Props) {
   const [count, setCount] = useState(0)
 
   useEffect(() => {
-    axios
-      .post("/api/v1/counter", {
-        blogId: progs.blogId,
-      })
-      .then((data: AxiosResponse<ResponseData>) => setCount(data.data.count))
+    fetch("/api/v1/counter", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ blogId: progs.blogId }),
+    })
+      .then((response) => response.json())
+      .then((data: ResponseData) => setCount(data.count))
   }, [progs.blogId])
 
   return progs.blogId ? (

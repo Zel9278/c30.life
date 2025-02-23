@@ -1,5 +1,3 @@
-import axios, { type AxiosResponse } from "axios"
-
 type Args = {
   host: string
 }
@@ -10,7 +8,10 @@ export type MetaData = {
   registrations: boolean
 }
 
-export const mastodonMetaFetcher = async (args: Args) =>
-  await axios
-    .get(`https://${args.host}/api/v1/instance`)
-    .then((data: AxiosResponse<MetaData>) => data.data)
+export const mastodonMetaFetcher = async (args: Args): Promise<MetaData> => {
+  const response = await fetch(`https://${args.host}/api/v1/instance`)
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  return await response.json()
+}

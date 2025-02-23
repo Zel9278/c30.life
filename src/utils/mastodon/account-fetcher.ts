@@ -1,5 +1,3 @@
-import axios, { type AxiosResponse } from "axios"
-
 type Args = {
   host: string
   userid: string
@@ -15,7 +13,14 @@ export type AccountData = {
   statuses_count: number
 }
 
-export const mastodonAccountFetcher = async (args: Args) =>
-  await axios
-    .get(`https://${args.host}/api/v1/accounts/lookup?acct=${args.userid}`)
-    .then((data: AxiosResponse<AccountData>) => data.data)
+export const mastodonAccountFetcher = async (
+  args: Args,
+): Promise<AccountData> => {
+  const response = await fetch(
+    `https://${args.host}/api/v1/accounts/lookup?acct=${args.userid}`,
+  )
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  return (await response.json()) as AccountData
+}

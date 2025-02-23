@@ -1,5 +1,3 @@
-import axios, { type AxiosResponse } from "axios"
-
 type Args = {
   host: string
 }
@@ -12,7 +10,18 @@ export type MetaData = {
   repositoryUrl: string
 }
 
-export const misskeyMetaFetcher = async (args: Args) =>
-  await axios
-    .post(`https://${args.host}/api/meta`, { detail: false })
-    .then((data: AxiosResponse<MetaData>) => data.data)
+export const misskeyMetaFetcher = async (args: Args): Promise<MetaData> => {
+  const response = await fetch(`https://${args.host}/api/meta`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ detail: false }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+
+  return await response.json()
+}
