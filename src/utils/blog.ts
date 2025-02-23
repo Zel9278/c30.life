@@ -20,6 +20,15 @@ const linkProcessor: Plugin<[], Root> = () => {
   return (tree) => {
     visit(tree, "element", (node: Element) => {
       if (
+        node.tagName === "img" &&
+        node.properties &&
+        typeof node.properties.src === "string"
+      ) {
+        const src = node.properties.src
+        node.properties.src = `https://c30.life/api/image?url=${src}`
+      }
+
+      if (
         node.tagName === "a" &&
         node.properties &&
         typeof node.properties.href === "string"
@@ -212,8 +221,6 @@ function makeTocNumbered(markdown: string): Headings {
     if (line.startsWith("```")) {
       isCodeBlock = !isCodeBlock
     }
-
-    console.log(line)
 
     if (isCodeBlock) {
       continue
