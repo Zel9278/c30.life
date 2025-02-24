@@ -16,7 +16,6 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <body className="h-screen w-screen flex flex-col">
-        <NavBar />
         <ThemeProvider storageKey="theme" themes={["forest", "cupcake"]}>
           <Drawer>
             {process.env.npm_lifecycle_event === "dev" && (
@@ -26,7 +25,7 @@ export default function RootLayout({
                 </p>
               </div>
             )}
-
+            <NavBar />
             <main className="flex-grow overflow-y-auto">{children}</main>
             <Footer />
           </Drawer>
