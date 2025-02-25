@@ -13,6 +13,8 @@ import "highlight.js/styles/github-dark.css"
 import DOMPurify from "isomorphic-dompurify"
 import parse from "html-react-parser"
 import type { JSX } from "react"
+import { ImageViewerProvider } from "@/contexts/ImageViewerContext"
+import { ImageViewerHandler } from "@/components/ImageViewerHandler"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -108,7 +110,10 @@ export default async function Home({ params }: Props) {
           <div className="bg-zinc-400 w-full h-0.5 rounded" />
 
           <div className="blog-content">
-            {parse(DOMPurify.sanitize(postData.processedContent))}
+            <ImageViewerProvider>
+              {parse(DOMPurify.sanitize(postData.processedContent))}
+              <ImageViewerHandler />
+            </ImageViewerProvider>
           </div>
         </div>
       </div>
