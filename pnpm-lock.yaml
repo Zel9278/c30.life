@@ -118,8 +118,8 @@ importers:
         specifier: 3.0.4
         version: 3.0.4
       '@types/node':
-        specifier: 22.13.5
-        version: 22.13.5
+        specifier: 22.13.6
+        version: 22.13.6
       '@types/react':
         specifier: 19.0.10
         version: 19.0.10
@@ -581,8 +581,8 @@ packages:
   '@types/ms@0.7.34':
     resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
 
-  '@types/node@22.13.5':
-    resolution: {integrity: sha512-+lTU0PxZXn0Dr1NBtC7Y8cR21AJr87dLLU953CWA6pMxxv/UDc7jYAY90upcrie1nRcD6XNG5HOYEDtgW5TxAg==}
+  '@types/node@22.13.6':
+    resolution: {integrity: sha512-GYmF65GI7417CpZXsEXMjT8goQQDnpRnJnDw6jIYa+le3V/lMazPZ4vZmK1B/9R17fh2VLr2zuy9d/h5xgrLAg==}
 
   '@types/react-dom@19.0.4':
     resolution: {integrity: sha512-4fSQ8vWFkg+TGhePfUzVmat3eC14TXYSsiiDSLI0dVLsrm9gZFABjPy/Qu6TKgl1tq1Bu1yDsuQgY3A3DOjCcg==}
@@ -3404,7 +3404,7 @@ snapshots:
 
   '@types/ms@0.7.34': {}
 
-  '@types/node@22.13.5':
+  '@types/node@22.13.6':
     dependencies:
       undici-types: 6.20.0
 
@@ -3427,7 +3427,7 @@ snapshots:
 
   '@types/ws@8.5.14':
     dependencies:
-      '@types/node': 22.13.5
+      '@types/node': 22.13.6
 
   '@typescript-eslint/eslint-plugin@8.11.0(@typescript-eslint/parser@7.2.0(eslint@9.21.0(jiti@2.4.2)(supports-color@10.0.0))(supports-color@10.0.0)(typescript@5.8.2))(eslint@9.21.0(jiti@2.4.2)(supports-color@10.0.0))(supports-color@10.0.0)(typescript@5.8.2)':
     dependencies:
@@ -4915,7 +4915,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 22.13.5
+      '@types/node': 22.13.6
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
