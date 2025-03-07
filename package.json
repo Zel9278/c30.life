@@ -11,7 +11,7 @@
     "pretty": "prettier --write ."
   },
   "dependencies": {
-    "@tailwindcss/postcss": "4.0.11",
+    "@tailwindcss/postcss": "4.0.12",
     "canvas-confetti": "^1.9.3",
     "daisyui": "5.0.0",
     "eslint": "9.21.0",
