@@ -14,7 +14,7 @@
     "@tailwindcss/postcss": "4.0.12",
     "canvas-confetti": "^1.9.3",
     "daisyui": "5.0.0",
-    "eslint": "9.21.0",
+    "eslint": "9.22.0",
     "eslint-config-next": "15.2.1",
     "feed": "^4.2.2",
     "gray-matter": "^4.0.3",
