@@ -31,10 +31,6 @@ const socialLinks = [
     href: "/mastodon",
   },
   {
-    title: "VRChat",
-    href: "https://vrchat.com/home/user/usr_e18c90ac-ac01-434f-a10e-c96fe3deeffc",
-  },
-  {
     title: "Bluesky",
     href: "https://bsky.app/profile/c30.life",
   },
@@ -149,25 +145,6 @@ const mutualLinks = [
     image:
       "https://files.misskey.art//fd270cc0-02e3-49ad-9351-c247f5a466a5.png",
     alt: "さんめさんのホームページ",
-  },
-  {
-    title: "THE MAMA FLY",
-    href: "https://the-mama-fly.mystrikingly.com",
-    image:
-      "https://custom-images.strikinglycdn.com/res/hrscywv4p/image/upload/c_limit,fl_lossy,h_1440,w_720,f_auto,q_auto/751498/544326_194302.png",
-    alt: "蛆野さんのホームページ",
-  },
-  {
-    title: "ルート45",
-    href: "http://aratamapalace.web.fc2.com",
-    image: "https://aratamapalace.web.fc2.com/img/banner/r45banner.png",
-    alt: "ヒズさんのホームページ",
-  },
-  {
-    title: "るみさんのホームページ",
-    href: "https://rumi-room.net",
-    image: "https://rumi-room.net/Asset/rumisan_room/BANNR.png",
-    alt: "るみさんのホームページ",
   },
 ]
 

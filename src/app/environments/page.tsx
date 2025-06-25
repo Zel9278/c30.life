@@ -6,49 +6,36 @@ export default async function Home() {
     gpu: "RTX 3050 Ti Laptop GPU",
     ram: "16GB",
     storage: "512 GB NVMe + 1TB External SSD + 4TB External HDD",
-    os: "Windows 11 Pro",
-    earPhone: "3m cable",
+    os: "Windows 11 Home",
+    earPhone: "USB-C earphone",
+    mouse: "Logicool G203 LIGHTSYNC",
+    tablet: "XPPen Artist 12 Second (Japan Only Model)",
     softwares: [
       "Visual Studio Code",
       "OBS Studio",
       "Discord",
       "Google Chrome",
+      "Google Chrome Dev",
+      "OperaGX",
       "Steam",
-      "Unity",
       "Git",
       "Windows Terminal",
       "ShareX",
       "Tailscale",
       "Voicemeeter Potato",
       "EarTrumpet",
-      "WakaTime",
       "DevToys",
       "PowerToys",
       "NVIDIA Apps",
       "Flow Launcher",
-      "BatteryBar Pro",
       "etc...",
     ],
-    games: ["Minecraft", "VRChat (Desktop)", "Osu!", "etc..."],
-  }
-  const vr = {
-    device: "Meta Quest 3s",
-    connection: "無限Linkケーブル",
-    softwares: [
-      "SteamVR",
-      "Virtual Desktop",
-      "gnihtet ( for USB connection )",
-      "XSOverlay",
-      "fpsVR",
-      "OVR Advanced Settings",
-      "VRHandsFrame",
-    ],
-    games: ["Beat Saber", "VRChat"],
+    games: ["Minecraft", "Osu!", "etc..."],
   }
   const phones = [
     {
       name: "AQUOS R9",
-      os: "Android 14",
+      os: "Android 15",
       rooted: false,
     },
     {
@@ -78,6 +65,8 @@ export default async function Home() {
             <li>Storage: {pc.storage}</li>
             <li>OS: {pc.os}</li>
             <li>Earphone: {pc.earPhone}</li>
+            <li>Mouse: {pc.mouse}</li>
+            <li>Tablet: {pc.tablet}</li>
           </ul>
 
           <h4 className="text-lg font-semibold mb-2">Softwares</h4>
@@ -105,46 +94,6 @@ export default async function Home() {
             </thead>
             <tbody>
               {pc.games.map((game) => (
-                <tr key={game} className="even:bg-base-200 odd:bg-base-100">
-                  <td className="py-2 px-4">{game}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="bg-neutral w-full h-0.5 rounded mb-6" />
-
-          <h3 className="text-xl font-semibold mb-2">VR</h3>
-          <ul className="list-disc list-inside mb-6">
-            <li>Device: {vr.device}</li>
-            <li>Connection: {vr.connection}</li>
-          </ul>
-
-          <h4 className="text-lg font-semibold mb-2">Softwares</h4>
-          <table className="table-auto w-full border border-neutral mb-6">
-            <thead className="bg-neutral text-neutral-content">
-              <tr>
-                <th className="py-2 px-4 text-left">Software</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vr.softwares.map((software) => (
-                <tr key={software} className="even:bg-base-200 odd:bg-base-100">
-                  <td className="py-2 px-4">{software}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <h4 className="text-lg font-semibold mb-2">Games</h4>
-          <table className="table-auto w-full border border-neutral mb-6">
-            <thead className="bg-neutral text-neutral-content">
-              <tr>
-                <th className="py-2 px-4 text-left">Game</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vr.games.map((game) => (
                 <tr key={game} className="even:bg-base-200 odd:bg-base-100">
                   <td className="py-2 px-4">{game}</td>
                 </tr>
