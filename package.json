@@ -16,7 +16,7 @@
     "daisyui": "5.0.43",
     "eslint": "9.24.0",
     "eslint-config-next": "15.3.4",
-    "feed": "^4.2.2",
+    "feed": "^5.0.0",
     "gray-matter": "^4.0.3",
     "html-react-parser": "5.2.3",
     "isomorphic-dompurify": "2.25.0",
