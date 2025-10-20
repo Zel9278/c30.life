@@ -153,17 +153,21 @@ const DOT_COORDS = DOT_PATTERN.flatMap((row, rowIdx) =>
 function buildKeyboardLayout() {
   const whiteKeys: LayoutKey[] = [];
   const blackKeys: LayoutKey[] = [];
+  const allKeys: (LayoutKey & { isBlack: boolean; keyIndex: number })[] = [];
 
   for (let i = 0, whiteCount = 0; i < TOTAL_KEYS; i++) {
     const patternKey = KEY_PATTERN[i % KEY_PATTERN.length];
     const octave = Math.floor(i / KEY_PATTERN.length);
 
     if (patternKey.isBlack) {
-      const x = whiteCount * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
+      // 黒鍵は直前の白鍵の右側に配置(2つの白鍵の間)
+      const x = (whiteCount * WHITE_KEY_WIDTH) - (BLACK_KEY_WIDTH / 2);
       blackKeys.push({ name: patternKey.name, x, octave });
+      allKeys.push({ name: patternKey.name, x, octave, isBlack: true, keyIndex: i });
     } else {
       const x = whiteCount * WHITE_KEY_WIDTH;
       whiteKeys.push({ name: patternKey.name, x, octave });
+      allKeys.push({ name: patternKey.name, x, octave, isBlack: false, keyIndex: i });
       whiteCount += 1;
     }
   }
@@ -171,6 +175,7 @@ function buildKeyboardLayout() {
   return {
     whiteKeys,
     blackKeys,
+    allKeys,
     width: whiteKeys.length * WHITE_KEY_WIDTH,
   };
 }
@@ -208,8 +213,15 @@ function CanvasPianoScene() {
       return;
     }
 
-    const { whiteKeys, blackKeys, width: displayWidth } = layout;
+    const { whiteKeys, blackKeys, allKeys, width: displayWidth } = layout;
     const patternRows = DOT_PATTERN.length;
+    
+    // ドットの列を48鍵に対応させる
+    // PATTERN_COLSの列を0〜47の鍵盤インデックスにマッピング
+    const getKeyIndexForCol = (col: number): number => {
+      return Math.floor((col / PATTERN_COLS) * TOTAL_KEYS);
+    };
+    
     const cellWidth = displayWidth / PATTERN_COLS;
     const cellHeight = cellWidth;
     const rollHeight = Math.max(Math.round(patternRows * cellHeight), WHITE_KEY_HEIGHT * 2);
@@ -220,6 +232,10 @@ function CanvasPianoScene() {
     const dotInset = (Math.min(cellWidth, cellHeight) - dotSize) / 2;
     const patternHeight = patternRows * cellHeight;
     const speed = 60; // pixels per second
+
+    // 衝突している鍵盤を追跡するSet
+    const activeWhiteKeys = new Set<number>();
+    const activeBlackKeys = new Set<number>();
 
     const dpr = window.devicePixelRatio ?? 1;
     const scaledWidth = Math.ceil(displayWidth * dpr);
@@ -252,18 +268,58 @@ function CanvasPianoScene() {
       const offset = (elapsedSeconds * speed) % (patternHeight + rollHeight);
       const startY = offset - patternHeight;
 
+      // 衝突している鍵盤をクリアして再計算
+      activeWhiteKeys.clear();
+      activeBlackKeys.clear();
+
+      // ドットの描画と衝突判定
       ctx.fillStyle = "#bbf7d0";
       ctx.shadowColor = "rgba(134, 239, 172, 0.4)";
       ctx.shadowBlur = 14;
 
       DOT_COORDS.forEach((dot) => {
         const y = startY + dot.row * cellHeight + dotInset;
-        if (y + dotSize < 0 || y > rollHeight) {
-          return;
+        const x = dot.col * cellWidth + dotInset;
+        const dotBottom = y + dotSize;
+        
+        // ドットがロール領域内にある場合のみ描画
+        if (!(y + dotSize < 0 || y > rollHeight)) {
+          ctx.fillRect(x, y, dotSize, dotSize);
         }
 
-        const x = dot.col * cellWidth + dotInset;
-        ctx.fillRect(x, y, dotSize, dotSize);
+        // 鍵盤との衝突判定(ドットがロール領域の下端付近にあるとき)
+        // rollHeightはロール領域の高さで、鍵盤はその下にある
+        const collisionMargin = 15; // 衝突判定のマージン
+        
+        if (dotBottom >= rollHeight - collisionMargin && dotBottom <= rollHeight + collisionMargin) {
+          // ドットの列から対応する鍵盤インデックスを取得
+          const keyIndex = getKeyIndexForCol(dot.col);
+          const targetKey = allKeys[keyIndex];
+          
+          if (targetKey) {
+            if (targetKey.isBlack) {
+              // 黒鍵の場合、blackKeys配列内のインデックスを見つける
+              const blackKeyIndex = blackKeys.findIndex(k => 
+                k.name === targetKey.name && 
+                k.x === targetKey.x && 
+                k.octave === targetKey.octave
+              );
+              if (blackKeyIndex !== -1) {
+                activeBlackKeys.add(blackKeyIndex);
+              }
+            } else {
+              // 白鍵の場合、whiteKeys配列内のインデックスを見つける
+              const whiteKeyIndex = whiteKeys.findIndex(k => 
+                k.name === targetKey.name && 
+                k.x === targetKey.x && 
+                k.octave === targetKey.octave
+              );
+              if (whiteKeyIndex !== -1) {
+                activeWhiteKeys.add(whiteKeyIndex);
+              }
+            }
+          }
+        }
       });
 
       ctx.shadowBlur = 0;
@@ -274,23 +330,46 @@ function CanvasPianoScene() {
 
       ctx.lineWidth = 1 / dpr;
       ctx.strokeStyle = "#1f2937";
-      ctx.fillStyle = "#f8fafc";
 
-      whiteKeys.forEach((key) => {
+      whiteKeys.forEach((key, index) => {
         const x = key.x;
+        
+        // 接触している鍵盤は光らせる
+        if (activeWhiteKeys.has(index)) {
+          ctx.fillStyle = "#86efac"; // 緑色の光
+          ctx.shadowColor = "rgba(134, 239, 172, 0.8)";
+          ctx.shadowBlur = 20;
+        } else {
+          ctx.fillStyle = "#f8fafc";
+          ctx.shadowBlur = 0;
+        }
+        
         ctx.fillRect(x, keyboardTop, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
         ctx.strokeRect(x, keyboardTop, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
       });
 
-      ctx.fillStyle = "#111827";
+      ctx.shadowBlur = 0;
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 0.5 / dpr;
 
-      blackKeys.forEach((key) => {
+      blackKeys.forEach((key, index) => {
         const x = key.x;
+        
+        // 接触している鍵盤は光らせる
+        if (activeBlackKeys.has(index)) {
+          ctx.fillStyle = "#34d399"; // 明るい緑色
+          ctx.shadowColor = "rgba(134, 239, 172, 0.8)";
+          ctx.shadowBlur = 20;
+        } else {
+          ctx.fillStyle = "#111827";
+          ctx.shadowBlur = 0;
+        }
+        
         ctx.fillRect(x, keyboardTop, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
         ctx.strokeRect(x, keyboardTop, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
       });
+
+      ctx.shadowBlur = 0;
 
       animationRef.current = window.requestAnimationFrame(drawFrame);
     };
