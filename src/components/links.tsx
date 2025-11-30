@@ -68,7 +68,7 @@ const socialLinks = [
 const otherSites = [
   {
     title: "Old Homepage",
-    href: "https://csys64.com",
+    href: "https://old.c30.life",
   },
   {
     title: "kusoda.net(クソだね)",
@@ -79,12 +79,12 @@ const otherSites = [
     href: "https://pc-stats.eov2.com",
   },
   {
-    title: "Progress Bar for Days Web",
-    href: "https://pdays.eov2.com",
+    title: "PC Status (new)",
+    href: "https://pc-status.net",
   },
   {
-    title: "Fediverse Emoji Count Ranking",
-    href: "https://er.c30.life",
+    title: "Progress Bar for Days Web",
+    href: "https://pdays.eov2.com",
   },
   {
     title: "c30のふぁいるさあばあ",
@@ -140,6 +140,12 @@ const mutualLinks = [
     image:
       "https://files.misskey.art//fd270cc0-02e3-49ad-9351-c247f5a466a5.png",
     alt: "さんめさんのホームページ",
+  },
+  {
+    title: "Lamp",
+    href: "https://lamp.wtf",
+    image: null,
+    alt: "ランプのホームページ",
   },
 ];
 
