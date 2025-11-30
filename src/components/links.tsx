@@ -197,26 +197,32 @@ export default function Links() {
       </div>
 
       <div className="bg-[#646464] w-full h-1 my-2 rounded" />
-      <h1 className="text-[18px] text-[rgba(200,200,200,255)]">Reciprocal Link</h1>
+      <h1 className="text-[18px] text-[rgba(200,200,200,255)]">
+        Reciprocal Link
+      </h1>
 
       <div className="grid grid-cols-4 gap-2">
         {mutualLinks.map((link, i) => {
-          return (<>
-              {link.image ? (
-                <>
-                  <Image
-                    src={link.image}
-                    alt={link.alt}
-                    width={200}
-                    height={36}
-                  />
-                </>
-              ) : (
-                <button type="button" className="btn btn-outline btn-info">
-                  {link.title}
-                </button>
-              )}
-          </>)
+          return (
+            <>
+              <Link href={link.href}>
+                {link.image ? (
+                  <>
+                    <Image
+                      src={link.image}
+                      alt={link.alt}
+                      width={200}
+                      height={36}
+                    />
+                  </>
+                ) : (
+                  <button type="button" className="btn btn-outline btn-info">
+                    {link.title}
+                  </button>
+                )}
+              </Link>
+            </>
+          );
         })}
       </div>
 
