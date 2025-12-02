@@ -63,6 +63,10 @@ const socialLinks = [
     title: "Skeb",
     href: "https://skeb.jp/@c30",
   },
+  {
+    title: "至り来たり宿 モニタリング",
+    href: "https://itari-kitari.c30.life"
+  },
 ];
 
 const otherSites = [
