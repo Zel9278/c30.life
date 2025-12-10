@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "check": "vue-tsc --noEmit",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "deploy": "wrangler pages deploy dist"
   },
   "dependencies": {
     "daisyui": "^5.5.11",
