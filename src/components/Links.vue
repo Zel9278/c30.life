@@ -78,6 +78,10 @@ const socialLinks: Link[] = [
 // biome-ignore lint/correctness/noUnusedVariables: Used in template
 const otherSites: Link[] = [
   {
+    title: "Status Page",
+    href: "https://status.c30.life",
+  },
+  {
     title: "Old Homepage",
     href: "https://old.c30.life",
   },
