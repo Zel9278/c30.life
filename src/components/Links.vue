@@ -109,6 +109,10 @@ const otherSites: Link[] = [
     title: "Emoji Ranking V2",
     href: "https://er.c30.life"
   },
+  {
+    title: "炒めて切った野菜ジュース Activity Relay Service",
+    href: "https://relay.tools.c30.life"
+  },
 ];
 
 // biome-ignore lint/correctness/noUnusedVariables: Used in template
