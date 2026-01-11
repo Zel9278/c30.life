@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue"
+import { ref, onMounted, computed, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { marked } from "marked"
 import { markedHighlight } from "marked-highlight"
@@ -22,6 +22,7 @@ import sql from "highlight.js/lib/languages/sql"
 import yaml from "highlight.js/lib/languages/yaml"
 import dockerfile from "highlight.js/lib/languages/dockerfile"
 import lua from "highlight.js/lib/languages/lua"
+import plaintext from "highlight.js/lib/languages/plaintext"
 import "highlight.js/styles/github-dark.css"
 import ImageViewerProvider from "@/components/ImageViewerProvider.vue"
 
@@ -53,6 +54,8 @@ hljs.registerLanguage("yml", yaml)
 hljs.registerLanguage("dockerfile", dockerfile)
 hljs.registerLanguage("docker", dockerfile)
 hljs.registerLanguage("lua", lua)
+hljs.registerLanguage("plaintext", plaintext)
+hljs.registerLanguage("text", plaintext)
 
 interface BlogPostDetail {
   id: string
@@ -72,10 +75,19 @@ const error = ref(false)
 // Configure marked with syntax highlighting
 marked.use(
   markedHighlight({
+    emptyLangClass: "hljs language-plaintext",
     langPrefix: "hljs language-",
     highlight(code, lang) {
-      const language = hljs.getLanguage(lang) ? lang : "plaintext"
-      return hljs.highlight(code, { language }).value
+      try {
+        const language = hljs.getLanguage(lang) ? lang : "plaintext"
+        return hljs.highlight(code, { language }).value
+      } catch {
+        // If highlighting fails, return escaped code
+        return code
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+      }
     },
   }),
 )

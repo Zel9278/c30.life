@@ -22,10 +22,6 @@ const timelineData: TimelineItem[] = [
     title: "日記をGithubで始めた",
   },
   {
-    year: "2025/01/19",
-    title: "日記をGithubで始めた",
-  },
-  {
     year: "2025/01/16",
     title: "自作のファイルサーバーを作ってる",
   },
