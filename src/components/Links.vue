@@ -1,11 +1,10 @@
 <script setup lang="ts">
-
 type Link = {
-  title: string;
-  href: string;
-  image?: string | null;
-  alt?: string;
-};
+  title: string
+  href: string
+  image?: string | null
+  alt?: string
+}
 
 // biome-ignore lint/correctness/noUnusedVariables: Used in template
 const contacts: Link[] = [
@@ -25,7 +24,7 @@ const contacts: Link[] = [
     title: "Misskey",
     href: "https://mk.c30.life/@c30",
   },
-];
+]
 
 // biome-ignore lint/correctness/noUnusedVariables: Used in template
 const socialLinks: Link[] = [
@@ -73,7 +72,7 @@ const socialLinks: Link[] = [
     title: "Skeb",
     href: "https://skeb.jp/@c30",
   },
-];
+]
 
 // biome-ignore lint/correctness/noUnusedVariables: Used in template
 const otherSites: Link[] = [
@@ -107,17 +106,21 @@ const otherSites: Link[] = [
   },
   {
     title: "至り来たり宿 モニタリング",
-    href: "https://itari-kitari.c30.life"
+    href: "https://itari-kitari.c30.life",
   },
   {
     title: "Emoji Ranking V2",
-    href: "https://er.c30.life"
+    href: "https://er.c30.life",
   },
   {
     title: "炒めて切った野菜ジュース Activity Relay Service",
-    href: "https://relay.tools.c30.life"
+    href: "https://relay.tools.c30.life",
   },
-];
+  {
+    title: "炒めて切った野菜ジュースのチャット (Dev)",
+    href: "https://chat.dev.c30.life",
+  },
+]
 
 // biome-ignore lint/correctness/noUnusedVariables: Used in template
 const myFediverseServers: Link[] = [
@@ -134,7 +137,7 @@ const myFediverseServers: Link[] = [
     image: "https://mk.c30.life/files/2d68d53f-1316-4953-86c7-92f88e566620",
     alt: "至り来たり宿（第二期）",
   },
-];
+]
 
 // biome-ignore lint/correctness/noUnusedVariables: Used in template
 const mutualLinks: Link[] = [
@@ -176,120 +179,165 @@ const mutualLinks: Link[] = [
     image: null,
     alt: "ランプのホームページ",
   },
-];
+]
 </script>
 
 <template>
-  <h1 class="text-[18px] text-[rgba(200,200,200,255)]">Contacts</h1>
-
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
-    <a
-      v-for="link in contacts"
-      :key="link.title"
-      class="link link-accent"
-      :href="link.href"
-    >
-      {{ link.title }}
-    </a>
-  </div>
-
-  <div class="bg-[#646464] w-full h-1 my-2 rounded" />
-  <h1 class="text-[18px] text-[rgba(200,200,200,255)]">Socials</h1>
-
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
-    <a
-      v-for="link in socialLinks"
-      :key="link.title"
-      class="link link-accent"
-      :href="link.href"
-    >
-      {{ link.title }}
-    </a>
-  </div>
-
-  <div class="bg-[#646464] w-full h-1 my-2 rounded" />
-  <h1 class="text-[18px] text-[rgba(200,200,200,255)]">Others</h1>
-
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
-    <a
-      v-for="link in otherSites"
-      :key="link.title"
-      class="link link-accent"
-      :href="link.href"
-    >
-      {{ link.title }}
-    </a>
-  </div>
-
-  <div class="bg-[#646464] w-full h-1 my-2 rounded" />
-  <h1 class="text-[18px] text-[rgba(200,200,200,255)]">
-    My Fediverse Servers
-  </h1>
-
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-    <template v-for="link in myFediverseServers" :key="link.title">
-      <a :href="link.href">
-        <template v-if="link.image">
-          <img
-            :src="link.image || ''"
-            :alt="link.alt"
-            :width="200"
-            :height="36"
-          />
-        </template>
-        <template v-else>
-          <button type="button" class="btn btn-outline btn-info">
-            {{ link.title }}
-          </button>
-        </template>
+  <!-- Contacts Section -->
+  <div class="mb-8">
+    <h3 class="text-lg md:text-xl font-semibold text-neutral-300 mb-4">
+      Contacts
+    </h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <a
+        v-for="link in contacts"
+        :key="link.title"
+        :href="link.href"
+        class="group relative px-4 py-3 rounded-xl bg-neutral-800/50 border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800 transition-all duration-300 text-center"
+      >
+        <span
+          class="text-neutral-400 group-hover:text-white transition-colors text-sm md:text-base"
+        >
+          {{ link.title }}
+        </span>
       </a>
-    </template>
+    </div>
   </div>
 
-  <div class="bg-[#646464] w-full h-1 my-2 rounded" />
-  <h1 class="text-[18px] text-[rgba(200,200,200,255)]">
-    Reciprocal Link
-  </h1>
-
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-    <template v-for="link in mutualLinks" :key="link.title">
-      <a :href="link.href">
-        <template v-if="link.image">
-          <img
-            :src="link.image || ''"
-            :alt="link.alt"
-            :width="200"
-            :height="36"
-          />
-        </template>
-        <template v-else>
-          <button type="button" class="btn btn-outline btn-info">
-            {{ link.title }}
-          </button>
-        </template>
+  <!-- Socials Section -->
+  <div class="mb-8">
+    <h3 class="text-lg md:text-xl font-semibold text-neutral-300 mb-4">
+      Socials
+    </h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <a
+        v-for="link in socialLinks"
+        :key="link.title"
+        :href="link.href"
+        class="group relative px-4 py-3 rounded-xl bg-neutral-800/50 border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800 transition-all duration-300 text-center"
+      >
+        <span
+          class="text-neutral-400 group-hover:text-white transition-colors text-sm md:text-base"
+        >
+          {{ link.title }}
+        </span>
       </a>
-    </template>
+    </div>
   </div>
 
-  <div class="bg-[#646464] w-full h-1 my-2 rounded" />
-  <h1 class="text-[18px] text-[rgba(200,200,200,255)]">My Bannar</h1>
+  <!-- Others Section -->
+  <div class="mb-8">
+    <h3 class="text-lg md:text-xl font-semibold text-neutral-300 mb-4">
+      Others
+    </h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <a
+        v-for="link in otherSites"
+        :key="link.title"
+        :href="link.href"
+        class="group relative px-4 py-3 rounded-xl bg-neutral-800/50 border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800 transition-all duration-300 text-center"
+      >
+        <span
+          class="text-neutral-400 group-hover:text-white transition-colors text-sm md:text-base"
+        >
+          {{ link.title }}
+        </span>
+      </a>
+    </div>
+  </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-    <a href="https://c30.life" target="_blank" class="text-center">
-      <img
-        src="/c30-life-banner.png"
-        width="234"
-        height="60"
-        alt="ホームページ"
-      />
-    </a>
-    <a href="https://c30.life" target="_blank" class="text-center">
-      <img
-        src="/c30-life-banner-2.png"
-        width="234"
-        height="60"
-        alt="ホームページ"
-      />
-    </a>
+  <!-- My Fediverse Servers Section -->
+  <div class="mb-8">
+    <h3 class="text-lg md:text-xl font-semibold text-neutral-300 mb-4">
+      My Fediverse Servers
+    </h3>
+    <div class="flex flex-wrap gap-4">
+      <template v-for="link in myFediverseServers" :key="link.title">
+        <a
+          :href="link.href"
+          class="group inline-block p-3 rounded-xl bg-neutral-800/50 border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800 transition-all duration-300"
+        >
+          <template v-if="link.image">
+            <img
+              :src="link.image || ''"
+              :alt="link.alt"
+              width="200"
+              height="40"
+              class="h-auto rounded-lg opacity-90 group-hover:opacity-100 transition-opacity"
+            />
+          </template>
+          <template v-else>
+            <div class="text-center text-neutral-300 font-medium px-4">
+              {{ link.title }}
+            </div>
+          </template>
+        </a>
+      </template>
+    </div>
+  </div>
+
+  <!-- Reciprocal Link Section -->
+  <div class="mb-8">
+    <h3 class="text-lg md:text-xl font-semibold text-neutral-300 mb-4">
+      Reciprocal Links
+    </h3>
+    <div class="flex flex-wrap gap-4">
+      <template v-for="link in mutualLinks" :key="link.title">
+        <a
+          :href="link.href"
+          class="group inline-block p-3 rounded-xl bg-neutral-800/50 border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800 transition-all duration-300"
+        >
+          <template v-if="link.image">
+            <img
+              :src="link.image || ''"
+              :alt="link.alt"
+              width="200"
+              height="40"
+              class="h-auto rounded-lg opacity-90 group-hover:opacity-100 transition-opacity"
+            />
+          </template>
+          <template v-else>
+            <div class="text-center text-neutral-300 font-medium px-4">
+              {{ link.title }}
+            </div>
+          </template>
+        </a>
+      </template>
+    </div>
+  </div>
+
+  <!-- My Banner Section -->
+  <div>
+    <h3 class="text-lg md:text-xl font-semibold text-neutral-300 mb-4">
+      My Banner
+    </h3>
+    <div class="flex flex-wrap gap-4">
+      <a
+        href="https://c30.life"
+        target="_blank"
+        class="group inline-block p-3 rounded-xl bg-neutral-800/50 border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800 transition-all duration-300"
+      >
+        <img
+          src="/c30-life-banner.png"
+          alt="ホームページ"
+          width="234"
+          height="60"
+          class="h-auto rounded-lg opacity-90 group-hover:opacity-100 transition-opacity"
+        />
+      </a>
+      <a
+        href="https://c30.life"
+        target="_blank"
+        class="group inline-block p-3 rounded-xl bg-neutral-800/50 border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800 transition-all duration-300"
+      >
+        <img
+          src="/c30-life-banner-2.png"
+          alt="ホームページ"
+          width="234"
+          height="60"
+          class="h-auto rounded-lg opacity-90 group-hover:opacity-100 transition-opacity"
+        />
+      </a>
+    </div>
   </div>
 </template>

@@ -8,27 +8,43 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "vue-tsc --noEmit",
-    "lint": "biome check",
-    "format": "biome format --write",
-    "deploy": "wrangler pages deploy dist"
+    "pretty": "prettier --write .",
+    "deploy": "pnpm build && wrangler pages deploy dist",
+    "wrangler": "wrangler",
+    "wrangler:dev": "wrangler pages dev dist"
   },
   "dependencies": {
+    "canvas-confetti": "^1.9.4",
     "daisyui": "^5.5.11",
-    "vue": "^3.5.25"
+    "gray-matter": "^4.0.3",
+    "highlight.js": "^11.11.1",
+    "marked": "^17.0.1",
+    "marked-highlight": "^2.2.3",
+    "vue": "^3.5.25",
+    "vue-router": "^4.6.4"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "@biomejs/biome",
-      "esbuild"
+      "@tailwindcss/oxide",
+      "canvas",
+      "esbuild",
+      "sharp",
+      "workerd"
     ]
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
+    "@cloudflare/workers-types": "^4.20260111.0",
     "@tailwindcss/vite": "^4.1.17",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^24.10.2",
     "@vitejs/plugin-vue": "^6.0.2",
+    "license-checker": "^25.0.1",
+    "prettier": "^3.7.4",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.7",
-    "vue-tsc": "^3.1.8"
+    "vite-plugin-sitemap": "^0.8.2",
+    "vue-tsc": "^3.1.8",
+    "wrangler": "^4.58.0"
   }
 }

@@ -39,3 +39,57 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cloudflare
+wrangler.toml
+.wrangler/
+.dev.vars
+
+# Vite
+/dist
+
+# Secrets & credentials
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+*.pub
+
+# API keys & tokens
+.env
+.env.*
+!.env.example
+*.secret
+secrets.json
+credentials.json
+service-account*.json
+*.credentials
+
+# Editor & IDE
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Local test files
+blog-test/
