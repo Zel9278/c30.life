@@ -265,7 +265,7 @@ onMounted(async () => {
     title="広告"
     id="advertisement"
     :is-close="true"
-    :is-window-d-v-d="true"
+    :is-window-d-v-d="false"
   >
     <div class="space-y-2">
       <a
