@@ -1,6 +1,11 @@
 // Proxy for Mastodon/Pleroma API to avoid CORS issues
 
 export const onRequestGet: PagesFunction = async (context) => {
+  const corsHeaders = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+  }
+
   try {
     const url = new URL(context.request.url)
     const host = url.searchParams.get("host")
@@ -11,10 +16,7 @@ export const onRequestGet: PagesFunction = async (context) => {
         JSON.stringify({ error: "Missing host or endpoint" }),
         {
           status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
+          headers: corsHeaders,
         },
       )
     }
@@ -24,19 +26,19 @@ export const onRequestGet: PagesFunction = async (context) => {
 
     return new Response(JSON.stringify(data), {
       status: response.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: corsHeaders,
     })
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Failed to fetch" }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error"
+    console.error("Mastodon API error:", errorMessage)
+    return new Response(
+      JSON.stringify({ error: "Failed to fetch", details: errorMessage }),
+      {
+        status: 500,
+        headers: corsHeaders,
       },
-    })
+    )
   }
 }
 

@@ -25,6 +25,7 @@ import lua from "highlight.js/lib/languages/lua"
 import plaintext from "highlight.js/lib/languages/plaintext"
 import "highlight.js/styles/github-dark.css"
 import ImageViewerProvider from "@/components/ImageViewerProvider.vue"
+import Window from "@/components/Window.vue"
 
 // Register languages
 hljs.registerLanguage("javascript", javascript)
@@ -128,19 +129,33 @@ const copyUrl = async () => {
 
 onMounted(async () => {
   const id = route.params.id as string
+  const maxRetries = 2
 
   try {
-    const response = await fetch(`/api/blog?id=${encodeURIComponent(id)}`)
-    if (!response.ok) {
-      if (response.status === 404) {
-        router.push("/404")
-        return
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(`/api/blog?id=${encodeURIComponent(id)}`)
+        if (!response.ok) {
+          if (response.status === 404) {
+            router.push("/404")
+            return
+          }
+          throw new Error(`HTTP ${response.status}`)
+        }
+        post.value = await response.json()
+        return // Success, exit
+      } catch (e) {
+        if (attempt === maxRetries) {
+          console.error("Blog fetch failed:", e)
+          error.value = true
+        } else {
+          // Wait before retry (exponential backoff)
+          await new Promise((resolve) =>
+            setTimeout(resolve, 200 * Math.pow(2, attempt)),
+          )
+        }
       }
-      throw new Error("Failed to fetch")
     }
-    post.value = await response.json()
-  } catch {
-    error.value = true
   } finally {
     loading.value = false
   }
@@ -244,6 +259,44 @@ onMounted(async () => {
       </template>
     </div>
   </section>
+
+  <!-- Advertisement Window -->
+  <Window
+    title="広告"
+    id="advertisement"
+    :is-close="true"
+    :is-window-d-v-d="true"
+  >
+    <div class="space-y-2">
+      <a
+        href="https://misskey.art"
+        target="_blank"
+        class="flex items-center gap-2 text-gray-400 hover:text-white hover:underline"
+      >
+        <p>
+          [広告] Misskey.art -
+          創作活動をする人や見る人を歓迎するMisskeyのサーバーです。🔗
+        </p>
+        <img src="/mi-art.png" alt="misskey.art" class="w-[50px] h-[50px]" />
+      </a>
+      <a
+        href="https://relay.tools.c30.life"
+        target="_blank"
+        class="block text-gray-400 hover:text-white hover:underline"
+      >
+        [広告] 炒めて切った野菜ジュース Activity Relay Service -
+        ActivityPub用のリレーサービスです🔗
+      </a>
+      <a
+        href="https://chat.dev.c30.life"
+        target="_blank"
+        class="block text-gray-400 hover:text-white hover:underline"
+      >
+        [広告] 炒めて切った野菜ジュースのチャット -
+        OpenPGPのログイン対応、MFM対応のチャットサイトです🔗
+      </a>
+    </div>
+  </Window>
 </template>
 
 <style>

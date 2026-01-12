@@ -154,9 +154,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const url = new URL(request.url)
   const pathname = url.pathname
 
-  // Skip API routes and static assets
+  // Skip API routes and static assets - must call next() for API handlers
+  if (pathname.startsWith("/api/")) {
+    return next()
+  }
+
   if (
-    pathname.startsWith("/api/") ||
     pathname.match(
       /\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|xml|txt|json)$/,
     )
@@ -165,7 +168,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   // Get the original response (index.html for SPA routes)
-  const response = await next()
+  let response: Response
+  try {
+    response = await next()
+  } catch (e) {
+    console.error("Middleware next() error:", e)
+    return new Response("Internal Server Error", { status: 500 })
+  }
 
   // Only modify HTML responses
   const contentType = response.headers.get("content-type")
@@ -211,11 +220,22 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     image,
   )
 
+  // Copy headers but exclude content-related headers that we'll set ourselves
+  const newHeaders = new Headers()
+  for (const [key, value] of response.headers.entries()) {
+    const lowerKey = key.toLowerCase()
+    if (
+      lowerKey !== "content-type" &&
+      lowerKey !== "content-length" &&
+      lowerKey !== "content-encoding"
+    ) {
+      newHeaders.set(key, value)
+    }
+  }
+  newHeaders.set("Content-Type", "text/html; charset=utf-8")
+
   return new Response(modifiedHtml, {
     status: response.status,
-    headers: {
-      ...Object.fromEntries(response.headers.entries()),
-      "Content-Type": "text/html; charset=utf-8",
-    },
+    headers: newHeaders,
   })
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
-import { RouterLink } from "vue-router"
+import { ref, onMounted, watch } from "vue"
+import { RouterLink, useRoute, useRouter } from "vue-router"
 
 interface BlogPost {
   id: string
@@ -9,21 +9,63 @@ interface BlogPost {
   views: number
 }
 
+interface Pagination {
+  page: number
+  limit: number
+  totalPosts: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+const route = useRoute()
+const router = useRouter()
+
 const posts = ref<BlogPost[]>([])
+const pagination = ref<Pagination | null>(null)
 const loading = ref(true)
 const error = ref(false)
 
-onMounted(async () => {
+const currentPage = ref(1)
+
+const fetchPosts = async (page: number) => {
+  loading.value = true
+  error.value = false
+
   try {
-    const response = await fetch("/api/blog")
+    const response = await fetch(`/api/blog?page=${page}&limit=8`)
     if (!response.ok) throw new Error("Failed to fetch")
-    posts.value = await response.json()
+    const data = await response.json()
+    posts.value = data.posts
+    pagination.value = data.pagination
   } catch {
     error.value = true
   } finally {
     loading.value = false
   }
+}
+
+const goToPage = (page: number) => {
+  currentPage.value = page
+  router.push({ query: { page: page.toString() } })
+}
+
+onMounted(() => {
+  const pageParam = route.query.page
+  currentPage.value = pageParam ? parseInt(pageParam as string, 10) : 1
+  fetchPosts(currentPage.value)
 })
+
+watch(
+  () => route.query.page,
+  (newPage) => {
+    const page = newPage ? parseInt(newPage as string, 10) : 1
+    if (page !== currentPage.value) {
+      currentPage.value = page
+      fetchPosts(page)
+    }
+  },
+)
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ""
@@ -108,6 +150,52 @@ const formatDate = (dateStr: string) => {
             </span>
           </div>
         </RouterLink>
+      </div>
+
+      <!-- Pagination -->
+      <div
+        v-if="pagination && pagination.totalPages > 1"
+        class="flex justify-center items-center gap-2 mt-6"
+      >
+        <button
+          :disabled="!pagination.hasPrev"
+          class="px-3 py-2 rounded-lg bg-neutral-800 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700 transition-colors"
+          @click="goToPage(currentPage - 1)"
+        >
+          ←
+        </button>
+
+        <div class="flex gap-1">
+          <button
+            v-for="page in pagination.totalPages"
+            :key="page"
+            :class="[
+              'px-3 py-2 rounded-lg transition-colors',
+              page === currentPage
+                ? 'bg-blue-600 text-white'
+                : 'bg-neutral-800 text-white hover:bg-neutral-700',
+            ]"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+        </div>
+
+        <button
+          :disabled="!pagination.hasNext"
+          class="px-3 py-2 rounded-lg bg-neutral-800 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700 transition-colors"
+          @click="goToPage(currentPage + 1)"
+        >
+          →
+        </button>
+      </div>
+
+      <!-- Page info -->
+      <div v-if="pagination" class="text-center text-neutral-500 text-sm mt-3">
+        {{ pagination.totalPosts }}件中
+        {{ (currentPage - 1) * pagination.limit + 1 }}-{{
+          Math.min(currentPage * pagination.limit, pagination.totalPosts)
+        }}件を表示
       </div>
     </div>
   </section>
