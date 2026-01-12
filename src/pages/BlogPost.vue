@@ -1337,9 +1337,14 @@ function setupCodeGroupTabs() {
 }
 
 /* Line highlighting */
+.blog-content pre .line {
+  display: inline;
+}
+
 .blog-content pre .line.highlighted {
   background-color: rgba(59, 130, 246, 0.2);
-  display: block;
+  display: inline-block;
+  width: calc(100% + 2rem);
   margin: 0 -1rem;
   padding: 0 1rem;
   border-left: 3px solid #3b82f6;
