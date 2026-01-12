@@ -60,7 +60,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   // Get single post
   if (id) {
     try {
-      const object = await context.env.BLOG_BUCKET.get(`${id}.md`)
+      // Fetch post and view count in parallel
+      const [object, currentViews] = await Promise.all([
+        context.env.BLOG_BUCKET.get(`${id}.md`),
+        context.env.BLOG_VIEWS.get(`views:${id}`),
+      ])
 
       if (!object) {
         return new Response(JSON.stringify({ error: "Post not found" }), {
@@ -69,11 +73,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         })
       }
 
-      // Increment view count
-      const viewKey = `views:${id}`
-      const currentViews = await context.env.BLOG_VIEWS.get(viewKey)
       const views = (currentViews ? parseInt(currentViews, 10) : 0) + 1
-      await context.env.BLOG_VIEWS.put(viewKey, views.toString())
+
+      // Update view count in background (don't await)
+      context.waitUntil(
+        context.env.BLOG_VIEWS.put(`views:${id}`, views.toString()),
+      )
 
       const text = await object.text()
       const { data, content } = parseFrontmatter(text)
@@ -100,43 +105,47 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   // List all posts
   try {
     const listed = await context.env.BLOG_BUCKET.list()
-    const posts: BlogPost[] = []
 
-    for (const object of listed.objects) {
-      // Skip files starting with underscore
-      if (object.key.startsWith("_")) continue
-      // Only process .md files
-      if (!object.key.endsWith(".md")) continue
+    // Filter valid files first
+    const validObjects = listed.objects.filter(
+      (obj) => !obj.key.startsWith("_") && obj.key.endsWith(".md"),
+    )
 
-      const id = object.key.replace(/\.md$/, "")
-      const file = await context.env.BLOG_BUCKET.get(object.key)
+    // Fetch all posts in parallel for better performance
+    const posts = await Promise.all(
+      validObjects.map(async (object) => {
+        const id = object.key.replace(/\.md$/, "")
 
-      if (file) {
+        // Fetch file and view count in parallel
+        const [file, viewCount] = await Promise.all([
+          context.env.BLOG_BUCKET.get(object.key),
+          context.env.BLOG_VIEWS.get(`views:${id}`),
+        ])
+
+        if (!file) return null
+
         const text = await file.text()
         const { data } = parseFrontmatter(text)
-
-        // Get view count
-        const viewKey = `views:${id}`
-        const viewCount = await context.env.BLOG_VIEWS.get(viewKey)
         const views = viewCount ? parseInt(viewCount, 10) : 0
 
-        posts.push({
+        return {
           id,
           title: data.title || id,
           date: data.date || "",
           views,
-        })
-      }
-    }
+        } as BlogPost
+      }),
+    )
 
-    // Sort by date descending
-    posts.sort((a, b) => {
+    // Filter out nulls and sort by date descending
+    const validPosts = posts.filter((post): post is BlogPost => post !== null)
+    validPosts.sort((a, b) => {
       const dateA = new Date(a.date)
       const dateB = new Date(b.date)
       return dateB.getTime() - dateA.getTime()
     })
 
-    return new Response(JSON.stringify(posts), {
+    return new Response(JSON.stringify(validPosts), {
       headers: { "Content-Type": "application/json", ...corsHeaders },
     })
   } catch (error) {
