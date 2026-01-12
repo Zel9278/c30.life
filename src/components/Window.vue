@@ -400,7 +400,8 @@ onUnmounted(() => {
               border: '1px solid rgba(0,0,0,0.3)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
             }"
-            @click="onCloseClick"
+            @click.stop="onCloseClick"
+            @touchend.stop.prevent="onCloseClick"
           >
             <svg class="w-[8px] h-[8px]" viewBox="0 0 10 10">
               <path
