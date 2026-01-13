@@ -351,6 +351,10 @@ const tocExtension = {
   },
 }
 
+// Store line highlight info for post-processing
+const lineHighlightStore = new Map<string, Set<number>>()
+let codeBlockCounter = 0
+
 // Configure marked with syntax highlighting and line highlighting
 // IMPORTANT: Register extensions FIRST before other configurations
 marked.use({ extensions: [containerExtension, tocExtension] })
@@ -368,21 +372,17 @@ marked.use(
         const highlighted = hljs.highlight(code, { language }).value
         const lineHighlights = parseLineHighlights(lang)
 
+        // If no line highlights, return as-is
         if (lineHighlights.size === 0) {
           return highlighted
         }
 
-        // Apply line highlighting
-        const lines = highlighted.split("\n")
-        return lines
-          .map((line, i) => {
-            const lineNum = i + 1
-            if (lineHighlights.has(lineNum)) {
-              return `<span class="line highlighted">${line}</span>`
-            }
-            return `<span class="line">${line}</span>`
-          })
-          .join("\n")
+        // Store line highlights for post-processing and return with marker
+        const blockId = `__CODE_BLOCK_${codeBlockCounter++}__`
+        lineHighlightStore.set(blockId, lineHighlights)
+
+        // Return highlighted code with marker prefix for post-processing
+        return `${blockId}\n${highlighted}`
       } catch {
         // If highlighting fails, return escaped code
         return code
@@ -393,6 +393,34 @@ marked.use(
     },
   }),
 )
+
+// Post-process HTML to apply line highlighting
+function applyLineHighlighting(html: string): string {
+  // Find code blocks with our markers
+  return html.replace(
+    /<code([^>]*)>(__CODE_BLOCK_\d+__)\n([\s\S]*?)<\/code>/g,
+    (match, attrs, blockId, code) => {
+      const lineHighlights = lineHighlightStore.get(blockId)
+      if (!lineHighlights) {
+        return `<code${attrs}>${code}</code>`
+      }
+
+      // Apply line highlighting
+      const lines = code.split("\n")
+      const wrappedLines = lines
+        .map((line: string, i: number) => {
+          const lineNum = i + 1
+          if (lineHighlights.has(lineNum)) {
+            return `<span class="line highlighted">${line}</span>`
+          }
+          return `<span class="line">${line}</span>`
+        })
+        .join("\n")
+
+      return `<code${attrs}>${wrappedLines}</code>`
+    },
+  )
+}
 
 // Custom renderer
 const renderer = new marked.Renderer()
@@ -553,6 +581,10 @@ function restoreCodeGroups(html: string): string {
 const renderedContent = computed(() => {
   if (!post.value) return ""
 
+  // Reset code block counter for each render
+  codeBlockCounter = 0
+  lineHighlightStore.clear()
+
   // Extract TOC items
   tocItems.value = extractToc(post.value.content, post.value.outline)
 
@@ -561,6 +593,9 @@ const renderedContent = computed(() => {
 
   // Parse markdown
   let html = marked.parse(preprocessed) as string
+
+  // Apply line highlighting post-processing
+  html = applyLineHighlighting(html)
 
   // Restore code groups (replace placeholders with actual rendered HTML)
   html = restoreCodeGroups(html)
