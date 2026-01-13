@@ -37,6 +37,33 @@ const languages = [
   { name: "C#", color: "bg-purple-600" },
   { name: "ShellScript", color: "bg-neutral-700" },
 ]
+
+const lgbtLetters = [
+  { letter: "L", name: "Lesbian", highlight: false },
+  { letter: "G", name: "Gay", highlight: false },
+  { letter: "B", name: "Bisexual", highlight: false },
+  { letter: "T", name: "Transgender", highlight: false },
+  { letter: "Q", name: "Queer", highlight: true },
+  { letter: "Q", name: "Questioning", highlight: true },
+  { letter: "I", name: "Intersex", highlight: false },
+  { letter: "A", name: "Asexual", highlight: false },
+  { letter: "A", name: "Ally", highlight: false },
+  { letter: "P", name: "Pansexual", highlight: false },
+  { letter: "P", name: "Polyamorous", highlight: false },
+  { letter: "O", name: "Omnisexual", highlight: false },
+  { letter: "2S", name: "Two-Spirit", highlight: false },
+]
+
+const fictosexual = { letter: "F", name: "Fictosexual", highlight: true }
+
+function toggleTooltip(event: Event) {
+  const target = event.currentTarget as HTMLElement
+  target.classList.toggle("tooltip-open")
+  // Close other tooltips
+  document.querySelectorAll(".tooltip-open").forEach((el) => {
+    if (el !== target) el.classList.remove("tooltip-open")
+  })
+}
 </script>
 
 <template>
@@ -137,6 +164,27 @@ const languages = [
                 >ユ!</span
               >
             </div>
+            <!-- Divider -->
+            <div class="bg-neutral-700 w-full h-0.5 rounded my-3" />
+            <!-- LGBTQQIAAPPO2S + F -->
+            <p class="text-neutral-400 text-sm">
+              <span
+                v-for="(item, index) in lgbtLetters"
+                :key="index"
+                class="tooltip cursor-help"
+                :class="{ 'text-pink-400 font-semibold': item.highlight }"
+                :data-tip="item.name"
+                @click="toggleTooltip"
+                >{{ item.letter }}</span
+              >
+              <span> + </span>
+              <span
+                class="tooltip cursor-help text-pink-400 font-semibold"
+                :data-tip="fictosexual.name"
+                @click="toggleTooltip"
+                >{{ fictosexual.letter }}</span
+              >
+            </p>
           </div>
         </div>
 
