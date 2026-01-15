@@ -48,18 +48,31 @@ async function fetchFiles() {
 const currentItems = computed(() => {
   let items = allFiles.value
   for (const folder of currentPath.value) {
-    const found = items.find(
-      (item) => item.name === folder && item.type === "folder",
-    ) || items.find(
-      (item) => decodeName(item.name) === folder && item.type === "folder",
-    )
+    const found =
+      items.find((item) => item.name === folder && item.type === "folder") ||
+      items.find(
+        (item) => decodeName(item.name) === folder && item.type === "folder",
+      )
     if (found?.children) {
       items = found.children
     } else {
-      return []
+      return null // Path not found
     }
   }
   return items
+})
+
+// Check if path is valid and redirect to 404 if not
+const isPathValid = computed(() => {
+  if (loading.value || allFiles.value.length === 0) return true
+  if (currentPath.value.length === 0) return true
+  return currentItems.value !== null
+})
+
+watch(isPathValid, (valid) => {
+  if (!valid) {
+    router.replace({ name: "NotFound" })
+  }
 })
 
 function navigateToFolder(folderName: string) {
@@ -86,7 +99,7 @@ function goUp() {
 }
 
 function downloadFile(key: string) {
-  window.open(`/api/files/${encodeURIComponent(key)}`, "_blank")
+  window.open(`https://fs.c30.life/${key}`, "_blank")
 }
 
 function formatSize(bytes: number): string {
@@ -121,21 +134,74 @@ function getFileIconType(name: string): string {
   const ext = name.split(".").pop()?.toLowerCase() || ""
   const types: Record<string, string> = {
     // Images
-    png: "image", jpg: "image", jpeg: "image", gif: "image", webp: "image", svg: "image", ico: "image", bmp: "image",
+    png: "image",
+    jpg: "image",
+    jpeg: "image",
+    gif: "image",
+    webp: "image",
+    svg: "image",
+    ico: "image",
+    bmp: "image",
     // Documents
-    pdf: "pdf", doc: "document", docx: "document", txt: "text", md: "text", rtf: "document",
+    pdf: "pdf",
+    doc: "document",
+    docx: "document",
+    txt: "text",
+    md: "text",
+    rtf: "document",
     // Archives
-    zip: "archive", rar: "archive", "7z": "archive", tar: "archive", gz: "archive", xz: "archive",
+    zip: "archive",
+    rar: "archive",
+    "7z": "archive",
+    tar: "archive",
+    gz: "archive",
+    xz: "archive",
     // Code
-    js: "code", ts: "code", py: "code", rs: "code", c: "code", cpp: "code", h: "code", java: "code", go: "code", rb: "code", php: "code", html: "code", css: "code", scss: "code", vue: "code", jsx: "code", tsx: "code",
+    js: "code",
+    ts: "code",
+    py: "code",
+    rs: "code",
+    c: "code",
+    cpp: "code",
+    h: "code",
+    java: "code",
+    go: "code",
+    rb: "code",
+    php: "code",
+    html: "code",
+    css: "code",
+    scss: "code",
+    vue: "code",
+    jsx: "code",
+    tsx: "code",
     // Audio
-    mp3: "audio", wav: "audio", ogg: "audio", flac: "audio", aac: "audio", m4a: "audio",
+    mp3: "audio",
+    wav: "audio",
+    ogg: "audio",
+    flac: "audio",
+    aac: "audio",
+    m4a: "audio",
     // Video
-    mp4: "video", mkv: "video", avi: "video", webm: "video", mov: "video", wmv: "video",
+    mp4: "video",
+    mkv: "video",
+    avi: "video",
+    webm: "video",
+    mov: "video",
+    wmv: "video",
     // Data
-    json: "data", xml: "data", yaml: "data", yml: "data", csv: "data", sql: "data",
+    json: "data",
+    xml: "data",
+    yaml: "data",
+    yml: "data",
+    csv: "data",
+    sql: "data",
     // Executable
-    exe: "executable", msi: "executable", dmg: "executable", app: "executable", deb: "executable", rpm: "executable",
+    exe: "executable",
+    msi: "executable",
+    dmg: "executable",
+    app: "executable",
+    deb: "executable",
+    rpm: "executable",
   }
   return types[ext] || "file"
 }
@@ -188,6 +254,34 @@ onMounted(fetchFiles)
         </template>
       </div>
 
+      <!-- Info Section -->
+      <div
+        class="mb-4 p-4 bg-neutral-800/30 rounded-xl border border-neutral-700"
+      >
+        <h3 class="text-white font-semibold mb-2 flex items-center gap-2">
+          <svg
+            class="w-5 h-5 text-neutral-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          利用について
+        </h3>
+        <p class="text-neutral-400 text-sm">
+          ここで公開しているファイルは自由にダウンロードして使用できます。<br />
+          再配布はおやめください。<br />
+          The files published here are free to download and use. <br />
+          Please do not redistribute them.
+        </p>
+      </div>
+
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-12">
         <div
@@ -212,7 +306,7 @@ onMounted(fetchFiles)
 
       <!-- File List -->
       <div
-        v-else-if="currentItems.length > 0 || currentPath.length > 0"
+        v-else-if="currentItems && (currentItems.length > 0 || currentPath.length > 0)"
         class="border border-neutral-700 rounded-lg overflow-hidden"
       >
         <!-- Table Header -->
@@ -234,8 +328,18 @@ onMounted(fetchFiles)
         >
           <div class="px-4 py-3 flex items-center gap-3">
             <!-- Up Arrow Icon -->
-            <svg class="w-5 h-5 text-neutral-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10l9-9m0 0l9 9m-9-9v18" />
+            <svg
+              class="w-5 h-5 text-neutral-400 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 10l9-9m0 0l9 9m-9-9v18"
+              />
             </svg>
             <span class="text-neutral-300 font-medium">..</span>
           </div>
@@ -255,8 +359,14 @@ onMounted(fetchFiles)
           >
             <div class="px-4 py-3 flex items-center gap-3 min-w-0">
               <!-- Folder Icon -->
-              <svg class="w-5 h-5 text-yellow-500 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" />
+              <svg
+                class="w-5 h-5 text-yellow-500 shrink-0"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"
+                />
               </svg>
               <span class="text-white font-medium truncate">{{
                 decodeName(item.name)
@@ -278,50 +388,173 @@ onMounted(fetchFiles)
             <div class="px-4 py-3 flex items-center gap-3 min-w-0">
               <!-- File Icons by type -->
               <!-- Image -->
-              <svg v-if="getFileIconType(item.name) === 'image'" class="w-5 h-5 text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                v-if="getFileIconType(item.name) === 'image'"
+                class="w-5 h-5 text-green-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
               <!-- PDF -->
-              <svg v-else-if="getFileIconType(item.name) === 'pdf'" class="w-5 h-5 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              <svg
+                v-else-if="getFileIconType(item.name) === 'pdf'"
+                class="w-5 h-5 text-red-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                />
               </svg>
               <!-- Document -->
-              <svg v-else-if="getFileIconType(item.name) === 'document'" class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                v-else-if="getFileIconType(item.name) === 'document'"
+                class="w-5 h-5 text-blue-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
               <!-- Text -->
-              <svg v-else-if="getFileIconType(item.name) === 'text'" class="w-5 h-5 text-neutral-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                v-else-if="getFileIconType(item.name) === 'text'"
+                class="w-5 h-5 text-neutral-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
               <!-- Archive -->
-              <svg v-else-if="getFileIconType(item.name) === 'archive'" class="w-5 h-5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              <svg
+                v-else-if="getFileIconType(item.name) === 'archive'"
+                class="w-5 h-5 text-amber-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                />
               </svg>
               <!-- Code -->
-              <svg v-else-if="getFileIconType(item.name) === 'code'" class="w-5 h-5 text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              <svg
+                v-else-if="getFileIconType(item.name) === 'code'"
+                class="w-5 h-5 text-purple-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                />
               </svg>
               <!-- Audio -->
-              <svg v-else-if="getFileIconType(item.name) === 'audio'" class="w-5 h-5 text-pink-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              <svg
+                v-else-if="getFileIconType(item.name) === 'audio'"
+                class="w-5 h-5 text-pink-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                />
               </svg>
               <!-- Video -->
-              <svg v-else-if="getFileIconType(item.name) === 'video'" class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              <svg
+                v-else-if="getFileIconType(item.name) === 'video'"
+                class="w-5 h-5 text-cyan-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
               </svg>
               <!-- Data -->
-              <svg v-else-if="getFileIconType(item.name) === 'data'" class="w-5 h-5 text-orange-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+              <svg
+                v-else-if="getFileIconType(item.name) === 'data'"
+                class="w-5 h-5 text-orange-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+                />
               </svg>
               <!-- Executable -->
-              <svg v-else-if="getFileIconType(item.name) === 'executable'" class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+              <svg
+                v-else-if="getFileIconType(item.name) === 'executable'"
+                class="w-5 h-5 text-emerald-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                />
               </svg>
               <!-- Default File -->
-              <svg v-else class="w-5 h-5 text-neutral-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              <svg
+                v-else
+                class="w-5 h-5 text-neutral-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                />
               </svg>
-              <span class="text-white truncate">{{ decodeName(item.name) }}</span>
+              <span class="text-white truncate">{{
+                decodeName(item.name)
+              }}</span>
               <button
                 class="p-1.5 rounded bg-neutral-700 hover:bg-neutral-600 text-white opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-auto"
                 title="ダウンロード"
@@ -359,36 +592,20 @@ onMounted(fetchFiles)
         v-else
         class="text-center py-12 bg-neutral-800/30 rounded-xl border border-neutral-700"
       >
-        <svg class="w-12 h-12 text-neutral-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+        <svg
+          class="w-12 h-12 text-neutral-500 mx-auto mb-3"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+          />
         </svg>
         <p class="text-neutral-400">このフォルダは空です</p>
-      </div>
-
-      <!-- Info Section -->
-      <div
-        class="mt-6 p-4 bg-neutral-800/30 rounded-xl border border-neutral-700"
-      >
-        <h3 class="text-white font-semibold mb-2 flex items-center gap-2">
-          <svg
-            class="w-5 h-5 text-neutral-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          利用について
-        </h3>
-        <p class="text-neutral-400 text-sm">
-          ここで公開しているファイルは自由にダウンロードして使用できます。<br />
-          再配布はおやめください。
-        </p>
       </div>
     </div>
   </section>
