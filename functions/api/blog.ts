@@ -1,6 +1,7 @@
 interface Env {
   BLOG_BUCKET: R2Bucket
   BLOG_VIEWS: KVNamespace
+  BLOG_EDIT_KEY?: string
 }
 
 interface BlogPost {
@@ -10,6 +11,7 @@ interface BlogPost {
   views: number
   description?: string
   tags?: string[]
+  draft?: boolean
 }
 
 interface BlogPostDetail extends BlogPost {
@@ -17,6 +19,7 @@ interface BlogPostDetail extends BlogPost {
   author?: string
   image?: string
   outline?: number | [number, number] | "deep" | false
+  draft?: boolean
 }
 
 // VitePress-compatible frontmatter interface
@@ -28,6 +31,7 @@ interface Frontmatter {
   author?: string
   image?: string
   outline?: number | [number, number] | "deep" | false
+  draft?: boolean
 }
 
 // Parse frontmatter from markdown (VitePress compatible)
@@ -121,6 +125,9 @@ function parseFrontmatter(content: string): {
             data.outline = parseInt(value, 10)
           }
           break
+        case "draft":
+          data.draft = value === "true"
+          break
       }
     }
   }
@@ -133,14 +140,73 @@ function parseFrontmatter(content: string): {
   return { data, content: body.trim() }
 }
 
+// Verify edit key for authentication
+function verifyEditKey(request: Request, env: Env): boolean {
+  const key = request.headers.get("X-Edit-Key")
+  const envKey = env.BLOG_EDIT_KEY
+  return !!key && !!envKey && key === envKey
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const url = new URL(context.request.url)
   const id = url.searchParams.get("id")
+  const raw = url.searchParams.get("raw")
 
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "GET, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Edit-Key",
+  }
+
+  // Verify key check endpoint
+  if (id === "_verify") {
+    if (!verifyEditKey(context.request, context.env)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      })
+    }
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    })
+  }
+
+  // Get single post with raw content for editing
+  if (id && raw === "true") {
+    if (!verifyEditKey(context.request, context.env)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      })
+    }
+
+    try {
+      const object = await context.env.BLOG_BUCKET.get(`${id}.md`)
+      if (!object) {
+        return new Response(JSON.stringify({ error: "Post not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        })
+      }
+
+      const text = await object.text()
+      return new Response(JSON.stringify({ id, raw: text }), {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      })
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error"
+      return new Response(
+        JSON.stringify({
+          error: "Failed to fetch post",
+          details: errorMessage,
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      )
+    }
   }
 
   // Get single post
@@ -149,7 +215,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        // Fetch post first (critical)
         const object = await context.env.BLOG_BUCKET.get(`${id}.md`)
 
         if (!object) {
@@ -159,18 +224,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           })
         }
 
-        // Fetch view count separately (non-critical, don't fail if this errors)
         let views = 0
         try {
           const currentViews = await context.env.BLOG_VIEWS.get(`views:${id}`)
           views = (currentViews ? parseInt(currentViews, 10) : 0) + 1
-
-          // Update view count in background (don't await)
           context.waitUntil(
             context.env.BLOG_VIEWS.put(`views:${id}`, views.toString()),
           )
         } catch {
-          // Ignore view count errors - not critical for displaying the post
           views = 0
         }
 
@@ -186,6 +247,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           author: data.author,
           image: data.image,
           outline: data.outline,
+          draft: data.draft,
           content,
           views,
         }
@@ -194,7 +256,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           headers: { "Content-Type": "application/json", ...corsHeaders },
         })
       } catch (error) {
-        // If this is the last attempt, return error
         if (attempt === maxRetries) {
           const errorMessage =
             error instanceof Error ? error.message : "Unknown error"
@@ -210,7 +271,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             },
           )
         }
-        // Wait before retry (exponential backoff)
         await new Promise((resolve) =>
           setTimeout(resolve, 100 * Math.pow(2, attempt)),
         )
@@ -221,40 +281,33 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   // List all posts with pagination
   const page = parseInt(url.searchParams.get("page") || "1", 10)
   const limit = parseInt(url.searchParams.get("limit") || "8", 10)
+  // Include drafts only for editors
+  const includeDrafts =
+    url.searchParams.get("includeDrafts") === "true" &&
+    verifyEditKey(context.request, context.env)
 
   try {
     const listed = await context.env.BLOG_BUCKET.list()
 
-    // Filter valid files first
     const validObjects = listed.objects.filter(
       (obj) => !obj.key.startsWith("_") && obj.key.endsWith(".md"),
     )
 
-    // Sort by key (filename) descending first for consistent ordering
-    // We'll re-sort by date after fetching, but this helps with pagination
     validObjects.sort((a, b) => b.key.localeCompare(a.key))
 
-    const totalPosts = validObjects.length
-    const totalPages = Math.ceil(totalPosts / limit)
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
+    // First, fetch all posts to determine which are drafts
+    const allPosts: BlogPost[] = []
 
-    // Only fetch the posts we need for this page
-    const pageObjects = validObjects.slice(startIndex, endIndex)
-    const posts: BlogPost[] = []
-
-    // Process posts sequentially to avoid connection limit issues
-    for (const object of pageObjects) {
-      const id = object.key.replace(/\.md$/, "")
+    for (const object of validObjects) {
+      const postId = object.key.replace(/\.md$/, "")
 
       try {
         const file = await context.env.BLOG_BUCKET.get(object.key)
         if (!file) continue
 
-        // Fetch view count (non-critical)
         let views = 0
         try {
-          const viewCount = await context.env.BLOG_VIEWS.get(`views:${id}`)
+          const viewCount = await context.env.BLOG_VIEWS.get(`views:${postId}`)
           views = viewCount ? parseInt(viewCount, 10) : 0
         } catch {
           // Ignore view count errors
@@ -263,26 +316,36 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const text = await file.text()
         const { data } = parseFrontmatter(text)
 
-        posts.push({
-          id,
-          title: data.title || id,
+        allPosts.push({
+          id: postId,
+          title: data.title || postId,
           date: data.date || "",
           description: data.description,
           tags: data.tags,
+          draft: data.draft,
           views,
         })
       } catch (e) {
-        console.error(`Failed to fetch post ${id}:`, e)
-        // Continue to next post
+        console.error(`Failed to fetch post ${postId}:`, e)
       }
     }
 
-    // Sort by date descending
-    posts.sort((a, b) => {
+    // Filter out drafts unless includeDrafts is true
+    const filteredPosts = includeDrafts
+      ? allPosts
+      : allPosts.filter((post) => !post.draft)
+
+    filteredPosts.sort((a, b) => {
       const dateA = new Date(a.date)
       const dateB = new Date(b.date)
       return dateB.getTime() - dateA.getTime()
     })
+
+    const totalPosts = filteredPosts.length
+    const totalPages = Math.ceil(totalPosts / limit)
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const posts = filteredPosts.slice(startIndex, endIndex)
 
     return new Response(
       JSON.stringify({
@@ -314,12 +377,135 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 }
 
+// Update or create post
+export const onRequestPut: PagesFunction<Env> = async (context) => {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Edit-Key",
+  }
+
+  if (!verifyEditKey(context.request, context.env)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    })
+  }
+
+  try {
+    const body = (await context.request.json()) as {
+      id: string
+      content: string
+    }
+    const { id, content } = body
+
+    if (!id || !content) {
+      return new Response(JSON.stringify({ error: "Missing id or content" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      })
+    }
+
+    // Validate id format
+    if (!/^[a-zA-Z0-9-_]+$/.test(id)) {
+      return new Response(JSON.stringify({ error: "Invalid id format" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      })
+    }
+
+    // Save to R2
+    await context.env.BLOG_BUCKET.put(`${id}.md`, content, {
+      httpMetadata: {
+        contentType: "text/markdown",
+      },
+    })
+
+    return new Response(JSON.stringify({ success: true, id }), {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    })
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error"
+    console.error("Blog update error:", errorMessage)
+    return new Response(
+      JSON.stringify({ error: "Failed to update post", details: errorMessage }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      },
+    )
+  }
+}
+
+// Delete post
+export const onRequestDelete: PagesFunction<Env> = async (context) => {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Edit-Key",
+  }
+
+  if (!verifyEditKey(context.request, context.env)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    })
+  }
+
+  const url = new URL(context.request.url)
+  const id = url.searchParams.get("id")
+
+  if (!id) {
+    return new Response(JSON.stringify({ error: "Missing id" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    })
+  }
+
+  try {
+    // Check if post exists
+    const object = await context.env.BLOG_BUCKET.get(`${id}.md`)
+    if (!object) {
+      return new Response(JSON.stringify({ error: "Post not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      })
+    }
+
+    // Delete from R2
+    await context.env.BLOG_BUCKET.delete(`${id}.md`)
+
+    // Optionally delete view count
+    try {
+      await context.env.BLOG_VIEWS.delete(`views:${id}`)
+    } catch {
+      // Ignore view count deletion errors
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    })
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error"
+    console.error("Blog delete error:", errorMessage)
+    return new Response(
+      JSON.stringify({ error: "Failed to delete post", details: errorMessage }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      },
+    )
+  }
+}
+
 export const onRequestOptions: PagesFunction = async () => {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "GET, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, X-Edit-Key",
     },
   })
 }

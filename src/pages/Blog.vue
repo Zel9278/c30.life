@@ -7,6 +7,7 @@ interface BlogPost {
   title: string
   date: string
   views: number
+  draft?: boolean
 }
 
 interface Pagination {
@@ -25,6 +26,8 @@ const posts = ref<BlogPost[]>([])
 const pagination = ref<Pagination | null>(null)
 const loading = ref(true)
 const error = ref(false)
+const isEditor = ref(false)
+const viewMode = ref<"grid" | "list">("grid")
 
 const currentPage = ref(1)
 
@@ -33,7 +36,15 @@ const fetchPosts = async (page: number) => {
   error.value = false
 
   try {
-    const response = await fetch(`/api/blog?page=${page}&limit=8`)
+    // Include drafts if user is editor
+    const editKey = localStorage.getItem("blog_edit_key") || ""
+    const includeDrafts = isEditor.value ? "&includeDrafts=true" : ""
+    const response = await fetch(
+      `/api/blog?page=${page}&limit=8${includeDrafts}`,
+      {
+        headers: editKey ? { "X-Edit-Key": editKey } : {},
+      },
+    )
     if (!response.ok) throw new Error("Failed to fetch")
     const data = await response.json()
     posts.value = data.posts
@@ -46,13 +57,26 @@ const fetchPosts = async (page: number) => {
 }
 
 const goToPage = (page: number) => {
+  if (page === currentPage.value) return
   currentPage.value = page
   router.push({ query: { page: page.toString() } })
+  fetchPosts(page)
 }
 
 onMounted(() => {
   const pageParam = route.query.page
   currentPage.value = pageParam ? parseInt(pageParam as string, 10) : 1
+
+  // Check if user has edit key stored
+  isEditor.value = !!localStorage.getItem("blog_edit_key")
+
+  // Load view mode preference
+  const savedViewMode = localStorage.getItem("blog_view_mode")
+  if (savedViewMode === "grid" || savedViewMode === "list") {
+    viewMode.value = savedViewMode
+  }
+
+  // Fetch posts after setting isEditor
   fetchPosts(currentPage.value)
 })
 
@@ -66,6 +90,10 @@ watch(
     }
   },
 )
+
+watch(viewMode, (newMode) => {
+  localStorage.setItem("blog_view_mode", newMode)
+})
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ""
@@ -85,24 +113,102 @@ const formatDate = (dateStr: string) => {
     >
       <div class="flex items-center justify-between mb-2">
         <h1 class="text-2xl md:text-3xl font-bold text-white">Blog</h1>
-        <a
-          href="/api/rss"
-          target="_blank"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg text-sm transition-colors"
-          title="RSS Feed"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="currentColor"
+        <div class="flex items-center gap-2">
+          <!-- View mode toggle -->
+          <div class="flex bg-neutral-800 rounded-lg p-0.5">
+            <button
+              @click="viewMode = 'grid'"
+              :class="[
+                'p-1.5 rounded transition-colors',
+                viewMode === 'grid'
+                  ? 'bg-neutral-700 text-white'
+                  : 'text-neutral-400 hover:text-white',
+              ]"
+              title="グリッド表示"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                />
+              </svg>
+            </button>
+            <button
+              @click="viewMode = 'list'"
+              :class="[
+                'p-1.5 rounded transition-colors',
+                viewMode === 'list'
+                  ? 'bg-neutral-700 text-white'
+                  : 'text-neutral-400 hover:text-white',
+              ]"
+              title="リスト表示"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <RouterLink
+            v-if="isEditor"
+            to="/blog/new/edit"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-sm transition-colors"
+            title="新規作成"
           >
-            <path
-              d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"
-            />
-          </svg>
-          RSS
-        </a>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            新規
+          </RouterLink>
+          <a
+            href="/api/rss"
+            target="_blank"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg text-sm transition-colors"
+            title="RSS Feed"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"
+              />
+            </svg>
+            RSS
+          </a>
+        </div>
       </div>
       <p class="text-neutral-400 text-sm mb-4">c30のブログです</p>
 
@@ -130,21 +236,85 @@ const formatDate = (dateStr: string) => {
         <p class="text-neutral-400">まだ記事がありません</p>
       </div>
 
-      <!-- Posts -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Posts - Grid View -->
+      <div
+        v-else-if="viewMode === 'grid'"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
         <RouterLink
           v-for="post in posts"
           :key="post.id"
           :to="`/blog/${post.id}`"
           class="bg-neutral-800/50 border border-neutral-700 rounded-xl p-4 hover:bg-neutral-700/50 transition-colors group"
         >
-          <h2
-            class="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors mb-2"
-          >
-            {{ post.title }}
-          </h2>
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h2
+              class="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors"
+            >
+              {{ post.title }}
+            </h2>
+            <span
+              v-if="post.draft"
+              class="shrink-0 px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-xs font-medium"
+            >
+              下書き
+            </span>
+          </div>
           <div class="flex items-center gap-3 text-neutral-400 text-sm">
             <span>{{ formatDate(post.date) }}</span>
+            <span class="flex items-center gap-1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+              {{ post.views }}
+            </span>
+          </div>
+        </RouterLink>
+      </div>
+
+      <!-- Posts - List View -->
+      <div v-else class="space-y-2">
+        <RouterLink
+          v-for="post in posts"
+          :key="post.id"
+          :to="`/blog/${post.id}`"
+          class="flex items-center justify-between gap-4 bg-neutral-800/50 border border-neutral-700 rounded-lg px-4 py-3 hover:bg-neutral-700/50 transition-colors group"
+        >
+          <div class="flex items-center gap-3 min-w-0">
+            <h2
+              class="text-base font-medium text-white group-hover:text-blue-400 transition-colors truncate"
+            >
+              {{ post.title }}
+            </h2>
+            <span
+              v-if="post.draft"
+              class="shrink-0 px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-xs font-medium"
+            >
+              下書き
+            </span>
+          </div>
+          <div
+            class="flex items-center gap-4 text-neutral-400 text-sm shrink-0"
+          >
+            <span class="hidden sm:inline">{{ formatDate(post.date) }}</span>
+            <span class="sm:hidden">{{ post.date }}</span>
             <span class="flex items-center gap-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

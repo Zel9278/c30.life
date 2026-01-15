@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { RouterView } from "vue-router"
+import { RouterView, useRoute } from "vue-router"
+import { computed } from "vue"
 import Header from "./components/Header.vue"
 import Confetti from "./components/Confetti.vue"
+
+const route = useRoute()
+const hideFooter = computed(() => route.meta.hideFooter === true)
 </script>
 
 <template>
@@ -27,6 +31,7 @@ import Confetti from "./components/Confetti.vue"
 
       <!-- Footer -->
       <footer
+        v-if="!hideFooter"
         class="w-full max-w-4xl lg:max-w-6xl xl:max-w-full mx-auto mt-12 md:mt-16 text-center text-gray-500 text-sm"
       >
         <p>© 2026 ced / c30.life</p>

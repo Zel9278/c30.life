@@ -43,6 +43,8 @@ export default defineConfig({
           "vue-vendor": ["vue", "vue-router"],
           // Markdown & syntax highlighting (used only in BlogPost)
           markdown: ["marked", "marked-highlight", "highlight.js"],
+          // Monaco Editor
+          "monaco-editor": ["monaco-editor"],
         },
       },
     },

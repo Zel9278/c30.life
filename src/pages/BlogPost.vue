@@ -88,6 +88,7 @@ const error = ref(false)
 const tocItems = ref<TocItem[]>([])
 const showFloatingToc = ref(false)
 const activeHeading = ref<string>("")
+const isEditor = ref(false)
 
 // Track current heading with scroll
 let headingElements: Element[] = []
@@ -620,6 +621,38 @@ const formatDate = (dateStr: string) => {
   })
 }
 
+// Calculate character count (excluding code blocks and frontmatter)
+const characterCount = computed(() => {
+  if (!post.value) return 0
+
+  let content = post.value.content
+
+  // Remove frontmatter
+  content = content.replace(/^---[\s\S]*?---\n?/, "")
+
+  // Remove code blocks
+  content = content.replace(/```[\s\S]*?```/g, "")
+
+  // Remove inline code
+  content = content.replace(/`[^`]+`/g, "")
+
+  // Remove markdown syntax
+  content = content.replace(/[#*_\[\]()!>-]/g, "")
+
+  // Remove URLs
+  content = content.replace(/https?:\/\/[^\s]+/g, "")
+
+  // Remove whitespace and count
+  return content.replace(/\s/g, "").length
+})
+
+// Calculate reading time (Japanese: ~400-600 chars/min, use 500)
+const readingTime = computed(() => {
+  const chars = characterCount.value
+  const minutes = Math.ceil(chars / 500)
+  return minutes < 1 ? 1 : minutes
+})
+
 const shareToX = () => {
   const title = encodeURIComponent(`${post.value?.title} | Blog`)
   const url = encodeURIComponent(`https://c30.life/blog/${route.params.id}`)
@@ -641,6 +674,9 @@ onMounted(async () => {
   const id = route.params.id as string
   const maxRetries = 2
 
+  // Check if user has edit key stored
+  isEditor.value = !!localStorage.getItem("blog_edit_key")
+
   try {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -653,6 +689,9 @@ onMounted(async () => {
           throw new Error(`HTTP ${response.status}`)
         }
         post.value = await response.json()
+
+        // Update document title with post title
+        document.title = `${post.value.title} | Blog | c30.life`
 
         // Setup code group tabs and heading observer after content is rendered
         setTimeout(() => {
@@ -777,6 +816,40 @@ function setupCodeGroupTabs() {
             </svg>
             {{ post.views }} views
           </span>
+          <span class="flex items-center gap-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            {{ characterCount.toLocaleString() }}文字
+          </span>
+          <span class="flex items-center gap-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            約{{ readingTime }}分で読了
+          </span>
         </div>
 
         <!-- Tags -->
@@ -802,6 +875,13 @@ function setupCodeGroupTabs() {
 
         <!-- Share -->
         <div class="flex flex-wrap gap-3 mb-4">
+          <RouterLink
+            v-if="isEditor"
+            :to="`/blog/${$route.params.id}/edit`"
+            class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg text-sm transition-colors"
+          >
+            編集
+          </RouterLink>
           <button
             type="button"
             class="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg text-sm transition-colors"

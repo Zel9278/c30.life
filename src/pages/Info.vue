@@ -13,7 +13,7 @@ interface License {
 const siteInfo = {
   host: "c30.life",
   owner: "c30 (@c30@mk.c30.life)",
-  version: "2026.01.12",
+  version: "2026.01.15",
 }
 
 const dependencies = [

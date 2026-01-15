@@ -11,15 +11,22 @@
     "pretty": "prettier --write .",
     "deploy": "pnpm build && wrangler pages deploy dist",
     "wrangler": "wrangler",
-    "wrangler:dev": "wrangler pages dev dist"
+    "wrangler:dev": "wrangler pages dev dist",
+    "r2:list": "wrangler r2 object list c30-life-files",
+    "r2:sync": "wrangler r2 object get c30-life-files"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
     "daisyui": "^5.5.11",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",
+    "markdownlint": "^0.40.0",
     "marked": "^17.0.1",
     "marked-highlight": "^2.2.3",
+    "monaco-editor": "^0.55.1",
+    "textlint": "^15.5.0",
+    "textlint-rule-preset-japanese": "^10.0.4",
+    "textlint-rule-preset-jtf-style": "^3.0.3",
     "vue": "^3.5.25",
     "vue-router": "^4.6.4"
   },
