@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Piano from "../components/Piano.vue"
 import Counter from "../components/Counter.vue"
+import PianoRoll from "../components/PianoRoll.vue"
 
 function getAge(data: string): number {
   const splitData = data.split("/")
@@ -67,20 +68,33 @@ function toggleTooltip(event: Event) {
 </script>
 
 <template>
+  <!-- Background Piano Roll -->
+  <PianoRoll
+    midi-url="/My bad song(piano arrange).mid"
+    note-color="#1133aa"
+    :pixels-per-beat="64"
+    :opacity="0.64"
+  />
+
+  <!-- Song Title -->
+  <div class="fixed top-16 left-4 z-10 text-neutral-500 text-sm opacity-60">
+    Background: Ced - My Bad Song
+  </div>
+
   <!-- Hero Section -->
   <section
     class="w-full max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto text-center mb-4 md:mb-6"
   >
     <!-- Profile Card -->
     <div
-      class="relative overflow-hidden backdrop-blur-xl bg-neutral-900/80 border border-neutral-800 rounded-2xl p-4 md:p-6 shadow-2xl"
+      class="relative overflow-hidden backdrop-blur-md bg-neutral-900/40 border border-neutral-700/50 rounded-2xl p-4 md:p-6 shadow-2xl"
     >
       <!-- Background Image -->
       <div
-        class="absolute inset-0 bg-cover bg-center blur-sm opacity-30"
+        class="absolute inset-0 bg-cover bg-center blur-sm opacity-10"
         style="background-image: url(&quot;/profile_background.jpg&quot;)"
       />
-      <div class="absolute inset-0 bg-neutral-900/60" />
+      <div class="absolute inset-0 bg-neutral-900/10" />
 
       <!-- Content -->
       <div class="relative z-10">
@@ -273,7 +287,7 @@ function toggleTooltip(event: Event) {
   <!-- Piano Section -->
   <section class="w-full max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto">
     <div
-      class="backdrop-blur-xl bg-neutral-900/80 border border-neutral-800 rounded-2xl p-3 md:p-4 shadow-2xl overflow-x-auto"
+      class="backdrop-blur-md bg-neutral-900/40 border border-neutral-700/50 rounded-2xl p-3 md:p-4 shadow-2xl overflow-x-auto"
     >
       <Piano />
     </div>

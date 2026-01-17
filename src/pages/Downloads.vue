@@ -17,6 +17,7 @@ const router = useRouter()
 const allFiles = ref<FileItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
+const downloadCounts = ref<Record<string, number>>({})
 
 // Get current path from URL
 const currentPath = computed(() => {
@@ -32,10 +33,20 @@ async function fetchFiles() {
   loading.value = true
   error.value = null
   try {
-    const response = await fetch("/api/files/list")
-    if (!response.ok) throw new Error("Failed to fetch files")
-    const data = (await response.json()) as { files: FileItem[] }
+    const [filesResponse, countsResponse] = await Promise.all([
+      fetch("/api/files/list"),
+      fetch("/api/download-counts"),
+    ])
+    if (!filesResponse.ok) throw new Error("Failed to fetch files")
+    const data = (await filesResponse.json()) as { files: FileItem[] }
     allFiles.value = data.files
+
+    if (countsResponse.ok) {
+      const countsData = (await countsResponse.json()) as {
+        counts: Record<string, number>
+      }
+      downloadCounts.value = countsData.counts
+    }
   } catch (e) {
     error.value = "ファイルの取得に失敗しました"
     console.error(e)
@@ -98,8 +109,27 @@ function goUp() {
   }
 }
 
-function downloadFile(key: string) {
+async function downloadFile(key: string) {
   window.open(`https://fs.c30.life/${key}`, "_blank")
+
+  // Increment download count
+  try {
+    const response = await fetch("/api/download-counts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key }),
+    })
+    if (response.ok) {
+      const data = (await response.json()) as { count: number }
+      downloadCounts.value[key] = data.count
+    }
+  } catch (e) {
+    console.error("Failed to increment download count:", e)
+  }
+}
+
+function getDownloadCount(key: string): number {
+  return downloadCounts.value[key] ?? 0
 }
 
 function formatSize(bytes: number): string {
@@ -306,16 +336,21 @@ onMounted(fetchFiles)
 
       <!-- File List -->
       <div
-        v-else-if="currentItems && (currentItems.length > 0 || currentPath.length > 0)"
+        v-else-if="
+          currentItems && (currentItems.length > 0 || currentPath.length > 0)
+        "
         class="border border-neutral-700 rounded-lg overflow-hidden"
       >
         <!-- Table Header -->
         <div
-          class="grid grid-cols-[1fr_100px_160px] md:grid-cols-[1fr_120px_180px] bg-neutral-800 text-neutral-400 text-xs uppercase tracking-wider"
+          class="grid grid-cols-[1fr_70px] sm:grid-cols-[1fr_60px_80px] md:grid-cols-[1fr_60px_100px_160px] bg-neutral-800 text-neutral-400 text-xs uppercase tracking-wider"
         >
-          <div class="px-4 py-3 font-medium">Name</div>
-          <div class="px-4 py-3 font-medium text-right">Size</div>
-          <div class="px-4 py-3 font-medium text-right hidden sm:block">
+          <div class="px-3 sm:px-4 py-3 font-medium">Name</div>
+          <div class="px-3 sm:px-4 py-3 font-medium text-right hidden sm:block">
+            DLs
+          </div>
+          <div class="px-3 sm:px-4 py-3 font-medium text-right">Size</div>
+          <div class="px-3 sm:px-4 py-3 font-medium text-right hidden md:block">
             Modified
           </div>
         </div>
@@ -323,10 +358,10 @@ onMounted(fetchFiles)
         <!-- Back Button (if in subfolder) -->
         <button
           v-if="currentPath.length > 0"
-          class="w-full grid grid-cols-[1fr_100px_160px] md:grid-cols-[1fr_120px_180px] hover:bg-neutral-800/50 transition-colors border-t border-neutral-700/50 text-left"
+          class="w-full grid grid-cols-[1fr_70px] sm:grid-cols-[1fr_60px_80px] md:grid-cols-[1fr_60px_100px_160px] hover:bg-neutral-800/50 transition-colors border-t border-neutral-700/50 text-left"
           @click="goUp"
         >
-          <div class="px-4 py-3 flex items-center gap-3">
+          <div class="px-3 sm:px-4 py-3 flex items-center gap-2 sm:gap-3">
             <!-- Up Arrow Icon -->
             <svg
               class="w-5 h-5 text-neutral-400 shrink-0"
@@ -343,8 +378,15 @@ onMounted(fetchFiles)
             </svg>
             <span class="text-neutral-300 font-medium">..</span>
           </div>
-          <div class="px-4 py-3 text-right text-neutral-500">-</div>
-          <div class="px-4 py-3 text-right text-neutral-500 hidden sm:block">
+          <div
+            class="px-3 sm:px-4 py-3 text-right text-neutral-500 hidden sm:block"
+          >
+            -
+          </div>
+          <div class="px-3 sm:px-4 py-3 text-right text-neutral-500">-</div>
+          <div
+            class="px-3 sm:px-4 py-3 text-right text-neutral-500 hidden md:block"
+          >
             -
           </div>
         </button>
@@ -354,10 +396,12 @@ onMounted(fetchFiles)
           <!-- Folder -->
           <button
             v-if="item.type === 'folder'"
-            class="w-full grid grid-cols-[1fr_100px_160px] md:grid-cols-[1fr_120px_180px] hover:bg-neutral-800/50 transition-colors border-t border-neutral-700/50 text-left"
+            class="w-full grid grid-cols-[1fr_70px] sm:grid-cols-[1fr_60px_80px] md:grid-cols-[1fr_60px_100px_160px] hover:bg-neutral-800/50 transition-colors border-t border-neutral-700/50 text-left"
             @click="navigateToFolder(item.name)"
           >
-            <div class="px-4 py-3 flex items-center gap-3 min-w-0">
+            <div
+              class="px-3 sm:px-4 py-3 flex items-center gap-2 sm:gap-3 min-w-0"
+            >
               <!-- Folder Icon -->
               <svg
                 class="w-5 h-5 text-yellow-500 shrink-0"
@@ -368,13 +412,21 @@ onMounted(fetchFiles)
                   d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"
                 />
               </svg>
-              <span class="text-white font-medium truncate">{{
-                decodeName(item.name)
-              }}</span>
+              <span
+                class="text-white font-medium truncate text-sm sm:text-base"
+                >{{ decodeName(item.name) }}</span
+              >
             </div>
-            <div class="px-4 py-3 text-right text-neutral-500 text-sm">-</div>
             <div
-              class="px-4 py-3 text-right text-neutral-500 text-sm hidden sm:block"
+              class="px-3 sm:px-4 py-3 text-right text-neutral-500 text-sm hidden sm:block"
+            >
+              -
+            </div>
+            <div class="px-3 sm:px-4 py-3 text-right text-neutral-500 text-sm">
+              -
+            </div>
+            <div
+              class="px-3 sm:px-4 py-3 text-right text-neutral-500 text-sm hidden md:block"
             >
               -
             </div>
@@ -383,7 +435,7 @@ onMounted(fetchFiles)
           <!-- File -->
           <div
             v-else
-            class="grid grid-cols-[1fr_100px_160px] md:grid-cols-[1fr_120px_180px] hover:bg-neutral-800/50 transition-colors border-t border-neutral-700/50 group"
+            class="grid grid-cols-[1fr_70px] sm:grid-cols-[1fr_60px_80px] md:grid-cols-[1fr_60px_100px_160px] hover:bg-neutral-800/50 transition-colors border-t border-neutral-700/50 group"
           >
             <div class="px-4 py-3 flex items-center gap-3 min-w-0">
               <!-- File Icons by type -->
@@ -552,11 +604,11 @@ onMounted(fetchFiles)
                   d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                 />
               </svg>
-              <span class="text-white truncate">{{
+              <span class="text-white truncate text-sm sm:text-base">{{
                 decodeName(item.name)
               }}</span>
               <button
-                class="p-1.5 rounded bg-neutral-700 hover:bg-neutral-600 text-white opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-auto"
+                class="p-1.5 rounded bg-neutral-700 hover:bg-neutral-600 text-white sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0 ml-auto"
                 title="ダウンロード"
                 @click="downloadFile(item.key)"
               >
@@ -575,11 +627,19 @@ onMounted(fetchFiles)
                 </svg>
               </button>
             </div>
-            <div class="px-4 py-3 text-right text-neutral-400 text-sm">
+            <div
+              class="px-3 sm:px-4 py-3 text-right text-neutral-400 text-xs sm:text-sm hidden sm:block"
+              :title="`${getDownloadCount(item.key)} downloads`"
+            >
+              {{ getDownloadCount(item.key) }}
+            </div>
+            <div
+              class="px-3 sm:px-4 py-3 text-right text-neutral-400 text-xs sm:text-sm"
+            >
               {{ formatSize(item.size) }}
             </div>
             <div
-              class="px-4 py-3 text-right text-neutral-500 text-sm hidden sm:block"
+              class="px-3 sm:px-4 py-3 text-right text-neutral-500 text-sm hidden md:block"
             >
               {{ formatDate(item.lastModified) }}
             </div>

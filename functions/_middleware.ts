@@ -95,6 +95,10 @@ const staticPages: Record<string, { title: string; description: string }> = {
     title: "Watched Animes - c30.life",
     description: "c30が観たアニメ・映画",
   },
+  "/downloads": {
+    title: "Downloads - c30.life",
+    description: "公開ファイルのダウンロード",
+  },
   "/blog": { title: "Blog - c30.life", description: "c30のブログ記事一覧" },
 }
 
@@ -154,6 +158,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const url = new URL(request.url)
   const pathname = url.pathname
 
+  console.log("Middleware processing:", pathname)
+
   // Skip API routes and static assets - must call next() for API handlers
   if (pathname.startsWith("/api/")) {
     return next()
@@ -206,6 +212,19 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     } catch (e) {
       console.error("Failed to fetch blog post:", e)
     }
+  } else if (pathname.startsWith("/downloads/") && pathname !== "/downloads/") {
+    // Downloads subfolder
+    const subPath = decodeURIComponent(pathname.replace("/downloads/", ""))
+    const folderName = subPath.split("/").pop() || subPath
+    title = `${folderName} - Downloads - c30.life`
+    description = `${subPath} のファイル一覧`
+    console.log("Downloads subfolder:", {
+      pathname,
+      subPath,
+      folderName,
+      title,
+      description,
+    })
   } else if (staticPages[pathname]) {
     // Static page
     title = staticPages[pathname].title

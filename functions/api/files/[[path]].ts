@@ -32,7 +32,10 @@ function buildTree(objects: R2Object[]): FileItem[] {
         current[part] = obj
       } else {
         // This is a folder
-        if (!current[part] || (typeof current[part] === "object" && "key" in current[part])) {
+        if (
+          !current[part] ||
+          (typeof current[part] === "object" && "key" in current[part])
+        ) {
           current[part] = {}
         }
         current = current[part] as FileNode
@@ -47,7 +50,12 @@ function nodeToFileItems(node: FileNode, basePath: string): FileItem[] {
   const items: FileItem[] = []
 
   for (const [name, value] of Object.entries(node)) {
-    if (value && typeof value === "object" && "key" in value && "size" in value) {
+    if (
+      value &&
+      typeof value === "object" &&
+      "key" in value &&
+      "size" in value
+    ) {
       // This is an R2Object (file)
       const obj = value as R2Object
       items.push({
@@ -117,9 +125,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     }
 
     const headers = new Headers()
-    headers.set("Content-Type", object.httpMetadata?.contentType || "application/octet-stream")
+    headers.set(
+      "Content-Type",
+      object.httpMetadata?.contentType || "application/octet-stream",
+    )
     headers.set("Content-Length", object.size.toString())
-    headers.set("Content-Disposition", `attachment; filename="${path.split("/").pop()}"`)
+    headers.set(
+      "Content-Disposition",
+      `attachment; filename="${path.split("/").pop()}"`,
+    )
     headers.set("Access-Control-Allow-Origin", "*")
 
     return new Response(object.body, { headers })
