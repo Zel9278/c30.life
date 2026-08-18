@@ -9,7 +9,7 @@ const ALLOWED_TYPES: Record<string, string> = {
   "image/gif": "gif",
   "image/webp": "webp",
   "image/avif": "avif",
-  "image/svg+xml": "svg",
+  // SVG は <script> を含められるため同一オリジンでの配信は XSS リスクあり
 }
 
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
@@ -23,7 +23,14 @@ const corsHeaders = {
 function verifyEditKey(request: Request, env: Env): boolean {
   const key = request.headers.get("X-Edit-Key")
   const envKey = env.BLOG_EDIT_KEY
-  return !!key && !!envKey && key === envKey
+  if (!key || !envKey) return false
+  // タイミング攻撃対策: 長さが違っても比較を最後まで行う
+  if (key.length !== envKey.length) return false
+  let diff = 0
+  for (let i = 0; i < key.length; i++) {
+    diff |= key.charCodeAt(i) ^ envKey.charCodeAt(i)
+  }
+  return diff === 0
 }
 
 function json(data: unknown, status = 200) {
@@ -89,6 +96,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return json({ error: "No key" }, 400)
   }
 
+  // images/ 以外のバケットキー（ブログ記事データ等）へのアクセスを拒否
+  if (!key.startsWith("images/") || key.includes("..")) {
+    return new Response("Forbidden", { status: 403, headers: corsHeaders })
+  }
+
   try {
     const object = await context.env.BLOG_BUCKET.get(key)
     if (!object) {
@@ -113,7 +125,8 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
 
   const url = new URL(context.request.url)
   const key = url.searchParams.get("key")
-  if (!key || !key.startsWith("images/")) {
+  // .. を含むパスのトラバーサル（images/../blog/... 等）を防ぐ
+  if (!key || !key.startsWith("images/") || key.includes("..")) {
     return json({ error: "Invalid key" }, 400)
   }
 
