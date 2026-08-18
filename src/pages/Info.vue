@@ -643,6 +643,14 @@ const getLicenseColor = (license: string) => {
           >
             gitea.moe:ced0180/c30.life
           </a>
+          ,
+          <a
+            href="https://git.c30.life/ced/c30.life"
+            target="_blank"
+            class="text-sky-400 hover:text-sky-300 transition-colors"
+          >
+            git.c30.life:ced/c30.life
+          </a>
         </li>
       </ul>
 
