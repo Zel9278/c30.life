@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from "vue"
 import confetti from "canvas-confetti"
+import { onMounted, onUnmounted } from "vue"
 
 // Birthday: April 25
 const BIRTHDAY_MONTH = 4

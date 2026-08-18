@@ -271,9 +271,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             },
           )
         }
-        await new Promise((resolve) =>
-          setTimeout(resolve, 100 * Math.pow(2, attempt)),
-        )
+        await new Promise((resolve) => setTimeout(resolve, 100 * 2 ** attempt))
       }
     }
   }

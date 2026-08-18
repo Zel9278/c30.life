@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue"
+import { onMounted, onUnmounted, ref } from "vue"
 
 const TOTAL_KEYS = 48
 const KEY_PATTERN = [
@@ -60,7 +60,7 @@ function buildPixelPattern(text: string[]) {
 
     if (index !== text.length - 1) {
       pattern.forEach((rowPattern, rowIdx) => {
-        pattern[rowIdx] = rowPattern + "0"
+        pattern[rowIdx] = `${rowPattern}0`
       })
     }
   })

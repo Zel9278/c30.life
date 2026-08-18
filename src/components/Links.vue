@@ -6,7 +6,6 @@ type Link = {
   alt?: string
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: Used in template
 const contacts: Link[] = [
   {
     title: "X (旧Twitter)",
@@ -26,7 +25,6 @@ const contacts: Link[] = [
   },
 ]
 
-// biome-ignore lint/correctness/noUnusedVariables: Used in template
 const socialLinks: Link[] = [
   {
     title: "Misskey.art",
@@ -74,15 +72,10 @@ const socialLinks: Link[] = [
   },
 ]
 
-// biome-ignore lint/correctness/noUnusedVariables: Used in template
 const otherSites: Link[] = [
   {
     title: "Status Page",
     href: "https://status.c30.life",
-  },
-  {
-    title: "Old Homepage",
-    href: "https://old.c30.life",
   },
   {
     title: "kusoda.net(クソだね)",
@@ -120,9 +113,16 @@ const otherSites: Link[] = [
     title: "炒めて切った野菜ジュースのチャット (Dev)",
     href: "https://chat.dev.c30.life",
   },
+  {
+    title: "Multi Player Piano",
+    href: "https://mpp.c30.life",
+  },
+  {
+    title: "Misskey Login Bonus Calendar",
+    href: "https://lbc.tools.c30.life",
+  },
 ]
 
-// biome-ignore lint/correctness/noUnusedVariables: Used in template
 const myFediverseServers: Link[] = [
   {
     title: "Misskey.art",
@@ -139,7 +139,6 @@ const myFediverseServers: Link[] = [
   },
 ]
 
-// biome-ignore lint/correctness/noUnusedVariables: Used in template
 const mutualLinks: Link[] = [
   {
     title: "hi there (assault1892)",

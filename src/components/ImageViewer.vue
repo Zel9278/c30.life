@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue"
+import { computed, onMounted, onUnmounted, ref } from "vue"
 
 const props = defineProps<{
   src: string
@@ -18,6 +18,14 @@ const isDragging = ref(false)
 const initialPos = ref({ x: 0, y: 0 })
 const lastTouchDistance = ref<number | null>(null)
 
+// Drag vs click detection
+const hasDragged = ref(false)
+const dragStartClientPos = ref({ x: 0, y: 0 })
+
+// Touch tap detection
+const touchStartPos = ref({ x: 0, y: 0 })
+const isTap = ref(false)
+
 const zoomPercentage = computed(() => Math.round(scale.value * 100))
 
 const imageStyle = computed(() => ({
@@ -28,6 +36,15 @@ const imageStyle = computed(() => ({
   maxWidth: "100%",
   maxHeight: "100%",
 }))
+
+function isAtDefault() {
+  return scale.value === 1 && offset.value.x === 0 && offset.value.y === 0
+}
+
+function resetView() {
+  scale.value = 1
+  offset.value = { x: 0, y: 0 }
+}
 
 function handleWheel(e: WheelEvent) {
   e.preventDefault()
@@ -61,6 +78,9 @@ function handleMouseDown(e: MouseEvent) {
   }
 
   isDragging.value = true
+  hasDragged.value = false
+  dragStartClientPos.value = { x: e.clientX, y: e.clientY }
+
   const target = e.currentTarget as HTMLDivElement
   const rect = target.getBoundingClientRect()
   initialPos.value = {
@@ -72,6 +92,14 @@ function handleMouseDown(e: MouseEvent) {
 function handleMouseMove(e: MouseEvent) {
   if (!isDragging.value) return
   e.preventDefault()
+
+  // Mark as drag if moved more than 5px from mousedown origin
+  if (!hasDragged.value) {
+    const dx = e.clientX - dragStartClientPos.value.x
+    const dy = e.clientY - dragStartClientPos.value.y
+    if (Math.hypot(dx, dy) > 5) hasDragged.value = true
+  }
+
   const target = e.currentTarget as HTMLDivElement
   const rect = target.getBoundingClientRect()
   const mouseX = e.clientX - rect.left
@@ -96,14 +124,31 @@ function handleMouseUp() {
   isDragging.value = false
 }
 
-function handleDoubleClick() {
-  scale.value = 1
-  offset.value = { x: 0, y: 0 }
+function handleClick(e: MouseEvent) {
+  // Ignore if this was a drag operation
+  if (hasDragged.value) {
+    hasDragged.value = false
+    return
+  }
+
+  if (!isAtDefault()) {
+    // Zoomed or panned → reset to default
+    resetView()
+  } else {
+    // Already at default → close if clicked outside the image
+    const target = e.target as HTMLElement
+    if (target.tagName !== "IMG") {
+      emit("close")
+    }
+  }
 }
 
 function handleTouchStart(e: TouchEvent) {
   if (e.touches.length === 1) {
     isDragging.value = true
+    isTap.value = true
+    touchStartPos.value = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+
     const target = e.currentTarget as HTMLDivElement
     const rect = target.getBoundingClientRect()
     initialPos.value = {
@@ -111,6 +156,7 @@ function handleTouchStart(e: TouchEvent) {
       y: e.touches[0].clientY - rect.top,
     }
   } else if (e.touches.length === 2) {
+    isTap.value = false
     const touch1 = e.touches[0]
     const touch2 = e.touches[1]
     const distance = Math.hypot(
@@ -129,6 +175,13 @@ function handleTouchMove(e: TouchEvent) {
   if (e.touches.length === 1 && isDragging.value) {
     const mouseX = e.touches[0].clientX - rect.left
     const mouseY = e.touches[0].clientY - rect.top
+
+    // Clear tap if finger moved more than 10px
+    if (isTap.value) {
+      const dx = e.touches[0].clientX - touchStartPos.value.x
+      const dy = e.touches[0].clientY - touchStartPos.value.y
+      if (Math.hypot(dx, dy) > 10) isTap.value = false
+    }
 
     const deltaX = mouseX - initialPos.value.x
     const deltaY = mouseY - initialPos.value.y
@@ -169,9 +222,24 @@ function handleTouchMove(e: TouchEvent) {
   }
 }
 
-function handleTouchEnd() {
+function handleTouchEnd(e: TouchEvent) {
+  if (isTap.value && e.changedTouches.length === 1) {
+    const touch = e.changedTouches[0]
+    if (!isAtDefault()) {
+      // Zoomed or panned → reset
+      resetView()
+    } else {
+      // At default → close if tapped outside image
+      const el = document.elementFromPoint(touch.clientX, touch.clientY)
+      if (el?.tagName !== "IMG") {
+        emit("close")
+      }
+    }
+  }
+
   isDragging.value = false
   lastTouchDistance.value = null
+  isTap.value = false
 }
 
 function handleKeyDown(e: KeyboardEvent) {
@@ -200,7 +268,7 @@ onUnmounted(() => {
     @mousemove="handleMouseMove"
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseUp"
-    @dblclick="handleDoubleClick"
+    @click="handleClick"
     @touchstart="handleTouchStart"
     @touchmove.prevent="handleTouchMove"
     @touchend="handleTouchEnd"

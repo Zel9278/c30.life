@@ -1,7 +1,25 @@
-<script setup>
-import { ref, onMounted, onUnmounted } from "vue"
+<script setup lang="ts">
+import { onMounted, onUnmounted, ref } from "vue"
 
-const props = defineProps({
+interface LogEntry {
+  id: number
+  type: string
+  message: string
+  animFrame: number
+  intervalId?: number | null
+}
+
+interface PanicInfo {
+  error: string
+  code: string
+  stack: string[]
+  registers: Record<string, string>
+  pid?: number
+  cpu?: number
+  uptime?: number
+}
+
+defineProps({
   appName: {
     type: String,
     default: "ChatApp",
@@ -15,13 +33,13 @@ const props = defineProps({
 const emit = defineEmits(["complete", "error"])
 
 // Loading state
-const loadingLogs = ref([])
+const loadingLogs = ref<LogEntry[]>([])
 const loadingMessage = ref("")
 let logIdCounter = 0
 
 // Kernel panic state
 const kernelPanic = ref(false)
-const panicInfo = ref({
+const panicInfo = ref<PanicInfo>({
   error: "",
   code: "",
   stack: [],
@@ -29,16 +47,22 @@ const panicInfo = ref({
 })
 
 // Add a log entry
-const addLog = (type, message) => {
+const addLog = (type: string, message: string) => {
   const id = ++logIdCounter
   loadingLogs.value.push({ id, type, message, animFrame: 0 })
   return id
 }
 
 // Add a progress log with animation
-const addProgressLog = (message) => {
+const addProgressLog = (message: string) => {
   const id = ++logIdCounter
-  const log = { id, type: "progress", message, animFrame: 0, intervalId: null }
+  const log: LogEntry = {
+    id,
+    type: "progress",
+    message,
+    animFrame: 0,
+    intervalId: null,
+  }
 
   // Start animation
   log.intervalId = setInterval(() => {
@@ -54,25 +78,29 @@ const addProgressLog = (message) => {
 }
 
 // End a progress log and set final status
-const endProgressLog = (id, type) => {
+const endProgressLog = (id: number, type: string) => {
   const idx = loadingLogs.value.findIndex((l) => l.id === id)
   if (idx !== -1) {
-    if (loadingLogs.value[idx].intervalId) {
-      clearInterval(loadingLogs.value[idx].intervalId)
+    const log = loadingLogs.value[idx]
+    if (log.intervalId) {
+      clearInterval(log.intervalId)
     }
-    loadingLogs.value[idx].type = type
+    log.type = type
   }
 }
 
 // Set the final loading message
-const setMessage = (message) => {
+const setMessage = (message: string) => {
   loadingMessage.value = message
 }
 
 // Trigger kernel panic
-const triggerPanic = async (errorMessage, errorCode = "FATAL_ERROR") => {
+const triggerPanic = async (
+  errorMessage: string,
+  errorCode = "FATAL_ERROR",
+) => {
   // Generate fake but realistic-looking data
-  const generateHex = (len) => {
+  const generateHex = (len: number) => {
     let result = ""
     for (let i = 0; i < len; i++) {
       result += Math.floor(Math.random() * 16).toString(16)
@@ -80,7 +108,7 @@ const triggerPanic = async (errorMessage, errorCode = "FATAL_ERROR") => {
     return result
   }
 
-  const generateAddr = () => "0x" + generateHex(16)
+  const generateAddr = () => `0x${generateHex(16)}`
 
   // Fake stack trace
   const stackFrames = [
@@ -124,16 +152,16 @@ const triggerPanic = async (errorMessage, errorCode = "FATAL_ERROR") => {
 }
 
 // Get progress animation frame
-const getProgressAnim = (frame) => {
+const getProgressAnim = (frame: number) => {
   const frames = ["*    ", "**   ", " **  ", "  ** ", "   **", "    *"]
   return frames[frame] || frames[0]
 }
 
 // Helper delay function
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // F5 key handler for reboot
-const handleKeyDown = (e) => {
+const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === "F5" && kernelPanic.value) {
     e.preventDefault()
     window.location.href = "/"

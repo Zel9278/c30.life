@@ -1,32 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import { marked, type Tokens } from "marked"
-import { markedHighlight } from "marked-highlight"
 // Import highlight.js core and only necessary languages
 import hljs from "highlight.js/lib/core"
-import javascript from "highlight.js/lib/languages/javascript"
-import typescript from "highlight.js/lib/languages/typescript"
-import python from "highlight.js/lib/languages/python"
 import bash from "highlight.js/lib/languages/bash"
-import json from "highlight.js/lib/languages/json"
+import c from "highlight.js/lib/languages/c"
+import cpp from "highlight.js/lib/languages/cpp"
 import css from "highlight.js/lib/languages/css"
-import xml from "highlight.js/lib/languages/xml"
-import markdown from "highlight.js/lib/languages/markdown"
-import rust from "highlight.js/lib/languages/rust"
+import dockerfile from "highlight.js/lib/languages/dockerfile"
 import go from "highlight.js/lib/languages/go"
 import java from "highlight.js/lib/languages/java"
-import cpp from "highlight.js/lib/languages/cpp"
-import c from "highlight.js/lib/languages/c"
-import sql from "highlight.js/lib/languages/sql"
-import yaml from "highlight.js/lib/languages/yaml"
-import dockerfile from "highlight.js/lib/languages/dockerfile"
+import javascript from "highlight.js/lib/languages/javascript"
+import json from "highlight.js/lib/languages/json"
 import lua from "highlight.js/lib/languages/lua"
+import markdown from "highlight.js/lib/languages/markdown"
 import plaintext from "highlight.js/lib/languages/plaintext"
+import python from "highlight.js/lib/languages/python"
+import rust from "highlight.js/lib/languages/rust"
+import sql from "highlight.js/lib/languages/sql"
+import typescript from "highlight.js/lib/languages/typescript"
+import xml from "highlight.js/lib/languages/xml"
+import yaml from "highlight.js/lib/languages/yaml"
+import { Marked, Renderer, type Tokens } from "marked"
+import { markedHighlight } from "marked-highlight"
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
+import { useRoute, useRouter } from "vue-router"
 import "highlight.js/styles/github-dark.css"
-import ImageViewerProvider from "@/components/ImageViewerProvider.vue"
-import Window from "@/components/Window.vue"
 import FediverseShare from "@/components/FediverseShare.vue"
+import ImageViewerProvider from "@/components/ImageViewerProvider.vue"
+import SocialEmbed from "@/components/SocialEmbed.vue"
+import Window from "@/components/Window.vue"
 
 // Register languages
 hljs.registerLanguage("javascript", javascript)
@@ -79,6 +80,25 @@ interface TocItem {
   slug: string
 }
 
+// Social embed types
+type SocialEmbedType =
+  | "x"
+  | "mastodon"
+  | "misskey"
+  | "pleroma"
+  | "x-profile"
+  | "mastodon-profile"
+  | "misskey-profile"
+  | "pleroma-profile"
+  | "github"
+  | "link"
+
+interface SocialEmbedData {
+  type: SocialEmbedType
+  url: string
+  id: string
+}
+
 const route = useRoute()
 const router = useRouter()
 
@@ -89,6 +109,7 @@ const tocItems = ref<TocItem[]>([])
 const showFloatingToc = ref(false)
 const activeHeading = ref<string>("")
 const isEditor = ref(false)
+const socialEmbeds = ref<SocialEmbedData[]>([])
 
 // Track current heading with scroll
 let headingElements: Element[] = []
@@ -189,9 +210,8 @@ function renderCodeGroup(content: string): string {
   // Format: ```lang [Title] or ```lang
   const codeBlockRegex = /```(\w+)(?:\s+\[([^\]]+)\])?\s*\n([\s\S]*?)```/g
   const blocks: { lang: string; title: string; code: string }[] = []
-  let match: RegExpExecArray | null = null
 
-  while ((match = codeBlockRegex.exec(content)) !== null) {
+  for (const match of content.matchAll(codeBlockRegex)) {
     blocks.push({
       lang: match[1],
       title: match[2] || match[1],
@@ -225,6 +245,9 @@ function renderCodeGroup(content: string): string {
     ${panelsHtml}
   </div>`
 }
+
+// Simple Marked instance for parsing nested content in containers
+const simpleMarked = new Marked()
 
 // VitePress-compatible custom containers extension
 const containerExtension = {
@@ -281,7 +304,7 @@ const containerExtension = {
 
     const contentLines = lines.slice(1, endIndex)
     const content = contentLines.join("\n")
-    const raw = lines.slice(0, endIndex + 1).join("\n") + "\n"
+    const raw = `${lines.slice(0, endIndex + 1).join("\n")}\n`
 
     return {
       type: "container",
@@ -299,7 +322,7 @@ const containerExtension = {
     // Handle details container
     if (type === "details") {
       const summary = title || "Details"
-      const innerHtml = marked.parse(content)
+      const innerHtml = simpleMarked.parse(content) as string
       return `<details class="custom-block details">
 <summary>${summary}</summary>
 <div class="details-content">${innerHtml}</div>
@@ -320,7 +343,7 @@ const containerExtension = {
       defaultTitle: type.toUpperCase(),
     }
     const displayTitle = title || config.defaultTitle
-    const innerHtml = marked.parse(content)
+    const innerHtml = simpleMarked.parse(content) as string
 
     return `<div class="custom-block ${config.class}">
 <p class="custom-block-title">${displayTitle}</p>
@@ -356,14 +379,17 @@ const tocExtension = {
 const lineHighlightStore = new Map<string, Set<number>>()
 let codeBlockCounter = 0
 
+// Create a new Marked instance to avoid global state issues with client-side navigation
+const markedInstance = new Marked()
+
 // Configure marked with syntax highlighting and line highlighting
 // IMPORTANT: Register extensions FIRST before other configurations
-marked.use({ extensions: [containerExtension, tocExtension] })
-marked.use(
+markedInstance.use({ extensions: [containerExtension, tocExtension] })
+markedInstance.use(
   markedHighlight({
     emptyLangClass: "hljs language-plaintext",
     langPrefix: "hljs language-",
-    highlight(code, lang, info) {
+    highlight(code, lang, _info) {
       try {
         // Parse language and line highlights (e.g., "js{1,3-5}")
         const langMatch = lang.match(/^(\w+)/)
@@ -397,10 +423,10 @@ marked.use(
 
 // Post-process HTML to apply line highlighting
 function applyLineHighlighting(html: string): string {
-  // Find code blocks with our markers
-  return html.replace(
-    /<code([^>]*)>(__CODE_BLOCK_\d+__)\n([\s\S]*?)<\/code>/g,
-    (match, attrs, blockId, code) => {
+  // Find code blocks with our markers (with or without newline after marker)
+  const result = html.replace(
+    /<code([^>]*)>(__CODE_BLOCK_\d+__)(?:\n)?([\s\S]*?)<\/code>/g,
+    (_match, attrs, blockId, code) => {
       const lineHighlights = lineHighlightStore.get(blockId)
       if (!lineHighlights) {
         return `<code${attrs}>${code}</code>`
@@ -421,10 +447,13 @@ function applyLineHighlighting(html: string): string {
       return `<code${attrs}>${wrappedLines}</code>`
     },
   )
+
+  // Remove any leftover markers that weren't processed
+  return result.replace(/__CODE_BLOCK_\d+__\n?/g, "")
 }
 
 // Custom renderer
-const renderer = new marked.Renderer()
+const renderer = new Renderer()
 
 // Custom renderer to add data-viewer to images
 renderer.image = ({ href, title, text }) => {
@@ -443,7 +472,7 @@ renderer.heading = ({ tokens, depth }) => {
   return `<h${depth} id="${slug}">${text}<a class="header-anchor" href="#${slug}">#</a></h${depth}>\n`
 }
 
-marked.use({ renderer })
+markedInstance.use({ renderer })
 
 // Extract TOC from content (excluding code blocks and code-groups)
 function extractToc(
@@ -477,7 +506,7 @@ function extractToc(
     maxDepth = outline[1]
   }
 
-  while ((match = headingRegex.exec(cleanContent)) !== null) {
+  for (const match of cleanContent.matchAll(headingRegex)) {
     const level = match[1].length
     if (level >= minDepth && level <= maxDepth) {
       const text = match[2].trim()
@@ -579,6 +608,139 @@ function restoreCodeGroups(html: string): string {
   return result
 }
 
+// Social embed store for post-processing
+const socialEmbedStore = new Map<string, SocialEmbedData>()
+let socialEmbedCounter = 0
+
+// Detect social embed type from URL
+function detectSocialEmbedType(url: string): SocialEmbedType | null {
+  try {
+    const urlObj = new URL(url)
+    const hostname = urlObj.hostname.toLowerCase()
+
+    // X/Twitter
+    if (hostname === "twitter.com" || hostname === "x.com") {
+      // Profile: /username (no /status)
+      if (
+        urlObj.pathname.match(/^\/[\w]+$/) &&
+        ![
+          "home",
+          "explore",
+          "notifications",
+          "messages",
+          "settings",
+          "i",
+        ].includes(urlObj.pathname.slice(1))
+      ) {
+        return "x-profile"
+      }
+      // Status: /username/status/id
+      if (urlObj.pathname.match(/\/[\w]+\/status\/\d+/)) {
+        return "x"
+      }
+    }
+
+    // GitHub code: /owner/repo/blob/branch/path
+    if (
+      hostname === "github.com" &&
+      urlObj.pathname.match(/^\/[\w.-]+\/[\w.-]+\/blob\//)
+    ) {
+      return "github"
+    }
+
+    // Misskey note: /notes/xxx
+    if (urlObj.pathname.match(/\/notes\/[\w]+/)) {
+      return "misskey"
+    }
+
+    // Misskey profile: /@username (no /notes)
+    if (
+      urlObj.pathname.match(/^\/@[\w-]+$/) &&
+      !urlObj.pathname.includes("/notes/")
+    ) {
+      // Could be Misskey or Mastodon - check for common Misskey instances
+      const misskeyInstances = [
+        "misskey.io",
+        "misskey.art",
+        "nijimiss.moe",
+        "submarin.online",
+        "sushi.ski",
+      ]
+      if (misskeyInstances.some((inst) => hostname.includes(inst))) {
+        return "misskey-profile"
+      }
+      // Default to mastodon-profile for @user pattern without status ID
+      return "mastodon-profile"
+    }
+
+    // Mastodon status: /@user/123456 or /users/user/statuses/123456
+    if (
+      urlObj.pathname.match(/\/@[\w-]+\/\d+/) ||
+      urlObj.pathname.match(/\/users\/[\w-]+\/statuses\/\d+/)
+    ) {
+      return "mastodon"
+    }
+
+    // Mastodon profile: /users/username
+    if (urlObj.pathname.match(/^\/users\/[\w-]+$/)) {
+      return "mastodon-profile"
+    }
+
+    // Pleroma notice
+    if (urlObj.pathname.match(/\/notice\/[\w]+/)) {
+      return "pleroma"
+    }
+  } catch {
+    // Invalid URL
+  }
+  return null
+}
+
+// Preprocess social embeds: @[type](url) syntax
+function preprocessSocialEmbeds(content: string): string {
+  socialEmbedStore.clear()
+  socialEmbedCounter = 0
+
+  // Match @[type](url) or @[](url) for auto-detection
+  // type can be: x, mastodon, misskey, pleroma, x-profile, mastodon-profile, misskey-profile, pleroma-profile, github, link, or empty for auto-detect
+  const embedRegex =
+    /^@\[(x|mastodon|misskey|pleroma|x-profile|mastodon-profile|misskey-profile|pleroma-profile|github|link)?\]\(([^)]+)\)$/gm
+
+  return content.replace(embedRegex, (match, type, url) => {
+    // Auto-detect type if not specified
+    let embedType: SocialEmbedType | null = type || null
+    if (!embedType) {
+      embedType = detectSocialEmbedType(url)
+    }
+
+    // Fallback to link for any valid URL
+    if (!embedType) {
+      try {
+        new URL(url)
+        embedType = "link"
+      } catch {
+        return match
+      }
+    }
+
+    const embedId = `social-embed-${socialEmbedCounter++}`
+    const embedData: SocialEmbedData = {
+      type: embedType,
+      url: url.trim(),
+      id: embedId,
+    }
+    socialEmbedStore.set(embedId, embedData)
+
+    // Return a placeholder div that will be replaced with Vue component
+    return `\n<div data-social-embed="${embedId}"></div>\n`
+  })
+}
+
+// Get all social embeds from current content
+function getSocialEmbedsFromContent(): SocialEmbedData[] {
+  return Array.from(socialEmbedStore.values())
+}
+
 const renderedContent = computed(() => {
   if (!post.value) return ""
 
@@ -589,11 +751,14 @@ const renderedContent = computed(() => {
   // Extract TOC items
   tocItems.value = extractToc(post.value.content, post.value.outline)
 
+  // Preprocess social embeds before code-groups
+  let content = preprocessSocialEmbeds(post.value.content)
+
   // Preprocess code-groups before parsing
-  const preprocessed = preprocessCodeGroups(post.value.content)
+  const preprocessed = preprocessCodeGroups(content)
 
   // Parse markdown
-  let html = marked.parse(preprocessed) as string
+  let html = markedInstance.parse(preprocessed) as string
 
   // Apply line highlighting post-processing
   html = applyLineHighlighting(html)
@@ -610,6 +775,23 @@ const renderedContent = computed(() => {
 
   return html
 })
+
+// Track rendered embeds to mount after DOM update
+const embedsToMount = ref<SocialEmbedData[]>([])
+
+// Watch for rendered content changes to update embeds
+watch(
+  renderedContent,
+  () => {
+    // Get embeds from content after parsing
+    embedsToMount.value = getSocialEmbedsFromContent()
+    // Wait for DOM to update before Teleport can mount
+    nextTick(() => {
+      socialEmbeds.value = embedsToMount.value
+    })
+  },
+  { immediate: true },
+)
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ""
@@ -637,7 +819,7 @@ const characterCount = computed(() => {
   content = content.replace(/`[^`]+`/g, "")
 
   // Remove markdown syntax
-  content = content.replace(/[#*_\[\]()!>-]/g, "")
+  content = content.replace(/[#*_[\]()!>-]/g, "")
 
   // Remove URLs
   content = content.replace(/https?:\/\/[^\s]+/g, "")
@@ -688,10 +870,11 @@ onMounted(async () => {
           }
           throw new Error(`HTTP ${response.status}`)
         }
-        post.value = await response.json()
+        const fetched = (await response.json()) as BlogPostDetail
+        post.value = fetched
 
         // Update document title with post title
-        document.title = `${post.value.title} | Blog | c30.life`
+        document.title = `${fetched.title} | Blog | c30.life`
 
         // Setup code group tabs and heading observer after content is rendered
         setTimeout(() => {
@@ -706,7 +889,7 @@ onMounted(async () => {
         } else {
           // Wait before retry (exponential backoff)
           await new Promise((resolve) =>
-            setTimeout(resolve, 200 * Math.pow(2, attempt)),
+            setTimeout(resolve, 200 * 2 ** attempt),
           )
         }
       }
@@ -723,24 +906,24 @@ function setupCodeGroupTabs() {
     const tabs = group.querySelectorAll(".code-group-tab")
     const panels = group.querySelectorAll(".code-group-panel")
 
-    tabs.forEach((tab) => {
+    for (const tab of tabs) {
       tab.addEventListener("click", () => {
         const tabIndex = tab.getAttribute("data-tab")
 
         // Update tabs
-        tabs.forEach((t) => t.classList.remove("active"))
+        for (const t of tabs) t.classList.remove("active")
         tab.classList.add("active")
 
         // Update panels
-        panels.forEach((p) => {
+        for (const p of panels) {
           if (p.getAttribute("data-panel") === tabIndex) {
             p.classList.add("active")
           } else {
             p.classList.remove("active")
           }
-        })
+        }
       })
-    })
+    }
   })
 }
 </script>
@@ -774,7 +957,9 @@ function setupCodeGroupTabs() {
         <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
           {{ post.title }}
         </h1>
-        <div class="flex items-center gap-4 text-neutral-400 text-sm mb-4">
+        <div
+          class="flex flex-wrap items-center gap-x-4 gap-y-2 text-neutral-400 text-sm mb-4"
+        >
           <span>{{ formatDate(post.date) }}</span>
           <span v-if="post.author" class="flex items-center gap-1">
             <svg
@@ -867,7 +1052,10 @@ function setupCodeGroupTabs() {
         </div>
 
         <!-- Description -->
-        <p v-if="post.description" class="text-neutral-400 text-sm mb-4 italic">
+        <p
+          v-if="post.description"
+          class="text-neutral-400 text-sm mb-4 italic break-words [overflow-wrap:anywhere]"
+        >
           {{ post.description }}
         </p>
 
@@ -910,6 +1098,15 @@ function setupCodeGroupTabs() {
             class="blog-content prose prose-invert max-w-none"
             v-html="renderedContent"
           />
+          <!-- Social embeds rendered via Teleport -->
+          <template v-for="embed in socialEmbeds" :key="embed.id">
+            <Teleport
+              :to="`[data-social-embed='${embed.id}']`"
+              :disabled="!post"
+            >
+              <SocialEmbed :embed-data="embed" />
+            </Teleport>
+          </template>
         </ImageViewerProvider>
 
         <div class="bg-neutral-700 w-full h-0.5 rounded my-6" />

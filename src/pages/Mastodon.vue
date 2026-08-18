@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue"
+import { computed, onMounted, ref } from "vue"
 
 type UserData = {
   host: string
@@ -118,8 +118,8 @@ onMounted(() => {
   }))
 
   // Load all accounts
-  mastodonUsers.forEach((user) => loadAccount(user, mastodonAccountStates))
-  pleromaUsers.forEach((user) => loadAccount(user, pleromaAccountStates))
+  for (const user of mastodonUsers) loadAccount(user, mastodonAccountStates)
+  for (const user of pleromaUsers) loadAccount(user, pleromaAccountStates)
 })
 
 function formatNumber(num: number): string {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
+import { onMounted, ref } from "vue"
 import { useRoute } from "vue-router"
-import SystemdLoader from "../components/SystemdLoader.vue"
+import type SystemdLoader from "../components/SystemdLoader.vue"
 
 const loader = ref<InstanceType<typeof SystemdLoader> | null>(null)
 const route = useRoute()

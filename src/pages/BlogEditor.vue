@@ -1,30 +1,44 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import { marked, type Tokens } from "marked"
-import { markedHighlight } from "marked-highlight"
 import hljs from "highlight.js/lib/core"
-import javascript from "highlight.js/lib/languages/javascript"
-import typescript from "highlight.js/lib/languages/typescript"
-import python from "highlight.js/lib/languages/python"
 import bash from "highlight.js/lib/languages/bash"
-import json from "highlight.js/lib/languages/json"
+import c from "highlight.js/lib/languages/c"
+import cpp from "highlight.js/lib/languages/cpp"
 import css from "highlight.js/lib/languages/css"
-import xml from "highlight.js/lib/languages/xml"
-import markdown from "highlight.js/lib/languages/markdown"
-import rust from "highlight.js/lib/languages/rust"
+import dockerfile from "highlight.js/lib/languages/dockerfile"
 import go from "highlight.js/lib/languages/go"
 import java from "highlight.js/lib/languages/java"
-import cpp from "highlight.js/lib/languages/cpp"
-import c from "highlight.js/lib/languages/c"
-import sql from "highlight.js/lib/languages/sql"
-import yaml from "highlight.js/lib/languages/yaml"
-import dockerfile from "highlight.js/lib/languages/dockerfile"
+import javascript from "highlight.js/lib/languages/javascript"
+import json from "highlight.js/lib/languages/json"
 import lua from "highlight.js/lib/languages/lua"
+import markdown from "highlight.js/lib/languages/markdown"
 import plaintext from "highlight.js/lib/languages/plaintext"
+import python from "highlight.js/lib/languages/python"
+import rust from "highlight.js/lib/languages/rust"
+import sql from "highlight.js/lib/languages/sql"
+import typescript from "highlight.js/lib/languages/typescript"
+import xml from "highlight.js/lib/languages/xml"
+import yaml from "highlight.js/lib/languages/yaml"
+import {
+  Marked,
+  Renderer,
+  type TokenizerAndRendererExtension,
+  type Tokens,
+} from "marked"
+import { markedHighlight } from "marked-highlight"
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from "vue"
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router"
 import "highlight.js/styles/github-dark.css"
+import { lint as markdownlint } from "markdownlint/promise"
 import * as monaco from "monaco-editor"
-import { lint as markdownlint } from "markdownlint/async"
+import SocialEmbed from "@/components/SocialEmbed.vue"
 
 // Register languages
 hljs.registerLanguage("javascript", javascript)
@@ -57,6 +71,25 @@ hljs.registerLanguage("lua", lua)
 hljs.registerLanguage("plaintext", plaintext)
 hljs.registerLanguage("text", plaintext)
 
+// Social embed types
+type SocialEmbedType =
+  | "x"
+  | "mastodon"
+  | "misskey"
+  | "pleroma"
+  | "x-profile"
+  | "mastodon-profile"
+  | "misskey-profile"
+  | "pleroma-profile"
+  | "github"
+  | "link"
+
+interface SocialEmbedData {
+  type: SocialEmbedType
+  url: string
+  id: string
+}
+
 const route = useRoute()
 const router = useRouter()
 
@@ -74,10 +107,19 @@ const saveSuccess = ref(false)
 const isNewPost = ref(false)
 const hasUnsavedChanges = ref(false)
 const isDraft = ref(true) // Track draft status
+const socialEmbeds = ref<SocialEmbedData[]>([])
+const embedRenderKey = ref(0) // Force re-render of embeds
 
 // Monaco editor instance
 const editorContainer = ref<HTMLDivElement | null>(null)
+const previewContainer = ref<HTMLDivElement | null>(null)
 let monacoEditor: monaco.editor.IStandaloneCodeEditor | null = null
+
+// Image upload
+const imageFileInput = ref<HTMLInputElement | null>(null)
+const imageUploading = ref(false)
+const imageUploadError = ref("")
+const isDragOver = ref(false)
 
 // For new post
 const newPostId = ref("")
@@ -112,6 +154,9 @@ function generateSlug(text: string): string {
     .replace(/-+/g, "-")
     .trim()
 }
+
+// Simple Marked instance for parsing nested content in containers
+const simpleMarked = new Marked()
 
 // VitePress-compatible custom containers extension
 const containerExtension = {
@@ -163,7 +208,7 @@ const containerExtension = {
 
     const contentLines = lines.slice(1, endIndex)
     const content = contentLines.join("\n")
-    const raw = lines.slice(0, endIndex + 1).join("\n") + "\n"
+    const raw = `${lines.slice(0, endIndex + 1).join("\n")}\n`
 
     return {
       type: "container",
@@ -180,7 +225,7 @@ const containerExtension = {
 
     if (type === "details") {
       const summary = title || "Details"
-      const innerHtml = marked.parse(content)
+      const innerHtml = simpleMarked.parse(content) as string
       return `<details class="custom-block details">
 <summary>${summary}</summary>
 <div class="details-content">${innerHtml}</div>
@@ -200,7 +245,7 @@ const containerExtension = {
       defaultTitle: type.toUpperCase(),
     }
     const displayTitle = title || config.defaultTitle
-    const innerHtml = marked.parse(content)
+    const innerHtml = simpleMarked.parse(content) as string
 
     return `<div class="custom-block ${config.class}">
 <p class="custom-block-title">${displayTitle}</p>
@@ -212,7 +257,7 @@ ${innerHtml}
 // Footnote extension
 const footnoteStore = new Map<string, string>()
 
-const footnoteRefExtension: marked.TokenizerAndRendererExtension = {
+const footnoteRefExtension: TokenizerAndRendererExtension = {
   name: "footnoteRef",
   level: "inline",
   start(src: string) {
@@ -229,13 +274,13 @@ const footnoteRefExtension: marked.TokenizerAndRendererExtension = {
     }
     return undefined
   },
-  renderer(token) {
-    const id = (token as { id: string }).id
+  renderer(token: Tokens.Generic) {
+    const id = token.id as string
     return `<sup><a href="#fn-${id}" id="fnref-${id}" class="footnote-ref">[${id}]</a></sup>`
   },
 }
 
-const footnoteDefExtension: marked.TokenizerAndRendererExtension = {
+const footnoteDefExtension: TokenizerAndRendererExtension = {
   name: "footnoteDef",
   level: "block",
   start(src: string) {
@@ -274,15 +319,99 @@ function renderFootnotes(): string {
   return `<div class="footnotes-section">${footnotes}</div>`
 }
 
+// TOC item interface
+interface TocItem {
+  level: number
+  text: string
+  slug: string
+}
+
+// TOC extension
+const tocExtension = {
+  name: "toc",
+  level: "block" as const,
+  start(src: string) {
+    const match = src.match(/^\[\[toc\]\]/i)
+    return match?.index
+  },
+  tokenizer(src: string): Tokens.Generic | undefined {
+    const match = src.match(/^\[\[toc\]\]/i)
+    if (match) {
+      return {
+        type: "toc",
+        raw: match[0],
+      }
+    }
+    return undefined
+  },
+  renderer() {
+    // Placeholder - will be replaced after full parsing
+    return '<nav class="table-of-contents" data-toc-placeholder></nav>'
+  },
+}
+
+// Extract TOC from content
+function extractToc(content: string): TocItem[] {
+  let cleanContent = content
+  cleanContent = cleanContent.replace(/```[\s\S]*?```/g, "")
+  cleanContent = cleanContent.replace(/:::\s*code-group[\s\S]*?:::/g, "")
+
+  const items: TocItem[] = []
+  const headingRegex = /^(#{1,6})\s+(.+)$/gm
+
+  for (const match of cleanContent.matchAll(headingRegex)) {
+    const level = match[1].length
+    if (level >= 2 && level <= 3) {
+      const text = match[2].trim()
+      items.push({
+        level,
+        text,
+        slug: generateSlug(text),
+      })
+    }
+  }
+
+  return items
+}
+
+// Generate TOC HTML
+function generateTocHtml(items: TocItem[]): string {
+  if (items.length === 0) return ""
+
+  const minLevel = Math.min(...items.map((i) => i.level))
+
+  return `<nav class="table-of-contents">
+    <ul>
+      ${items
+        .map(
+          (item) => `
+        <li style="margin-left: ${(item.level - minLevel) * 1}rem">
+          <a href="#${item.slug}">${item.text}</a>
+        </li>
+      `,
+        )
+        .join("")}
+    </ul>
+  </nav>`
+}
+
 // Store line highlight info for post-processing
 const lineHighlightStore = new Map<string, Set<number>>()
 let codeBlockCounter = 0
 
+// Create a new Marked instance to avoid global state issues
+const markedInstance = new Marked()
+
 // Configure marked
-marked.use({
-  extensions: [containerExtension, footnoteRefExtension, footnoteDefExtension],
+markedInstance.use({
+  extensions: [
+    containerExtension,
+    tocExtension,
+    footnoteRefExtension,
+    footnoteDefExtension,
+  ],
 })
-marked.use(
+markedInstance.use(
   markedHighlight({
     emptyLangClass: "hljs language-plaintext",
     langPrefix: "hljs language-",
@@ -315,9 +444,10 @@ marked.use(
 
 // Apply line highlighting
 function applyLineHighlighting(html: string): string {
-  return html.replace(
-    /<code([^>]*)>(__CODE_BLOCK_\d+__)\n([\s\S]*?)<\/code>/g,
-    (match, attrs, blockId, code) => {
+  // Find code blocks with our markers (with or without newline after marker)
+  const result = html.replace(
+    /<code([^>]*)>(__CODE_BLOCK_\d+__)(?:\n)?([\s\S]*?)<\/code>/g,
+    (_match, attrs, blockId, code) => {
       const lineHighlights = lineHighlightStore.get(blockId)
       if (!lineHighlights) {
         return `<code${attrs}>${code}</code>`
@@ -337,10 +467,13 @@ function applyLineHighlighting(html: string): string {
       return `<code${attrs}>${wrappedLines}</code>`
     },
   )
+
+  // Remove any leftover markers that weren't processed
+  return result.replace(/__CODE_BLOCK_\d+__\n?/g, "")
 }
 
 // Custom renderer
-const renderer = new marked.Renderer()
+const renderer = new Renderer()
 
 renderer.image = ({ href, title, text }) => {
   const titleAttr = title ? ` title="${title}"` : ""
@@ -357,7 +490,7 @@ renderer.heading = ({ tokens, depth }) => {
   return `<h${depth} id="${slug}">${text}<a class="header-anchor" href="#${slug}">#</a></h${depth}>\n`
 }
 
-marked.use({ renderer })
+markedInstance.use({ renderer })
 
 // Store code groups for post-processing
 const codeGroupStore = new Map<string, string>()
@@ -366,9 +499,8 @@ const codeGroupStore = new Map<string, string>()
 function renderCodeGroup(content: string): string {
   const codeBlockRegex = /```(\w+)(?:\s+\[([^\]]+)\])?\s*\n([\s\S]*?)```/g
   const blocks: { lang: string; title: string; code: string }[] = []
-  let match: RegExpExecArray | null = null
 
-  while ((match = codeBlockRegex.exec(content)) !== null) {
+  for (const match of content.matchAll(codeBlockRegex)) {
     blocks.push({
       lang: match[1],
       title: match[2] || match[1],
@@ -483,6 +615,135 @@ function transformBadges(html: string): string {
   )
 }
 
+// Social embed store for post-processing
+const socialEmbedStore = new Map<string, SocialEmbedData>()
+let socialEmbedCounter = 0
+
+// Detect social embed type from URL
+function detectSocialEmbedType(url: string): SocialEmbedType | null {
+  try {
+    const urlObj = new URL(url)
+    const hostname = urlObj.hostname.toLowerCase()
+
+    // X/Twitter
+    if (hostname === "twitter.com" || hostname === "x.com") {
+      // Profile: /username (no /status)
+      if (
+        urlObj.pathname.match(/^\/[\w]+$/) &&
+        ![
+          "home",
+          "explore",
+          "notifications",
+          "messages",
+          "settings",
+          "i",
+        ].includes(urlObj.pathname.slice(1))
+      ) {
+        return "x-profile"
+      }
+      // Status: /username/status/id
+      if (urlObj.pathname.match(/\/[\w]+\/status\/\d+/)) {
+        return "x"
+      }
+    }
+
+    // GitHub code: /owner/repo/blob/branch/path
+    if (
+      hostname === "github.com" &&
+      urlObj.pathname.match(/^\/[\w.-]+\/[\w.-]+\/blob\//)
+    ) {
+      return "github"
+    }
+
+    // Misskey note: /notes/xxx
+    if (urlObj.pathname.match(/\/notes\/[\w]+/)) {
+      return "misskey"
+    }
+
+    // Misskey profile: /@username (no /notes)
+    if (
+      urlObj.pathname.match(/^\/@[\w-]+$/) &&
+      !urlObj.pathname.includes("/notes/")
+    ) {
+      // Could be Misskey or Mastodon - check for common Misskey instances
+      const misskeyInstances = [
+        "misskey.io",
+        "misskey.art",
+        "nijimiss.moe",
+        "submarin.online",
+        "sushi.ski",
+      ]
+      if (misskeyInstances.some((inst) => hostname.includes(inst))) {
+        return "misskey-profile"
+      }
+      // Default to mastodon-profile for @user pattern without status ID
+      return "mastodon-profile"
+    }
+
+    // Mastodon status: /@user/123456 or /users/user/statuses/123456
+    if (
+      urlObj.pathname.match(/\/@[\w-]+\/\d+/) ||
+      urlObj.pathname.match(/\/users\/[\w-]+\/statuses\/\d+/)
+    ) {
+      return "mastodon"
+    }
+
+    // Mastodon profile: /users/username
+    if (urlObj.pathname.match(/^\/users\/[\w-]+$/)) {
+      return "mastodon-profile"
+    }
+
+    // Pleroma notice
+    if (urlObj.pathname.match(/\/notice\/[\w]+/)) {
+      return "pleroma"
+    }
+  } catch {
+    // Invalid URL
+  }
+  return null
+}
+
+// Preprocess social embeds: @[type](url) syntax
+function preprocessSocialEmbeds(content: string): string {
+  socialEmbedStore.clear()
+  socialEmbedCounter = 0
+
+  const embedRegex =
+    /^@\[(x|mastodon|misskey|pleroma|x-profile|mastodon-profile|misskey-profile|pleroma-profile|github|link)?\]\(([^)]+)\)$/gm
+
+  return content.replace(embedRegex, (match, type, url) => {
+    let embedType: SocialEmbedType | null = type || null
+    if (!embedType) {
+      embedType = detectSocialEmbedType(url)
+    }
+
+    // Fallback to link for any valid URL
+    if (!embedType) {
+      try {
+        new URL(url)
+        embedType = "link"
+      } catch {
+        return match
+      }
+    }
+
+    const embedId = `social-embed-${socialEmbedCounter++}`
+    const embedData: SocialEmbedData = {
+      type: embedType,
+      url: url.trim(),
+      id: embedId,
+    }
+    socialEmbedStore.set(embedId, embedData)
+
+    return `\n<div data-social-embed="${embedId}"></div>\n`
+  })
+}
+
+// Get all social embeds from current content
+function getSocialEmbedsFromContent(): SocialEmbedData[] {
+  return Array.from(socialEmbedStore.values())
+}
+
 // Computed preview
 const previewHtml = computed(() => {
   if (!rawContent.value) return ""
@@ -491,12 +752,26 @@ const previewHtml = computed(() => {
   lineHighlightStore.clear()
   footnoteStore.clear()
 
-  const content = extractContent(rawContent.value)
+  let content = extractContent(rawContent.value)
+
+  // Preprocess social embeds
+  content = preprocessSocialEmbeds(content)
+
+  // Extract TOC items
+  const tocItems = extractToc(content)
+
   const preprocessed = preprocessCodeGroups(content)
-  let html = marked.parse(preprocessed) as string
+  let html = markedInstance.parse(preprocessed) as string
   html = applyLineHighlighting(html)
   html = restoreCodeGroups(html)
   html = transformBadges(html)
+
+  // Replace TOC placeholder with actual TOC
+  const tocHtml = generateTocHtml(tocItems)
+  html = html.replace(
+    /<nav class="table-of-contents" data-toc-placeholder><\/nav>/g,
+    tocHtml,
+  )
 
   // Add footnotes at the end
   html += renderFootnotes()
@@ -507,6 +782,18 @@ const previewHtml = computed(() => {
 // Watch for changes
 watch(rawContent, (newVal) => {
   hasUnsavedChanges.value = newVal !== originalContent.value
+})
+
+// Watch for preview changes to update social embeds
+watch(previewHtml, () => {
+  // Use double nextTick to ensure DOM is fully updated
+  nextTick(() => {
+    nextTick(() => {
+      socialEmbeds.value = getSocialEmbedsFromContent()
+      // Increment key to force Teleport re-render
+      embedRenderKey.value++
+    })
+  })
 })
 
 // Authentication
@@ -774,6 +1061,7 @@ const validateContent = async (content: string) => {
       config: {
         default: true,
         // Disable some rules that don't apply to blog posts
+        MD011: false, // Reversed link syntax (we use [[toc]])
         MD013: false, // Line length
         MD033: false, // Inline HTML (we use custom containers)
         MD041: false, // First line should be heading (we use frontmatter)
@@ -1731,11 +2019,123 @@ watch(viewMode, async (newMode) => {
   }
 })
 
+// Image upload helpers
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml"]
+
+function insertImageMarkdown(url: string, alt = "image") {
+  if (!monacoEditor) return
+  const selection = monacoEditor.getSelection()
+  if (!selection) return
+  const text = `![${alt}](${url})`
+  monacoEditor.executeEdits("", [{ range: selection, text }])
+  monacoEditor.focus()
+}
+
+async function uploadImageFile(file: File) {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    imageUploadError.value = `非対応の形式です: ${file.type}`
+    setTimeout(() => { imageUploadError.value = "" }, 3000)
+    return
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    imageUploadError.value = "10MB 以下にしてください"
+    setTimeout(() => { imageUploadError.value = "" }, 3000)
+    return
+  }
+
+  imageUploading.value = true
+  imageUploadError.value = ""
+
+  try {
+    const form = new FormData()
+    form.append("file", file)
+    const res = await fetch("/api/blog-image", {
+      method: "POST",
+      headers: { "X-Edit-Key": authKey.value },
+      body: form,
+    })
+    if (!res.ok) {
+      const err = (await res.json()) as { error?: string }
+      throw new Error(err.error ?? "Upload failed")
+    }
+    const { url } = (await res.json()) as { url: string }
+    insertImageMarkdown(url, file.name.replace(/\.[^.]+$/, ""))
+  } catch (e) {
+    imageUploadError.value = e instanceof Error ? e.message : "アップロード失敗"
+    setTimeout(() => { imageUploadError.value = "" }, 4000)
+  } finally {
+    imageUploading.value = false
+  }
+}
+
+function onImageFileInputChange(e: Event) {
+  const files = (e.target as HTMLInputElement).files
+  if (!files?.length) return
+  void uploadImageFile(files[0])
+  ;(e.target as HTMLInputElement).value = ""
+}
+
+function onEditorDragOver(e: DragEvent) {
+  if (e.dataTransfer?.types.includes("Files")) {
+    e.preventDefault()
+    isDragOver.value = true
+  }
+}
+
+function onEditorDragLeave() {
+  isDragOver.value = false
+}
+
+function onEditorDrop(e: DragEvent) {
+  e.preventDefault()
+  isDragOver.value = false
+  const file = e.dataTransfer?.files[0]
+  if (file) void uploadImageFile(file)
+}
+
+function onEditorPaste(e: ClipboardEvent) {
+  const file = Array.from(e.clipboardData?.items ?? [])
+    .find(i => i.kind === "file" && ALLOWED_IMAGE_TYPES.includes(i.type))
+    ?.getAsFile()
+  if (file) {
+    e.preventDefault()
+    void uploadImageFile(file)
+  }
+}
+
+// Handle browser close/reload with unsaved changes
+const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+  if (hasUnsavedChanges.value) {
+    e.preventDefault()
+    // Modern browsers ignore custom messages, but this is required for the dialog to show
+    e.returnValue = "未保存の変更があります。ページを離れますか？"
+    return e.returnValue
+  }
+}
+
+// Handle Vue Router navigation with unsaved changes
+onBeforeRouteLeave((_to, _from, next) => {
+  if (hasUnsavedChanges.value) {
+    const answer = window.confirm(
+      "未保存の変更があります。保存せずにページを離れますか？",
+    )
+    if (answer) {
+      next()
+    } else {
+      next(false)
+    }
+  } else {
+    next()
+  }
+})
+
 onMounted(() => {
   authenticate()
+  window.addEventListener("beforeunload", handleBeforeUnload)
 })
 
 onUnmounted(() => {
+  window.removeEventListener("beforeunload", handleBeforeUnload)
   if (monacoEditor) {
     monacoEditor.dispose()
     monacoEditor = null
@@ -1744,7 +2144,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section class="w-full min-h-[calc(100vh-120px)] flex flex-col">
+  <section class="w-full h-[calc(100vh-120px)] flex flex-col">
     <!-- Auth Screen -->
     <div
       v-if="!isAuthenticated"
@@ -1782,7 +2182,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Editor -->
-    <div v-else class="flex-1 flex flex-col min-h-0">
+    <div v-else class="flex-1 flex flex-col min-h-0 overflow-hidden">
       <!-- Header -->
       <div
         class="backdrop-blur-xl bg-neutral-900/80 border-b border-neutral-800 p-4 flex items-center justify-between gap-4 flex-wrap"
@@ -1941,40 +2341,131 @@ onUnmounted(() => {
       </div>
 
       <!-- Editor Content -->
-      <div v-else class="flex-1 flex overflow-hidden min-h-[500px]">
+      <div v-else class="flex-1 flex overflow-hidden min-h-0">
         <!-- Editor Pane -->
         <div
           v-show="viewMode === 'editor' || viewMode === 'split'"
           :class="[
-            'flex flex-col border-r border-neutral-800',
+            'flex flex-col border-r border-neutral-800 min-w-0 min-h-0',
             viewMode === 'split' ? 'w-1/2' : 'w-full',
           ]"
         >
           <div
-            class="bg-neutral-800/50 px-4 py-2 text-neutral-400 text-sm border-b border-neutral-700"
+            class="bg-neutral-800/50 px-4 py-2 text-neutral-400 text-sm border-b border-neutral-700 shrink-0 flex items-center justify-between gap-2"
           >
-            Markdown
+            <span>Markdown</span>
+            <!-- Image upload toolbar -->
+            <div class="flex items-center gap-2">
+              <!-- Upload error -->
+              <span v-if="imageUploadError" class="text-red-400 text-xs">
+                {{ imageUploadError }}
+              </span>
+              <!-- Upload button -->
+              <button
+                type="button"
+                :disabled="imageUploading"
+                class="flex items-center gap-1.5 px-2 py-1 bg-neutral-700 hover:bg-neutral-600 text-neutral-300 hover:text-white rounded text-xs transition-colors disabled:opacity-50"
+                @click="imageFileInput?.click()"
+              >
+                <svg
+                  v-if="!imageUploading"
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <svg
+                  v-else
+                  class="w-3.5 h-3.5 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+                <span>{{ imageUploading ? 'アップロード中...' : '画像' }}</span>
+              </button>
+              <!-- Hidden file input -->
+              <input
+                ref="imageFileInput"
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml"
+                class="hidden"
+                @change="onImageFileInputChange"
+              />
+            </div>
           </div>
-          <div ref="editorContainer" class="flex-1 w-full bg-neutral-900" />
+          <!-- Drop zone wrapper -->
+          <div
+            class="relative flex-1 min-h-0"
+            @dragover="onEditorDragOver"
+            @dragleave="onEditorDragLeave"
+            @drop="onEditorDrop"
+            @paste.capture="onEditorPaste"
+          >
+            <div
+              ref="editorContainer"
+              class="w-full h-full bg-neutral-900"
+            />
+            <!-- Drag overlay -->
+            <div
+              v-if="isDragOver"
+              class="absolute inset-0 z-20 flex items-center justify-center bg-blue-900/40 border-2 border-dashed border-blue-400 pointer-events-none"
+            >
+              <span class="text-blue-300 text-sm font-medium">画像をドロップしてアップロード</span>
+            </div>
+          </div>
         </div>
 
         <!-- Preview Pane -->
         <div
           v-show="viewMode === 'preview' || viewMode === 'split'"
           :class="[
-            'flex flex-col overflow-hidden',
+            'flex flex-col overflow-hidden min-w-0',
             viewMode === 'split' ? 'w-1/2' : 'w-full',
           ]"
         >
           <div
-            class="bg-neutral-800/50 px-4 py-2 text-neutral-400 text-sm border-b border-neutral-700"
+            class="bg-neutral-800/50 px-4 py-2 text-neutral-400 text-sm border-b border-neutral-700 flex items-center justify-between shrink-0"
           >
-            プレビュー
+            <span>プレビュー</span>
           </div>
           <div
-            class="flex-1 overflow-y-auto p-4 bg-neutral-900/50 blog-content prose prose-invert max-w-none"
+            ref="previewContainer"
+            class="flex-1 overflow-y-auto p-4 bg-neutral-900/50 blog-content"
             v-html="previewHtml"
           />
+          <!-- Social embeds rendered via Teleport -->
+          <template
+            v-for="embed in socialEmbeds"
+            :key="`${embed.id}-${embedRenderKey}`"
+          >
+            <Teleport
+              :to="`[data-social-embed='${embed.id}']`"
+              :disabled="!previewContainer"
+              defer
+            >
+              <SocialEmbed :embed-data="embed" />
+            </Teleport>
+          </template>
         </div>
       </div>
     </div>
@@ -2250,5 +2741,65 @@ onUnmounted(() => {
 
 .blog-content :deep(.footnote-backref) {
   @apply text-blue-400 hover:text-blue-300 no-underline ml-1;
+}
+
+/* Table of Contents */
+.blog-content :deep(.table-of-contents) {
+  background: linear-gradient(
+    135deg,
+    rgba(38, 38, 38, 0.8),
+    rgba(30, 30, 30, 0.9)
+  );
+  border: 1px solid #404040;
+  border-left: 3px solid #60a5fa;
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.blog-content :deep(.table-of-contents)::before {
+  content: "目次";
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #60a5fa;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.blog-content :deep(.table-of-contents ul) {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.blog-content :deep(.table-of-contents li) {
+  margin: 0.375rem 0;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.blog-content :deep(.table-of-contents li)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6rem;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #525252;
+}
+
+.blog-content :deep(.table-of-contents a) {
+  color: #d4d4d4;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.blog-content :deep(.table-of-contents a:hover) {
+  color: #60a5fa;
 }
 </style>

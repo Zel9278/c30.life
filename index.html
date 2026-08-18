@@ -18,11 +18,37 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:image" content="https://c30.life/c30.png" />
   <link rel="alternate" type="application/rss+xml" title="c30.life Blog RSS" href="/api/rss" />
+  <style>
+    /* Fixed top bar that hosts the Keep Android Open banner. Its height is
+       measured at runtime into --kao-banner-h, which offsets the header and
+       page content below it (see App.vue / Header.vue). */
+    #my-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 60;
+    }
+
+    #my-banner:empty {
+      display: none;
+    }
+
+    #app {
+      padding-top: var(--kao-banner-h, 0px);
+    }
+  </style>
 </head>
 
 <body>
+  <div id="my-banner"></div>
   <div id="app"></div>
   <script type="module" src="/src/main.ts"></script>
+  <!-- Banner script is parser-inserted (not dynamically injected) so that
+       document.currentScript is available and its query params take effect:
+       lang=en (force English), size=mini, id=my-banner (render target),
+       hidebutton=off (hide the close button). -->
+  <script src="https://keepandroidopen.org/banner.js?lang=en&size=mini&id=my-banner&hidebutton=off"></script>
 </body>
 
 </html>

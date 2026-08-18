@@ -12,6 +12,7 @@ type Softwares =
   | "Simkey"
   | "Firefish"
   | "Pleroma"
+  | "Activity Relay Fork"
 
 type Server = {
   name: string
@@ -39,6 +40,7 @@ const softwares: Record<Softwares, string> = {
   Simkey: "https://github.com/sim1222/misskey",
   Firefish: "https://git.joinfirefish.org/firefish/firefish.git",
   Pleroma: "https://git.pleroma.social/pleroma/pleroma",
+  "Activity Relay Fork": "https://github.com/Zel9278/Activity-Relay",
 }
 
 const bigServers: Server[] = [
@@ -221,10 +223,24 @@ const privateServers: Server[] = [
     status: "gone",
   },
   {
-    name: "至り来たり宿（第二期）",
+    name: "至り来たり宿（第二期）-> 炒めて切った野菜ジュース",
     url: "https://mk.c30.life",
     software: "Misskey Tempura",
     created_at: "2024-05-22",
+    status: "active",
+  },
+  {
+    name: "炒めて切った野菜ジュース Activity Relay Service",
+    url: "https://relay.tools.c30.life",
+    software: "Activity Relay Fork",
+    created_at: "2026-01-01",
+    status: "active",
+  },
+  {
+    name: "炒めて切った希望ジュース",
+    url: "https://pr.c30.life",
+    software: "Pleroma",
+    created_at: "2026-01-05",
     status: "active",
   },
 ]

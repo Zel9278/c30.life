@@ -1,6 +1,6 @@
-import { defineConfig } from "vite"
-import vue from "@vitejs/plugin-vue"
 import tailwindcss from "@tailwindcss/vite"
+import vue from "@vitejs/plugin-vue"
+import { defineConfig } from "vite"
 import Sitemap from "vite-plugin-sitemap"
 
 const routes = [
@@ -38,13 +38,21 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return
           // Vue core
-          "vue-vendor": ["vue", "vue-router"],
+          if (/[\\/]node_modules[\\/](vue|vue-router|@vue)[\\/]/.test(id))
+            return "vue-vendor"
           // Markdown & syntax highlighting (used only in BlogPost)
-          markdown: ["marked", "marked-highlight", "highlight.js"],
+          if (
+            /[\\/]node_modules[\\/](marked|marked-highlight|highlight\.js)[\\/]/.test(
+              id,
+            )
+          )
+            return "markdown"
           // Monaco Editor
-          "monaco-editor": ["monaco-editor"],
+          if (/[\\/]node_modules[\\/]monaco-editor[\\/]/.test(id))
+            return "monaco-editor"
         },
       },
     },

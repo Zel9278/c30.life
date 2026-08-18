@@ -164,7 +164,8 @@ function parseTrack(
       case 0x80: {
         // Note Off
         const note = reader.readUint8()
-        const velocity = reader.readUint8()
+        // Note Off velocity is read to advance the byte cursor, but unused
+        const _velocity = reader.readUint8()
         const key = `${channel}-${note}`
         const activeNote = activeNotes.get(key)
 
@@ -302,7 +303,7 @@ function parseTrack(
   }
 
   // Close any remaining active notes
-  for (const [key, activeNote] of activeNotes) {
+  for (const [, activeNote] of activeNotes) {
     notes.push({
       note: activeNote.note,
       velocity: activeNote.velocity,

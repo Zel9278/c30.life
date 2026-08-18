@@ -15,6 +15,7 @@ const Downloads = () => import("../pages/Downloads.vue")
 const Blog = () => import("../pages/Blog.vue")
 const BlogPost = () => import("../pages/BlogPost.vue")
 const BlogEditor = () => import("../pages/BlogEditor.vue")
+const BlogPreview = () => import("../pages/BlogPreview.vue")
 const NotFound = () => import("../pages/NotFound.vue")
 
 const routes = [
@@ -101,6 +102,16 @@ const routes = [
     name: "BlogEdit",
     component: BlogEditor,
     meta: { hideFooter: true, title: "Edit Post | Blog | c30.life" },
+  },
+  {
+    path: "/blog/preview",
+    name: "BlogPreview",
+    component: BlogPreview,
+    meta: {
+      hideFooter: true,
+      hideHeader: true,
+      title: "Preview | Blog | c30.life",
+    },
   },
   {
     path: "/blog/:id",

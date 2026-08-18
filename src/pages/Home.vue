@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Piano from "../components/Piano.vue"
 import Counter from "../components/Counter.vue"
+import Piano from "../components/Piano.vue"
 import PianoRoll from "../components/PianoRoll.vue"
 
 function getAge(data: string): number {
@@ -77,7 +77,7 @@ function toggleTooltip(event: Event) {
   />
 
   <!-- Song Title -->
-  <div class="fixed top-16 left-4 z-10 text-neutral-500 text-sm opacity-60">
+  <div class="fixed top-[calc(3.5rem+var(--kao-banner-h,0px))] left-4 z-10 text-neutral-500 text-sm opacity-60">
     Background: Ced - My Bad Song
   </div>
 

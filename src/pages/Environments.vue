@@ -4,10 +4,10 @@ const pc = {
   gpu: "RTX 3050 Ti Laptop GPU",
   ram: "16GB",
   storage: "512 GB NVMe + 1TB External SSD + 4TB External HDD",
-  os: "Windows 11 Home",
+  os: "Fedora Linux 44 (KDE Plasma Desktop Edition) x86_64",
   earPhone: "3ｍ earphone",
   mouse: "Logicool G203 LIGHTSYNC",
-  tablet: "XPPen Artist 12 Second (Japan Only Model)",
+  tablet: "none",
   controller: "Xbox One Controller",
 }
 
@@ -16,16 +16,6 @@ const phones = [
     name: "AQUOS R9",
     os: "Android 15",
     rooted: false,
-  },
-  {
-    name: "Google Pixel 8",
-    os: "Android 15",
-    rooted: true,
-  },
-  {
-    name: "Moto g53y",
-    os: "Android 15 with 2by2",
-    rooted: true,
   },
 ]
 </script>

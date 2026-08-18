@@ -112,7 +112,7 @@ function generateRss(posts: BlogPost[], baseUrl: string): string {
     .map((post) => {
       const pubDate = post.date ? new Date(post.date).toUTCString() : now
       const description =
-        post.description || stripMarkdown(post.content).slice(0, 300) + "..."
+        post.description || `${stripMarkdown(post.content).slice(0, 300)}...`
       const link = `${baseUrl}/blog/${post.id}`
 
       return `    <item>

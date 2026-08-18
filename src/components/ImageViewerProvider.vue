@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, provide, onMounted, onUnmounted } from "vue"
 import type { InjectionKey } from "vue"
-import ImageViewer from "./ImageViewer.vue"
+import { onMounted, onUnmounted, provide, ref } from "vue"
 import {
-  imageViewerKey,
   type ImageViewerState,
+  imageViewerKey,
 } from "@/composables/useImageViewer"
+import ImageViewer from "./ImageViewer.vue"
 
 const isOpen = ref(false)
 const imageProps = ref<ImageViewerState | null>(null)
@@ -54,17 +54,17 @@ onUnmounted(() => {
     <dialog
       v-if="isOpen && imageProps"
       open
-      class="fixed inset-0 z-50 bg-black/90 w-full h-full p-0 m-0 border-none"
+      class="fixed inset-0 z-[100] bg-black/90 w-full h-full p-0 m-0 border-none"
       @click="closeViewer"
       @keydown.enter="closeViewer"
       @keydown.space.prevent="closeViewer"
     >
-      <div class="relative h-full w-full" @click.stop @keydown.stop>
+      <div class="relative h-full w-full">
         <button
           type="button"
           class="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors cursor-pointer"
           aria-label="画像ビューアーを閉じる"
-          @click="closeViewer"
+          @click.stop="closeViewer"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -81,13 +81,15 @@ onUnmounted(() => {
             />
           </svg>
         </button>
-        <ImageViewer
-          :src="imageProps.src"
-          :alt="imageProps.alt"
-          :width="imageProps.width"
-          :height="imageProps.height"
-          @close="closeViewer"
-        />
+        <div class="h-full w-full" @click.stop>
+          <ImageViewer
+            :src="imageProps.src"
+            :alt="imageProps.alt"
+            :width="imageProps.width"
+            :height="imageProps.height"
+            @close="closeViewer"
+          />
+        </div>
       </div>
     </dialog>
   </Teleport>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue"
+import { computed, onMounted, ref } from "vue"
 
 type UserData = {
   host: string
@@ -41,18 +41,22 @@ const users: UserData[] = [
   { host: "eth.rumiserver.com", userId: "c30" },
   { host: "msky.haibala.com", userId: "c30" },
   { host: "misskey.systems", userId: "c30" },
+  { host: "honi.club", userId: "c30" },
+  { host: "exekey.net", userId: "c30" },
+  { host: "crafters.aosankaku.net", userId: "c30" },
   { host: "premis.one", userId: "c30" },
   { host: "ddoskey.com", userId: "c30" },
   { host: "oekakiskey.com", userId: "c30" },
   { host: "nijimiss.moe", userId: "c30" },
-  { host: "otoskey.tarbin.net", userId: "c30" },
-  { host: "novelskey.tarbin.net", userId: "c30" },
+  // { host: "otoskey.tarbin.net", userId: "c30" },
+  // { host: "novelskey.tarbin.net", userId: "c30" },
   { host: "mk.absturztau.be", userId: "c30" },
-  { host: "kokt.club", userId: "c30" },
+  // { host: "kokt.club", userId: "c30" },
   { host: "nekomiya.net", userId: "c30" },
   { host: "minazukey.uk", userId: "c30" },
   { host: "misskey.7ka.org", userId: "c30" },
   { host: "misskey.io", userId: "c30" },
+  // { host: "misskey.day", userId: "c30_eo" },
   { host: "misskey.flowers", userId: "c30" },
   { host: "mk.shrimpia.network", userId: "c30" },
   { host: "misskey.m544.net", userId: "c30" },
@@ -61,7 +65,7 @@ const users: UserData[] = [
   { host: "p1.a9z.dev", userId: "ez" },
   { host: "mi.cbrx.io", userId: "c30" },
   { host: "sushi.ski", userId: "c30" },
-  { host: "k.lapy.link", userId: "c30" },
+  // { host: "k.lapy.link", userId: "c30" },
   { host: "misskey.life", userId: "c30" },
   { host: "misskey.noellabo.jp", userId: "c30" },
   { host: "voskey.icalo.net", userId: "c30" },
@@ -70,13 +74,24 @@ const users: UserData[] = [
   { host: "misskey.gg", userId: "c30" },
   { host: "misskey.design", userId: "c30" },
   { host: "soukun.io", userId: "c", isNSFW: true },
-  { host: "45sukey.net", userId: "c30", isNSFW: true },
+  // { host: "45sukey.net", userId: "c30", isNSFW: true },
 ]
 
 const mainAccountStates = ref<AccountState[]>([])
 const otherAccountStates = ref<AccountState[]>([])
 
 const totalCount = computed(() => mainUsedUsers.length + users.length)
+const totalNotesCount = computed(() => {
+  const mainNotes = mainAccountStates.value.reduce(
+    (sum, state) => sum + (state.account?.notesCount || 0),
+    0,
+  )
+  const otherNotes = otherAccountStates.value.reduce(
+    (sum, state) => sum + (state.account?.notesCount || 0),
+    0,
+  )
+  return mainNotes + otherNotes
+})
 
 async function fetchAccount(
   host: string,
@@ -155,8 +170,8 @@ onMounted(() => {
   }))
 
   // Load all accounts
-  mainUsedUsers.forEach((user) => loadAccount(user, mainAccountStates))
-  users.forEach((user) => loadAccount(user, otherAccountStates))
+  for (const user of mainUsedUsers) loadAccount(user, mainAccountStates)
+  for (const user of users) loadAccount(user, otherAccountStates)
 })
 
 function formatNumber(num: number): string {
@@ -176,6 +191,9 @@ function formatNumber(num: number): string {
       </h1>
       <p class="text-neutral-400 text-sm mb-4">
         入ってるサーバーの数: {{ totalCount }}
+      </p>
+      <p class="text-neutral-400 text-sm mb-4">
+        全アカウントのノート数: {{ formatNumber(totalNotesCount) }}
       </p>
 
       <div class="bg-neutral-700 w-full h-0.5 rounded mb-4" />

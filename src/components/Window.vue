@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from "vue"
+import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 import { useWindowManager } from "@/composables/useWindowManager"
 
 const props = withDefaults(
@@ -252,7 +252,7 @@ function onTitlebarTouchStart(event: TouchEvent) {
 }
 
 // Close button click
-function onCloseClick(event: MouseEvent) {
+function onCloseClick(event: MouseEvent | TouchEvent) {
   event.preventDefault()
   isVisible.value = false
   unregisterWindow(props.id)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue"
+import { onMounted, ref, watch } from "vue"
 import { RouterLink, useRoute, useRouter } from "vue-router"
 
 interface BlogPost {
@@ -46,7 +46,10 @@ const fetchPosts = async (page: number) => {
       },
     )
     if (!response.ok) throw new Error("Failed to fetch")
-    const data = await response.json()
+    const data = (await response.json()) as {
+      posts: BlogPost[]
+      pagination: Pagination
+    }
     posts.value = data.posts
     pagination.value = data.pagination
   } catch {

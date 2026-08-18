@@ -1,8 +1,14 @@
 packages:
   - .
 
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+
 onlyBuiltDependencies:
   - "@tailwindcss/oxide"
   - canvas
   - esbuild
   - sharp
+  - workerd
