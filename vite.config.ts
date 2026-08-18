@@ -2,6 +2,10 @@ import tailwindcss from "@tailwindcss/vite"
 import vue from "@vitejs/plugin-vue"
 import { defineConfig } from "vite"
 import Sitemap from "vite-plugin-sitemap"
+import { createRequire } from "node:module"
+
+const require = createRequire(import.meta.url)
+const { version } = require("./package.json") as { version: string }
 
 const routes = [
   "/",
@@ -19,6 +23,9 @@ const routes = [
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
   plugins: [
     vue(),
     tailwindcss(),
