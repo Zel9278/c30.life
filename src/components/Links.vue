@@ -2,6 +2,7 @@
 type Link = {
   title: string
   href: string
+  rel?: string
   image?: string | null
   alt?: string
 }
@@ -22,6 +23,7 @@ const contacts: Link[] = [
   {
     title: "Misskey",
     href: "https://mk.c30.life/@c30",
+    rel: "me",
   },
 ]
 
@@ -29,10 +31,12 @@ const socialLinks: Link[] = [
   {
     title: "Misskey.art",
     href: "https://misskey.art/@c30",
+    rel: "me",
   },
   {
     title: "Misskey.io",
     href: "https://misskey.io/@c30",
+    rel: "me",
   },
   {
     title: "Emoji Ranking V2",
@@ -200,6 +204,7 @@ const mutualLinks: Link[] = [
         v-for="link in contacts"
         :key="link.title"
         :href="link.href"
+        :rel="link.rel"
         class="group relative px-4 py-3 rounded-xl bg-neutral-800/50 border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800 transition-all duration-300 text-center"
       >
         <span
@@ -221,6 +226,7 @@ const mutualLinks: Link[] = [
         v-for="link in socialLinks"
         :key="link.title"
         :href="link.href"
+        :rel="link.rel"
         class="group relative px-4 py-3 rounded-xl bg-neutral-800/50 border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800 transition-all duration-300 text-center"
       >
         <span

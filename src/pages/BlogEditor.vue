@@ -442,6 +442,14 @@ markedInstance.use(
   }),
 )
 
+// Apply GitHub-style alert classes without relying on the unsupported :contains() CSS selector.
+function applyGithubAlertClasses(html: string): string {
+  return html.replace(
+    /<blockquote>\s*<p>\[!NOTE\]/g,
+    '<blockquote class="github-note"><p>[!NOTE]',
+  )
+}
+
 // Apply line highlighting
 function applyLineHighlighting(html: string): string {
   // Find code blocks with our markers (with or without newline after marker)
@@ -762,6 +770,7 @@ const previewHtml = computed(() => {
 
   const preprocessed = preprocessCodeGroups(content)
   let html = markedInstance.parse(preprocessed) as string
+  html = applyGithubAlertClasses(html)
   html = applyLineHighlighting(html)
   html = restoreCodeGroups(html)
   html = transformBadges(html)
@@ -2705,7 +2714,7 @@ onUnmounted(() => {
 }
 
 /* GitHub style alerts */
-.blog-content :deep(blockquote:has(p:first-child:is(:contains("[!NOTE]")))) {
+.blog-content :deep(blockquote.github-note) {
   @apply bg-blue-500/10 border-blue-500;
 }
 

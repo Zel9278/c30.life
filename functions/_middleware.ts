@@ -69,18 +69,10 @@ function parseFrontmatter(content: string): {
 const staticPages: Record<string, { title: string; description: string }> = {
   "/": { title: "c30.life", description: "c30's homepage" },
   "/links": { title: "Links - c30.life", description: "c30のリンク集" },
-  "/timeline": {
-    title: "Timeline - c30.life",
-    description: "c30のタイムライン",
-  },
   "/info": { title: "Info - c30.life", description: "c30.lifeの情報" },
-  "/misskey": {
-    title: "Misskey - c30.life",
-    description: "c30のMisskeyアカウント一覧",
-  },
-  "/mastodon": {
-    title: "Mastodon - c30.life",
-    description: "c30のMastodonアカウント一覧",
+  "/fediaccounts": {
+    title: "Fedi Accounts - c30.life",
+    description: "c30のFediverseアカウント一覧",
   },
   "/environments": {
     title: "Environments - c30.life",

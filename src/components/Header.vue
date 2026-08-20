@@ -29,9 +29,7 @@ const menuItems = [
   { to: "/servers", label: "Servers", icon: "server" },
   { to: "/pubkeys", label: "Pubkeys", icon: "key" },
   { to: "/watched-animes", label: "Animes", icon: "film" },
-  { to: "/timeline", label: "Timeline", icon: "clock" },
-  { to: "/misskey", label: "Misskey", icon: "misskey" },
-  { to: "/mastodon", label: "Mastodon", icon: "mastodon" },
+  { to: "/fediaccounts", label: "Fedi Accounts", icon: "fediverse" },
   { to: "/info", label: "Info", icon: "info" },
 ]
 </script>
@@ -92,7 +90,7 @@ const menuItems = [
   <Transition name="slide">
     <nav
       v-if="isOpen"
-      class="fixed top-[calc(3.5rem+var(--kao-banner-h,0px))] right-0 z-50 w-64 h-[calc(100vh-3.5rem-var(--kao-banner-h,0px))] bg-neutral-900 border-l border-neutral-800 shadow-2xl"
+      class="fixed top-[calc(3.5rem+var(--kao-banner-h,0px))] right-0 z-50 w-64 h-[calc(100vh-3.5rem-var(--kao-banner-h,0px))] overflow-y-auto overscroll-contain bg-neutral-900 border-l border-neutral-800 shadow-2xl"
     >
       <ul class="p-4 space-y-2">
         <li v-for="item in menuItems" :key="item.to">
@@ -211,6 +209,13 @@ const menuItems = [
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
+            <!-- Fediverse -->
+            <img
+              v-else-if="item.icon === 'fediverse'"
+              src="/fediverse.svg"
+              alt=""
+              class="w-5 h-5 invert"
+            />
             <!-- Misskey -->
             <svg
               v-else-if="item.icon === 'misskey'"

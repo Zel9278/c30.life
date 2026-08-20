@@ -4,16 +4,29 @@ import { defineConfig } from "vite"
 import Sitemap from "vite-plugin-sitemap"
 import { createRequire } from "node:module"
 
-const require = createRequire(import.meta.url)
+import { fediverseLinks } from "./fediverseLinks.ts"
+
+const fediverseRelMePlugin = {
+  name: "fediverse-rel-me",
+  transformIndexHtml(html: string) {
+    const links = fediverseLinks
+      .map(({ href }) => `  <link rel="me" href="${href}" />`)
+      .join("\n")
+
+    return html.replace(
+      '  <link rel="alternate" type="application/rss+xml" title="c30.life Blog RSS" href="/api/rss" />',
+      `  <link rel="alternate" type="application/rss+xml" title="c30.life Blog RSS" href="/api/rss" />\n${links}`,
+    )
+  },
+}
+
 const { version } = require("./package.json") as { version: string }
 
 const routes = [
   "/",
   "/links",
   "/blog",
-  "/timeline",
-  "/misskey",
-  "/mastodon",
+  "/fediaccounts",
   "/info",
   "/environments",
   "/servers",
@@ -29,6 +42,7 @@ export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
+    fediverseRelMePlugin,
     Sitemap({
       hostname: "https://c30.life",
       dynamicRoutes: routes,
@@ -43,6 +57,7 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 7000,
     rollupOptions: {
       output: {
         manualChunks(id) {

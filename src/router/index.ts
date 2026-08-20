@@ -3,10 +3,8 @@ import { createRouter, createWebHistory } from "vue-router"
 // Lazy load all pages for code splitting
 const Home = () => import("../pages/Home.vue")
 const Links = () => import("../pages/Links.vue")
-const Timeline = () => import("../pages/Timeline.vue")
 const Info = () => import("../pages/Info.vue")
-const Misskey = () => import("../pages/Misskey.vue")
-const Mastodon = () => import("../pages/Mastodon.vue")
+const FediAccounts = () => import("../pages/FediAccounts.vue")
 const Environments = () => import("../pages/Environments.vue")
 const Servers = () => import("../pages/Servers.vue")
 const Pubkeys = () => import("../pages/Pubkeys.vue")
@@ -32,22 +30,10 @@ const routes = [
     meta: { title: "Links | c30.life" },
   },
   {
-    path: "/timeline",
-    name: "Timeline",
-    component: Timeline,
-    meta: { title: "Timeline | c30.life" },
-  },
-  {
-    path: "/misskey",
-    name: "Misskey",
-    component: Misskey,
-    meta: { title: "Misskey | c30.life" },
-  },
-  {
-    path: "/mastodon",
-    name: "Mastodon",
-    component: Mastodon,
-    meta: { title: "Mastodon | c30.life" },
+    path: "/fediaccounts",
+    name: "FediAccounts",
+    component: FediAccounts,
+    meta: { title: "Fedi Accounts | c30.life" },
   },
   {
     path: "/info",
