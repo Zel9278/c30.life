@@ -18,7 +18,6 @@ export const misskeyAccounts: FediverseAccount[] = [
   { host: "misskey.systems", userId: "c30" },
   { host: "honi.club", userId: "c30" },
   { host: "exekey.net", userId: "c30" },
-  { host: "go.k7a.org", userId: "c30" },
   { host: "crafters.aosankaku.net", userId: "c30" },
   { host: "premis.one", userId: "c30" },
   { host: "ddoskey.com", userId: "c30" },
@@ -45,6 +44,10 @@ export const misskeyAccounts: FediverseAccount[] = [
   { host: "misskey.gg", userId: "c30" },
   { host: "misskey.design", userId: "c30" },
   { host: "soukun.io", userId: "c", isNSFW: true },
+]
+
+export const mkGoAccounts: FediverseAccount[] = [
+  { host: "go.k7a.org", userId: "c30" },
 ]
 
 export const mastodonAccounts: FediverseAccount[] = [
@@ -76,6 +79,10 @@ function profileUrl(account: FediverseAccount): string {
 export const fediverseLinks: FediverseLink[] = [
   ...misskeyAccounts.map((account) => ({
     title: `Misskey (${account.host})`,
+    href: profileUrl(account),
+  })),
+  ...mkGoAccounts.map((account) => ({
+    title: `mk-go (${account.host})`,
     href: profileUrl(account),
   })),
   ...mastodonAccounts.map((account) => ({

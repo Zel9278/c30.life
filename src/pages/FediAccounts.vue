@@ -5,19 +5,22 @@ import {
   mastodonAccounts,
   mitraAccounts,
   misskeyAccounts,
+  mkGoAccounts,
   pixelfedAccounts,
   pleromaAccounts,
   type FediverseAccount,
 } from "../../fediverseLinks"
 
-type Platform = "misskey" | "mastodon" | "pleroma" | "mitra" | "pixelfed"
+type Platform = "misskey" | "mk-go" | "mastodon" | "pleroma" | "mitra" | "pixelfed"
 type AccountData = { name?: string; display_name?: string; username?: string; acct?: string; avatarUrl?: string; avatar?: string; notesCount?: number; statuses_count?: number }
-type AccountState = { account: FediverseAccount; data: AccountData | null; loading: boolean; error: boolean }
+type MetaData = { name?: string; version?: string; software?: string }
+type AccountState = { account: FediverseAccount; data: AccountData | null; meta: MetaData | null; loading: boolean; error: boolean }
 type Section = { title: string; platform: Platform; accounts: FediverseAccount[] }
 
 const mainAccounts = misskeyAccounts.slice(0, 2)
 const sections: Section[] = [
   { title: "Misskey", platform: "misskey", accounts: misskeyAccounts.slice(2) },
+  { title: "mk-go", platform: "mk-go" as Platform, accounts: mkGoAccounts },
   { title: "Mastodon", platform: "mastodon", accounts: mastodonAccounts },
   { title: "Pleroma / Akkoma", platform: "pleroma", accounts: pleromaAccounts },
   { title: "Mitra", platform: "mitra", accounts: mitraAccounts },
@@ -29,6 +32,7 @@ const entries = computed(() => [
 ])
 const states = ref<AccountState[]>([])
 const cache = new Map<string, Promise<AccountData | null>>()
+const metaCache = new Map<string, Promise<MetaData | null>>()
 const totalPosts = computed(() =>
   states.value.reduce(
     (total, state) =>
@@ -43,13 +47,35 @@ function formatNumber(value: number): string {
   return value.toLocaleString()
 }
 
+async function fetchMeta(platform: Platform, host: string): Promise<MetaData | null> {
+  const key = `meta:${platform}:${host}`
+  const cached = metaCache.get(key)
+  if (cached) return cached
+  const request = (async () => {
+    try {
+      if (platform === "misskey" || platform === "mk-go") {
+        const response = await fetch("/api/misskey", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ host, endpoint: "meta", body: { detail: false } }) })
+        if (!response.ok) return null
+        const data = (await response.json()) as { name?: string; version?: string }
+        return { name: data.name, version: data.version, software: "Misskey" } as MetaData
+      }
+      const response = await fetch(`/api/mastodon?host=${encodeURIComponent(host)}&endpoint=instance`)
+      if (!response.ok) return null
+      const data = (await response.json()) as { title?: string; version?: string }
+      return { name: data.title, version: data.version } as MetaData
+    } catch { return null }
+  })()
+  metaCache.set(key, request)
+  return request
+}
+
 async function fetchAccount(platform: Platform, account: FediverseAccount): Promise<AccountData | null> {
   const key = `${platform}:${account.host}:${account.userId}`
   const cached = cache.get(key)
   if (cached) return cached
   const request = (async () => {
     try {
-      if (platform === "misskey") {
+      if (platform === "misskey" || platform === "mk-go") {
         const response = await fetch("/api/misskey", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ host: account.host, endpoint: "users/show", body: { username: account.userId, host: null } }) })
         if (!response.ok) return null
         return (await response.json()) as AccountData
@@ -65,10 +91,14 @@ async function fetchAccount(platform: Platform, account: FediverseAccount): Prom
 }
 
 onMounted(() => {
-  states.value = entries.value.map(({ account }) => ({ account, data: null, loading: true, error: false }))
+  states.value = entries.value.map(({ account }) => ({ account, data: null, meta: null, loading: true, error: false }))
   entries.value.forEach(({ platform, account }, index) => {
-    void fetchAccount(platform, account).then((data) => {
+    void Promise.all([
+      fetchAccount(platform, account),
+      fetchMeta(platform, account.host),
+    ]).then(([data, meta]) => {
       states.value[index].data = data
+      states.value[index].meta = meta
       states.value[index].loading = false
       states.value[index].error = !data
     })

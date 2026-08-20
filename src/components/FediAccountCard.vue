@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FediverseAccount } from "../../fediverseLinks"
 
-type Platform = "misskey" | "mastodon" | "pleroma" | "mitra" | "pixelfed"
+type Platform = "misskey" | "mk-go" | "mastodon" | "pleroma" | "mitra" | "pixelfed"
 type AccountData = {
   name?: string
   display_name?: string
@@ -13,7 +13,8 @@ type AccountData = {
   notesCount?: number
   statuses_count?: number
 }
-type AccountState = { account: FediverseAccount; data: AccountData | null; loading: boolean; error: boolean }
+type MetaData = { name?: string; version?: string }
+type AccountState = { account: FediverseAccount; data: AccountData | null; meta: MetaData | null; loading: boolean; error: boolean }
 
 defineProps<{ state: AccountState; platform: Platform; large?: boolean }>()
 
@@ -53,6 +54,9 @@ function formatNumber(value: number): string {
       </p>
       <p class="text-xs text-neutral-500 mt-1">
         {{ formatNumber(state.data?.notesCount ?? state.data?.statuses_count ?? 0) }} posts
+      </p>
+      <p v-if="state.meta?.name" class="text-xs text-neutral-600 mt-0.5 truncate">
+        {{ state.meta.name }}<span v-if="state.meta.version" class="ml-1">v{{ state.meta.version }}</span>
       </p>
     </div>
   </a>
