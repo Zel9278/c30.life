@@ -174,7 +174,7 @@ const mutualLinks: Link[] = [
     title: "デデオチャンのホームページ",
     href: "https://deryck2000.jp.eu.org/",
     image:
-      "https://deryck2000.jp.eu.org/assets/banner/deryck_banner_200_40.png",
+      "https://deryck2000.jp.eu.org/banner.png",
     alt: "デデオチャンのホームページ",
   },
   {
