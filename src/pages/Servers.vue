@@ -13,6 +13,7 @@ type Softwares =
   | "Firefish"
   | "Pleroma"
   | "Activity Relay Fork"
+  | "Mitra"
 
 type Server = {
   name: string
@@ -41,6 +42,7 @@ const softwares: Record<Softwares, string> = {
   Firefish: "https://git.joinfirefish.org/firefish/firefish.git",
   Pleroma: "https://git.pleroma.social/pleroma/pleroma",
   "Activity Relay Fork": "https://github.com/Zel9278/Activity-Relay",
+  Mitra: "https://codeberg.org/silverpill/mitra",
 }
 
 const bigServers: Server[] = [
@@ -241,6 +243,13 @@ const privateServers: Server[] = [
     url: "https://pr.c30.life",
     software: "Pleroma",
     created_at: "2026-01-05",
+    status: "active",
+  },
+  {
+    name: "炒めて切った契約ジュース",
+    url: "https://mitra.c30.life",
+    software: "Mitra",
+    created_at: "2026-08-20",
     status: "active",
   },
 ]

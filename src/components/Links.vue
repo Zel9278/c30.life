@@ -106,10 +106,6 @@ const otherSites: Link[] = [
     href: "https://er.c30.life",
   },
   {
-    title: "炒めて切った野菜ジュース Activity Relay Service",
-    href: "https://relay.tools.c30.life",
-  },
-  {
     title: "炒めて切った野菜ジュースのチャット (Dev)",
     href: "https://chat.dev.c30.life",
   },
@@ -137,6 +133,18 @@ const myFediverseServers: Link[] = [
     image: "https://mk.c30.life/files/2d68d53f-1316-4953-86c7-92f88e566620",
     alt: "至り来たり宿（第二期）",
   },
+  {
+    title: "炒めて切った野菜ジュース Activity Relay Service",
+    href: "https://relay.tools.c30.life",
+  },
+  {
+    title: "炒めて切った希望ジュース",
+    href: "https://pr.c30.life",
+  },
+  {
+    title: "炒めて切った契約ジュース",
+    href: "https://mitra.c30.life",
+  }
 ]
 
 const mutualLinks: Link[] = [
