@@ -121,6 +121,10 @@ const otherSites: Link[] = [
     title: "Misskey Login Bonus Calendar",
     href: "https://lbc.tools.c30.life",
   },
+  {
+    title: "Misskey Juice (docs)",
+    href: "https://docs.mk-juice.dev",
+  },
 ]
 
 const myFediverseServers: Link[] = [
@@ -148,7 +152,11 @@ const myFediverseServers: Link[] = [
   {
     title: "炒めて切った契約ジュース",
     href: "https://mitra.c30.life",
-  }
+  },
+  {
+    title: "Misskey Juice",
+    href: "https://mk-juice.dev",
+  },
 ]
 
 const mutualLinks: Link[] = [
@@ -169,6 +177,42 @@ const mutualLinks: Link[] = [
     href: "https://kazu123.net",
     image: "https://kazu123.net/banner.png",
     alt: "かずかずのホームページ",
+  },
+  {
+    title: "かんたん宛名印刷",
+    href: "https://eap.vg",
+    image: "https://eap.vg/img/eap-banner.png",
+    alt: "かんたん宛名印刷さんのホームページ",
+  },
+  {
+    title: "OopsOkinTP",
+    href: "https://www.okin-jp.net",
+    image: "https://www.okin-jp.net/wp-content/uploads/2024/07/d8d7453933231e34d67366077f68504b.png",
+    alt: "おきんさんのホームページ",
+  },
+  {
+    title: "SyoBoN’s Home",
+    href: "https://syobon.net",
+    image: "https://syobon.net/assets/banner.png",
+    alt: "SyoBoNさんのホームページ",
+  },
+  {
+    title: "敷島ロイのホームページ",
+    href: "https://roi.3.5mbps.net",
+    image: "https://roi.3.5mbps.net/images/homepage_banner_1.png",
+    alt: "敷島ロイさんのホームページ",
+  },
+  {
+    title: "さんせっとのホームページ",
+    href: "https://sunset0916.net",
+    image: "https://sunset0916.net/img/banner.png",
+    alt: "さんせっとさんのホームページ",
+  },
+  {
+    title: "腋すきー",
+    href: "https://soukun.io",
+    image: "https://files.soukun.io/a/webpublic-8da63201-f663-429e-bd2a-ad8a22364e23",
+    alt: "くろのすけさんのホームページ",
   },
   {
     title: "デデオチャンのホームページ",

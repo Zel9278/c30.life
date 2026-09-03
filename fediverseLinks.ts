@@ -13,6 +13,9 @@ export type FediverseLink = {
 export const misskeyAccounts: FediverseAccount[] = [
   { host: "mk.c30.life", userId: "c30" },
   { host: "misskey.art", userId: "c30" },
+  { host: "mk-juice.dev", userId: "c30" },
+  { host: "misskey.tokyo", userId: "c30" },
+  { host: "misskey.hatachanoima.net", userId: "c30" },
   { host: "eth.rumiserver.com", userId: "c30" },
   { host: "msky.haibala.com", userId: "c30" },
   { host: "misskey.systems", userId: "c30" },

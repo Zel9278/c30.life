@@ -43,6 +43,237 @@
 <body>
   <div id="my-banner"></div>
   <div id="app"></div>
+  <noscript>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ns-bg: #111827;
+        --ns-card: #1f2937;
+        --ns-line: #374151;
+        --ns-muted: #9ca3af;
+        --ns-link: #93c5fd;
+      }
+
+      body {
+        margin: 0;
+        background: var(--ns-bg);
+        color: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+      }
+
+      .noscript-container {
+        box-sizing: border-box;
+        max-width: 64rem;
+        margin: 0 auto;
+        padding: 2rem 1rem 3rem;
+      }
+
+      .noscript-card {
+        padding: clamp(1.25rem, 4vw, 2rem);
+        margin-bottom: 1.5rem;
+        background: var(--ns-card);
+        border: 1px solid var(--ns-line);
+        border-radius: 0.75rem;
+      }
+
+      .profile-header { text-align: center; }
+      .profile-avatar {
+        display: block;
+        width: 7rem;
+        height: 7rem;
+        object-fit: cover;
+        margin: 0 auto 1rem;
+        border: 2px solid #6b7280;
+        border-radius: 50%;
+      }
+
+      h1 { margin: 0; color: #fff; font-size: 2rem; }
+      h2 { margin: 1.5rem 0 1rem; color: #fff; font-size: 1.2rem; }
+      h3 { margin: 1.25rem 0 0.75rem; color: #d1d5db; font-size: 0.9rem; font-weight: 600; }
+      .subtitle { margin: 0.35rem 0; color: var(--ns-muted); }
+      .divider { height: 1px; margin: 1.5rem 0; background: var(--ns-line); }
+      .intro-text { margin: 0 0 1rem; color: #d1d5db; text-align: center; }
+
+      .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0.75rem; }
+      .info-box { padding: 0.85rem; text-align: center; border: 1px solid var(--ns-line); border-radius: 0.5rem; }
+      .info-label, .info-sub { color: #9ca3af; font-size: 0.75rem; }
+      .info-value { margin: 0.2rem 0; color: #fff; font-weight: 600; }
+
+      .badge-group { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+      .badge { padding: 0.3rem 0.7rem; color: #d1d5db; font-size: 0.85rem; background: #111827; border: 1px solid var(--ns-line); border-radius: 999px; }
+
+      .link-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.75rem; }
+      .link-item { border: 1px solid var(--ns-line); border-radius: 0.5rem; }
+      .link-item a { display: block; padding: 0.8rem 1rem; color: var(--ns-link); font-weight: 500; text-decoration: none; }
+      .link-item a:hover, .link-item a:focus-visible { text-decoration: underline; }
+
+      .banner-container { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; justify-content: center; }
+      .banner-item { flex: 0 1 auto; }
+      .banner-item img {
+        display: block;
+        width: min(100%, 320px);
+        height: auto;
+        min-height: 64px;
+        box-sizing: border-box;
+        object-fit: contain;
+        border: 1px solid var(--ns-line);
+        border-radius: 0.5rem;
+        background: #fff;
+      }
+
+      @media (max-width: 30rem) {
+        .noscript-container { padding-inline: 0.75rem; }
+        .link-list { grid-template-columns: 1fr; }
+      }
+    </style>
+    <div class="noscript-container">
+      <!-- Home Section -->
+      <div class="noscript-card">
+        <div class="profile-header">
+          <img src="/c30_rounded.png" alt="c30" class="profile-avatar">
+          <h1>c30.life</h1>
+          <p class="subtitle">@ced</p>
+          <p class="subtitle" style="font-style: italic; font-size: 0.9rem;">"I don't have the energy to make a website."</p>
+        </div>
+        <div class="divider"></div>
+        <h2>自己紹介</h2>
+        <p class="intro-text">いろいろな趣味を持っている変なポットであり空の存在です。</p>
+        <div class="divider"></div>
+        <h3>プロフィール</h3>
+        <div class="info-grid">
+          <div class="info-box">
+            <div class="info-label">名前</div>
+            <div class="info-value">c30</div>
+            <div class="info-sub">ced(セド)</div>
+          </div>
+          <div class="info-box">
+            <div class="info-label">年齢</div>
+            <div class="info-value">23</div>
+            <div class="info-sub">4/25</div>
+          </div>
+          <div class="info-box">
+            <div class="info-label">性別</div>
+            <div class="info-value">男</div>
+            <div class="info-sub">んい...</div>
+          </div>
+          <div class="info-box">
+            <div class="info-label">住居</div>
+            <div class="info-value">神奈川</div>
+            <div class="info-sub">横浜</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <h3 style="margin-bottom: 0.75rem;">趣味</h3>
+        <div class="badge-group">
+          <span class="badge">イラストレーション</span>
+          <span class="badge">曲制作・耳コピ</span>
+          <span class="badge">プログラミング</span>
+          <span class="badge">Fediverse, Discord</span>
+        </div>
+        <h3 style="margin-bottom: 0.75rem;">プログラミング言語</h3>
+        <div class="badge-group">
+          <span class="badge">Node.js</span>
+          <span class="badge">TypeScript</span>
+          <span class="badge">Rust</span>
+          <span class="badge">C</span>
+          <span class="badge">C++</span>
+          <span class="badge">C#</span>
+          <span class="badge">ShellScript</span>
+        </div>
+        <div class="divider"></div>
+        <h3 style="margin-bottom: 0.75rem;">所属</h3>
+        <div class="badge-group">
+          <span class="badge">炒めて切った野菜ジュース</span>
+          <span class="badge">DETDA</span>
+          <span class="badge">Misskey.art</span>
+          <span class="badge">ZenSky Project</span>
+        </div>
+      </div>
+
+      <!-- Links Section -->
+      <div class="noscript-card">
+        <h2 style="text-align: center;">Links</h2>
+        <p style="color: #9ca3af; text-align: center; font-size: 0.875rem; margin-bottom: 1.5rem;">c30の各種リンク集</p>
+        <div class="divider"></div>
+
+        <h3 style="margin-top: 1.5rem;">Contacts</h3>
+        <div class="link-list">
+          <div class="link-item"><a href="https://x.com/fuji_ced">X (旧Twitter)</a></div>
+          <div class="link-item"><a href="https://discord.gg/X7RrHwV4US">Discord</a></div>
+          <div class="link-item"><a href="mailto:ced@c30.life">Mail</a></div>
+          <div class="link-item"><a href="https://mk.c30.life/@c30" rel="me">Misskey</a></div>
+        </div>
+
+        <h3 style="margin-top: 1.5rem;">Social Links</h3>
+        <div class="link-list">
+          <div class="link-item"><a href="https://misskey.art/@c30" rel="me">Misskey.art</a></div>
+          <div class="link-item"><a href="https://misskey.io/@c30" rel="me">Misskey.io</a></div>
+          <div class="link-item"><a href="https://er.c30.life/ap/u/c30">Emoji Ranking V2</a></div>
+          <div class="link-item"><a href="https://bsky.app/profile/c30.life">Bluesky</a></div>
+          <div class="link-item"><a href="https://github.com/Zel9278">Github</a></div>
+          <div class="link-item"><a href="https://www.youtube.com/@cedmidiark">Youtube(archive)</a></div>
+          <div class="link-item"><a href="https://www.nicovideo.jp/user/40069987">Niconico</a></div>
+          <div class="link-item"><a href="https://www.pixiv.net/users/71067167">Pixiv</a></div>
+          <div class="link-item"><a href="https://keyoxide.org/5717936DE6707ABE284ADB9A4C10C121022E422D">Keyoxide</a></div>
+          <div class="link-item"><a href="https://keybase.io/c30">Keybase</a></div>
+          <div class="link-item"><a href="https://skeb.jp/@c30">Skeb</a></div>
+        </div>
+
+        <h3 style="margin-top: 1.5rem;">Other Sites</h3>
+        <div class="link-list">
+          <div class="link-item"><a href="https://status.c30.life">Status Page</a></div>
+          <div class="link-item"><a href="https://kusoda.net">kusoda.net(クソだね)</a></div>
+          <div class="link-item"><a href="https://pc-stats.eov2.com">PC Status</a></div>
+          <div class="link-item"><a href="https://pc-status.net">PC Status (new)</a></div>
+          <div class="link-item"><a href="https://pdays.eov2.com">Progress Bar for Days Web</a></div>
+          <div class="link-item"><a href="https://f.c30.life">c30のふぁいるさあばあ</a></div>
+          <div class="link-item"><a href="https://itari-kitari.c30.life">至り来たり宿 モニタリング</a></div>
+          <div class="link-item"><a href="https://er.c30.life">Emoji Ranking V2</a></div>
+          <div class="link-item"><a href="https://chat.dev.c30.life">炒めて切った野菜ジュースのチャット</a></div>
+          <div class="link-item"><a href="https://mpp.c30.life">Multi Player Piano</a></div>
+          <div class="link-item"><a href="https://lbc.tools.c30.life">Misskey Login Bonus Calendar</a></div>
+          <div class="link-item"><a href="https://docs.mk-juice.dev">Misskey Juice (docs)</a></div>
+        </div>
+
+        <h3 style="margin-top: 1.5rem;">My Fediverse Servers</h3>
+        <div class="banner-container">
+          <div class="banner-item"><a href="https://misskey.art"><img src="https://raw.githubusercontent.com/Misskey-art/Assets/main/banner/200x40.png" alt="Misskey.art"></a></div>
+          <div class="banner-item"><a href="https://mk.c30.life"><img src="https://mk.c30.life/files/2d68d53f-1316-4953-86c7-92f88e566620" alt="至り来たり宿（第二期）"></a></div>
+          <div class="link-item"><a href="https://relay.tools.c30.life">炒めて切った野菜ジュース Activity Relay Service</a></div>
+          <div class="link-item"><a href="https://pr.c30.life">炒めて切った希望ジュース</a></div>
+          <div class="link-item"><a href="https://mitra.c30.life">炒めて切った契約ジュース</a></div>
+          <div class="link-item"><a href="https://mk-juice.dev">Misskey Juice</a></div>
+        </div>
+
+        <h3 style="margin-top: 1.5rem;">Mutual Links (with Banners)</h3>
+        <div class="banner-container">
+          <div class="banner-item"><a href="https://assault1892.boats"><img src="https://assault1892.boats/banner/assault1892.png" alt="あさるとのホームページ"></a></div>
+          <div class="banner-item"><a href="https://assault1892.boats/fuck"><img src="https://assault1892.boats/banner/fuckcloudflare.png" alt="あさるとのホームページ"></a></div>
+          <div class="banner-item"><a href="https://kazu123.net"><img src="https://kazu123.net/banner.png" alt="かずかずのホームページ"></a></div>
+          <div class="banner-item"><a href="https://eap.vg"><img src="https://eap.vg/img/eap-banner.png" alt="かんたん宛名印刷さんのホームページ"></a></div>
+          <div class="banner-item"><a href="https://www.okin-jp.net"><img src="https://www.okin-jp.net/wp-content/uploads/2024/07/d8d7453933231e34d67366077f68504b.png" alt="おきんさんのホームページ"></a></div>
+          <div class="banner-item"><a href="https://syobon.net"><img src="https://syobon.net/assets/banner.png" alt="SyoBoNさんのホームページ"></a></div>
+          <div class="banner-item"><a href="https://roi.3.5mbps.net"><img src="https://roi.3.5mbps.net/images/homepage_banner_1.png" alt="敷島ロイさんのホームページ"></a></div>
+          <div class="banner-item"><a href="https://sunset0916.net"><img src="https://sunset0916.net/img/banner.png" alt="さんせっとさんのホームページ"></a></div>
+          <div class="banner-item"><a href="https://soukun.io"><img src="https://files.soukun.io/a/webpublic-8da63201-f663-429e-bd2a-ad8a22364e23" alt="くろのすけさんのホームページ"></a></div>
+          <div class="banner-item"><a href="https://deryck2000.jp.eu.org/"><img src="https://deryck2000.jp.eu.org/banner.png" alt="デデオチャンのホームページ"></a></div>
+          <div class="banner-item"><a href="https://suiboutown.tumblr.com/"><img src="https://files.misskey.art//fd270cc0-02e3-49ad-9351-c247f5a466a5.png" alt="さんめさんのホームページ"></a></div>
+        </div>
+
+        <h3 style="margin-top: 1.5rem;">My Banner</h3>
+        <div class="banner-container">
+          <div class="banner-item"><a href="https://c30.life"><img src="/c30-life-banner.png" alt="c30.life"></a></div>
+          <div class="banner-item"><a href="https://c30.life"><img src="/c30-life-banner-2.png" alt="c30.life"></a></div>
+        </div>
+      </div>
+
+      <div style="text-align: center; color: #6b7280; font-size: 0.875rem; margin-top: 3rem;">
+        <p>このページはJavaScriptなしでも閲覧できます。</p>
+        <p>JavaScriptを有効にすると、より多くの機能が利用できます。</p>
+      </div>
+    </div>
+  </noscript>
   <script type="module" src="/src/main.ts"></script>
   <!-- Banner script is parser-inserted (not dynamically injected) so that
        document.currentScript is available and its query params take effect:

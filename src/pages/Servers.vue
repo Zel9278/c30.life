@@ -14,7 +14,7 @@ type Softwares =
   | "Pleroma"
   | "Activity Relay Fork"
   | "Mitra"
-
+  | "Misskey Juice"
 type Server = {
   name: string
   url: string
@@ -43,6 +43,7 @@ const softwares: Record<Softwares, string> = {
   Pleroma: "https://git.pleroma.social/pleroma/pleroma",
   "Activity Relay Fork": "https://github.com/Zel9278/Activity-Relay",
   Mitra: "https://codeberg.org/silverpill/mitra",
+  "Misskey Juice": "https://github.com/Zel9278/misskey-juice",
 }
 
 const bigServers: Server[] = [
@@ -250,6 +251,13 @@ const privateServers: Server[] = [
     url: "https://mitra.c30.life",
     software: "Mitra",
     created_at: "2026-08-20",
+    status: "active",
+  },
+  {
+    name: "Juice Server",
+    url: "https://mk-juice.dev",
+    software: "Misskey Juice",
+    created_at: "2026-09-01",
     status: "active",
   },
 ]
