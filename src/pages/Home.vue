@@ -273,12 +273,6 @@ function toggleTooltip(event: Event) {
           <span class="badge bg-pink-900/50 border-pink-500 text-pink-300">
             Misskey.art
           </span>
-          <span class="badge bg-sky-900/50 border-sky-500 text-sky-300">
-            ZenSky Project
-          </span>
-          <!-- <span class="badge bg-amber-900/50 border-amber-500 text-amber-300">
-            Japan Black MIDI Team
-          </span> -->
         </div>
       </div>
     </div>

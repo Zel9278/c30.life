@@ -461,6 +461,17 @@ renderer.image = ({ href, title, text }) => {
   return `<img src="${href}" alt="${text}"${titleAttr} data-viewer="true" class="cursor-pointer transition-transform hover:scale-[1.02]" />`
 }
 
+// Open external links in a new tab so readers don't get navigated away
+// from the post; relative/internal links stay in the current tab.
+renderer.link = ({ href, title, text }) => {
+  const titleAttr = title ? ` title="${title}"` : ""
+  const isExternal = /^https?:\/\//i.test(href)
+  const externalAttrs = isExternal
+    ? ' target="_blank" rel="noopener noreferrer"'
+    : ""
+  return `<a href="${href}"${titleAttr}${externalAttrs}>${text}</a>`
+}
+
 // Custom heading renderer for TOC anchors
 renderer.heading = ({ tokens, depth }) => {
   const text = tokens
@@ -741,6 +752,28 @@ function getSocialEmbedsFromContent(): SocialEmbedData[] {
   return Array.from(socialEmbedStore.values())
 }
 
+// CommonMark only opens/closes **bold** when the delimiter is "flanked" by
+// whitespace or punctuation on the outside. If a `**` sits directly against
+// ordinary text on one side and punctuation (e.g. `『`) on the other — common
+// in Japanese, e.g. "の**『名前』**を" — the flanking rule fails and the
+// literal ** shows up unrendered. Nudge it with an invisible U+2060 just
+// inside the delimiter so the rule passes without changing the visible text.
+function fixEmphasisFlanking(content: string): string {
+  const isPunct = (ch: string) => /\p{P}/u.test(ch)
+  // Skip fenced code blocks - `**` inside code is literal text, not markdown.
+  return content
+    .split(/(```[\s\S]*?```)/g)
+    .map((segment, i) => {
+      if (i % 2 === 1) return segment
+      return segment.replace(/\*\*([^\n*]+?)\*\*/g, (match, inner: string) => {
+        const start = isPunct(inner[0]) ? "\u2060" : ""
+        const end = isPunct(inner[inner.length - 1]) ? "\u2060" : ""
+        return `**${start}${inner}${end}**`
+      })
+    })
+    .join("")
+}
+
 const renderedContent = computed(() => {
   if (!post.value) return ""
 
@@ -748,11 +781,13 @@ const renderedContent = computed(() => {
   codeBlockCounter = 0
   lineHighlightStore.clear()
 
+  const rawContent = fixEmphasisFlanking(post.value.content)
+
   // Extract TOC items
-  tocItems.value = extractToc(post.value.content, post.value.outline)
+  tocItems.value = extractToc(rawContent, post.value.outline)
 
   // Preprocess social embeds before code-groups
-  let content = preprocessSocialEmbeds(post.value.content)
+  let content = preprocessSocialEmbeds(rawContent)
 
   // Preprocess code-groups before parsing
   const preprocessed = preprocessCodeGroups(content)
@@ -1149,12 +1184,11 @@ function setupCodeGroupTabs() {
         ActivityPub用のリレーサービスです🔗
       </a>
       <a
-        href="https://chat.dev.c30.life"
+        href="https://mk-juice.dev"
         target="_blank"
         class="block text-gray-400 hover:text-white hover:underline"
       >
-        [広告] 炒めて切った野菜ジュースのチャット -
-        OpenPGPのログイン対応、MFM対応のチャットサイトです🔗
+        [広告] Juice Server - Misskeyを使用した独自フォークの公式サーバーです🔗
       </a>
     </div>
   </Window>
@@ -1271,6 +1305,8 @@ function setupCodeGroupTabs() {
 <style>
 .blog-content {
   color: #e5e5e5;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .blog-content h1,
@@ -1379,7 +1415,9 @@ function setupCodeGroupTabs() {
 }
 
 .blog-content table {
+  display: block;
   width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   margin-bottom: 1rem;
 }

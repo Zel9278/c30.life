@@ -481,7 +481,40 @@ renderer.heading = ({ tokens, depth }) => {
   return `<h${depth} id="${slug}">${text}<a class="header-anchor" href="#${slug}">#</a></h${depth}>\n`
 }
 
+// Open external links in a new tab so readers don't get navigated away
+// from the post; relative/internal links stay in the current tab.
+renderer.link = ({ href, title, text }) => {
+  const titleAttr = title ? ` title="${title}"` : ""
+  const isExternal = /^https?:\/\//i.test(href)
+  const externalAttrs = isExternal
+    ? ' target="_blank" rel="noopener noreferrer"'
+    : ""
+  return `<a href="${href}"${titleAttr}${externalAttrs}>${text}</a>`
+}
+
 marked.use({ renderer })
+
+// CommonMark only opens/closes **bold** when the delimiter is "flanked" by
+// whitespace or punctuation on the outside. If a `**` sits directly against
+// ordinary text on one side and punctuation (e.g. `『`) on the other — common
+// in Japanese, e.g. "の**『名前』**を" — the flanking rule fails and the
+// literal ** shows up unrendered. Nudge it with an invisible U+2060 just
+// inside the delimiter so the rule passes without changing the visible text.
+function fixEmphasisFlanking(content: string): string {
+  const isPunct = (ch: string) => /\p{P}/u.test(ch)
+  // Skip fenced code blocks - `**` inside code is literal text, not markdown.
+  return content
+    .split(/(```[\s\S]*?```)/g)
+    .map((segment, i) => {
+      if (i % 2 === 1) return segment
+      return segment.replace(/\*\*([^\n*]+?)\*\*/g, (match, inner: string) => {
+        const start = isPunct(inner[0]) ? "\u2060" : ""
+        const end = isPunct(inner[inner.length - 1]) ? "\u2060" : ""
+        return `**${start}${inner}${end}**`
+      })
+    })
+    .join("")
+}
 
 // Preprocess code-group
 function preprocessCodeGroups(content: string): string {
@@ -728,7 +761,7 @@ const renderedContent = computed(() => {
   lineHighlightStore.clear()
   footnoteStore.clear()
 
-  let content = postData.value.content
+  let content = fixEmphasisFlanking(postData.value.content)
 
   // Preprocess social embeds
   content = preprocessSocialEmbeds(content)
@@ -962,6 +995,8 @@ watch(renderedContent, () => {
 <style>
 .blog-content {
   color: #e5e5e5;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .blog-content h1,
@@ -1070,7 +1105,9 @@ watch(renderedContent, () => {
 }
 
 .blog-content table {
+  display: block;
   width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   margin-bottom: 1rem;
 }

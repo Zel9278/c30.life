@@ -26,7 +26,9 @@ const { registerWindow, unregisterWindow, bringToFront, getZIndex, isOnTop } =
 
 const isDragging = ref(false)
 const isVisible = ref(true)
-const position = ref({ x: 16, y: 100 })
+// y starts off-screen-low so the window never flashes over page content
+// before adjustInitialPosition() places it in the bottom-left corner.
+const position = ref({ x: 16, y: 9999 })
 const startPosition = ref({ x: 0, y: 0 })
 const windowRef = ref<HTMLElement | null>(null)
 const topSize = 64 // Header height
@@ -302,22 +304,23 @@ function adjustInitialPosition() {
   const screenWidth = window.innerWidth
   const screenHeight = window.innerHeight
 
-  let x = position.value.x
-  let y = position.value.y
+  // Default to the bottom-left corner instead of just under the header, so
+  // the window doesn't start out covering a page's title/lead content.
+  let x = 16
+  let y = screenHeight - windowHeight - 16
 
   // If window is wider than screen, position at left edge
   if (windowWidth > screenWidth) {
     x = 0
   } else if (x + windowWidth > screenWidth) {
-    // If window goes off right edge, center it or move left
-    x = Math.max(0, (screenWidth - windowWidth) / 2)
+    x = Math.max(0, screenWidth - windowWidth)
   }
 
-  // If window is taller than available space
+  // Clamp vertically between the header and the bottom edge
   if (windowHeight > screenHeight - topSize - bottomSize) {
     y = topSize
-  } else if (y + windowHeight > screenHeight - bottomSize) {
-    y = Math.max(topSize, screenHeight - windowHeight - bottomSize)
+  } else {
+    y = Math.max(topSize, Math.min(y, screenHeight - windowHeight - bottomSize))
   }
 
   position.value = { x, y }
@@ -353,7 +356,7 @@ onUnmounted(() => {
       v-if="isVisible"
       ref="windowRef"
       :id="`window-${id}`"
-      class="fixed top-0 left-0 min-w-[120px] max-w-[calc(100vw-16px)] rounded-[6px] overflow-hidden backdrop-blur-xl"
+      class="fixed top-0 left-0 min-w-[120px] max-w-[min(320px,calc(100vw-16px))] rounded-[6px] overflow-hidden backdrop-blur-xl"
       :style="{
         transform: `translate(${position.x}px, ${position.y}px)`,
         zIndex: getZIndex(id),
