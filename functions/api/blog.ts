@@ -293,40 +293,44 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     validObjects.sort((a, b) => b.key.localeCompare(a.key))
 
-    // First, fetch all posts to determine which are drafts
-    const allPosts: BlogPost[] = []
+    // Fetch all posts to determine which are drafts. Each post is an
+    // independent R2/KV round trip, so run them concurrently instead of
+    // awaiting one at a time - sequential awaits here meant list latency
+    // grew linearly with the number of posts in the bucket.
+    const fetchedPosts = await Promise.all(
+      validObjects.map(async (object): Promise<BlogPost | null> => {
+        const postId = object.key.replace(/\.md$/, "")
 
-    for (const object of validObjects) {
-      const postId = object.key.replace(/\.md$/, "")
-
-      try {
-        const file = await context.env.BLOG_BUCKET.get(object.key)
-        if (!file) continue
-
-        let views = 0
         try {
-          const viewCount = await context.env.BLOG_VIEWS.get(`views:${postId}`)
-          views = viewCount ? parseInt(viewCount, 10) : 0
-        } catch {
-          // Ignore view count errors
+          const [file, viewCount] = await Promise.all([
+            context.env.BLOG_BUCKET.get(object.key),
+            context.env.BLOG_VIEWS.get(`views:${postId}`).catch(() => null),
+          ])
+          if (!file) return null
+
+          const views = viewCount ? parseInt(viewCount, 10) : 0
+          const text = await file.text()
+          const { data } = parseFrontmatter(text)
+
+          return {
+            id: postId,
+            title: data.title || postId,
+            date: data.date || "",
+            description: data.description,
+            tags: data.tags,
+            draft: data.draft,
+            views,
+          }
+        } catch (e) {
+          console.error(`Failed to fetch post ${postId}:`, e)
+          return null
         }
+      }),
+    )
 
-        const text = await file.text()
-        const { data } = parseFrontmatter(text)
-
-        allPosts.push({
-          id: postId,
-          title: data.title || postId,
-          date: data.date || "",
-          description: data.description,
-          tags: data.tags,
-          draft: data.draft,
-          views,
-        })
-      } catch (e) {
-        console.error(`Failed to fetch post ${postId}:`, e)
-      }
-    }
+    const allPosts: BlogPost[] = fetchedPosts.filter(
+      (post): post is BlogPost => post !== null,
+    )
 
     // Filter out drafts unless includeDrafts is true
     const filteredPosts = includeDrafts
@@ -358,7 +362,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         },
       }),
       {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+          // Editor views (drafts) must always be fresh; public listings can
+          // be cached briefly at the edge/browser to cut repeat R2 traffic.
+          "Cache-Control": includeDrafts
+            ? "no-store"
+            : "public, max-age=30, stale-while-revalidate=300",
+        },
       },
     )
   } catch (error) {
