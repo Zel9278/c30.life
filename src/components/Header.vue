@@ -37,7 +37,7 @@ const menuItems = [
 <template>
   <!-- Header -->
   <header
-    class="fixed top-[var(--kao-banner-h,0px)] left-0 right-0 z-50 backdrop-blur-xl bg-neutral-900/80 border-b border-neutral-800"
+    class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-neutral-900/80 border-b border-neutral-800"
   >
     <div
       class="max-w-4xl lg:max-w-6xl xl:max-w-full xl:px-8 mx-auto px-4 h-14 flex items-center justify-between"
@@ -90,7 +90,7 @@ const menuItems = [
   <Transition name="slide">
     <nav
       v-if="isOpen"
-      class="fixed top-[calc(3.5rem+var(--kao-banner-h,0px))] right-0 z-50 w-64 h-[calc(100vh-3.5rem-var(--kao-banner-h,0px))] overflow-y-auto overscroll-contain bg-neutral-900 border-l border-neutral-800 shadow-2xl"
+      class="fixed top-14 right-0 z-50 w-64 h-[calc(100vh-3.5rem)] overflow-y-auto overscroll-contain bg-neutral-900 border-l border-neutral-800 shadow-2xl"
     >
       <ul class="p-4 space-y-2">
         <li v-for="item in menuItems" :key="item.to">
