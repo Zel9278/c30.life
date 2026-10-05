@@ -187,7 +187,8 @@ const mutualLinks: Link[] = [
   {
     title: "OopsOkinTP",
     href: "https://www.okin-jp.net",
-    image: "https://www.okin-jp.net/wp-content/uploads/2024/07/d8d7453933231e34d67366077f68504b.png",
+    image:
+      "https://www.okin-jp.net/wp-content/uploads/2024/07/d8d7453933231e34d67366077f68504b.png",
     alt: "おきんさんのホームページ",
   },
   {
@@ -211,14 +212,14 @@ const mutualLinks: Link[] = [
   {
     title: "腋すきー",
     href: "https://soukun.io",
-    image: "https://files.soukun.io/a/webpublic-8da63201-f663-429e-bd2a-ad8a22364e23",
+    image:
+      "https://files.soukun.io/a/webpublic-8da63201-f663-429e-bd2a-ad8a22364e23",
     alt: "くろのすけさんのホームページ",
   },
   {
     title: "デデオチャンのホームページ",
     href: "https://deryck2000.jp.eu.org/",
-    image:
-      "https://deryck2000.jp.eu.org/banner.png",
+    image: "https://deryck2000.jp.eu.org/banner.png",
     alt: "デデオチャンのホームページ",
   },
   {

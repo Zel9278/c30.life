@@ -507,7 +507,7 @@ function fixEmphasisFlanking(content: string): string {
     .split(/(```[\s\S]*?```)/g)
     .map((segment, i) => {
       if (i % 2 === 1) return segment
-      return segment.replace(/\*\*([^\n*]+?)\*\*/g, (match, inner: string) => {
+      return segment.replace(/\*\*([^\n*]+?)\*\*/g, (_match, inner: string) => {
         const start = isPunct(inner[0]) ? "\u2060" : ""
         const end = isPunct(inner[inner.length - 1]) ? "\u2060" : ""
         return `**${start}${inner}${end}**`

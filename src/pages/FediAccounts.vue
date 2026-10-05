@@ -1,21 +1,46 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue"
-import FediAccountCard from "../components/FediAccountCard.vue"
 import {
+  type FediverseAccount,
   mastodonAccounts,
-  mitraAccounts,
   misskeyAccounts,
+  mitraAccounts,
   mkGoAccounts,
   pixelfedAccounts,
   pleromaAccounts,
-  type FediverseAccount,
 } from "../../fediverseLinks"
+import FediAccountCard from "../components/FediAccountCard.vue"
 
-type Platform = "misskey" | "mk-go" | "mastodon" | "pleroma" | "mitra" | "pixelfed"
-type AccountData = { name?: string; display_name?: string; username?: string; acct?: string; avatarUrl?: string; avatar?: string; notesCount?: number; statuses_count?: number }
+type Platform =
+  | "misskey"
+  | "mk-go"
+  | "mastodon"
+  | "pleroma"
+  | "mitra"
+  | "pixelfed"
+type AccountData = {
+  name?: string
+  display_name?: string
+  username?: string
+  acct?: string
+  avatarUrl?: string
+  avatar?: string
+  notesCount?: number
+  statuses_count?: number
+}
 type MetaData = { name?: string; version?: string; software?: string }
-type AccountState = { account: FediverseAccount; data: AccountData | null; meta: MetaData | null; loading: boolean; error: boolean }
-type Section = { title: string; platform: Platform; accounts: FediverseAccount[] }
+type AccountState = {
+  account: FediverseAccount
+  data: AccountData | null
+  meta: MetaData | null
+  loading: boolean
+  error: boolean
+}
+type Section = {
+  title: string
+  platform: Platform
+  accounts: FediverseAccount[]
+}
 
 const mainAccounts = misskeyAccounts.slice(0, 2)
 const sections: Section[] = [
@@ -27,8 +52,16 @@ const sections: Section[] = [
   { title: "PixelFed", platform: "pixelfed", accounts: pixelfedAccounts },
 ]
 const entries = computed(() => [
-  ...mainAccounts.map((account) => ({ platform: "misskey" as Platform, account })),
-  ...sections.flatMap((section) => section.accounts.map((account) => ({ platform: section.platform, account }))),
+  ...mainAccounts.map((account) => ({
+    platform: "misskey" as Platform,
+    account,
+  })),
+  ...sections.flatMap((section) =>
+    section.accounts.map((account) => ({
+      platform: section.platform,
+      account,
+    })),
+  ),
 ])
 const states = ref<AccountState[]>([])
 const cache = new Map<string, Promise<AccountData | null>>()
@@ -47,51 +80,97 @@ function formatNumber(value: number): string {
   return value.toLocaleString()
 }
 
-async function fetchMeta(platform: Platform, host: string): Promise<MetaData | null> {
+async function fetchMeta(
+  platform: Platform,
+  host: string,
+): Promise<MetaData | null> {
   const key = `meta:${platform}:${host}`
   const cached = metaCache.get(key)
   if (cached) return cached
   const request = (async () => {
     try {
       if (platform === "misskey" || platform === "mk-go") {
-        const response = await fetch("/api/misskey", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ host, endpoint: "meta", body: { detail: false } }) })
+        const response = await fetch("/api/misskey", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            host,
+            endpoint: "meta",
+            body: { detail: false },
+          }),
+        })
         if (!response.ok) return null
-        const data = (await response.json()) as { name?: string; version?: string }
-        return { name: data.name, version: data.version, software: "Misskey" } as MetaData
+        const data = (await response.json()) as {
+          name?: string
+          version?: string
+        }
+        return {
+          name: data.name,
+          version: data.version,
+          software: "Misskey",
+        } as MetaData
       }
-      const response = await fetch(`/api/mastodon?host=${encodeURIComponent(host)}&endpoint=instance`)
+      const response = await fetch(
+        `/api/mastodon?host=${encodeURIComponent(host)}&endpoint=instance`,
+      )
       if (!response.ok) return null
-      const data = (await response.json()) as { title?: string; version?: string }
+      const data = (await response.json()) as {
+        title?: string
+        version?: string
+      }
       return { name: data.title, version: data.version } as MetaData
-    } catch { return null }
+    } catch {
+      return null
+    }
   })()
   metaCache.set(key, request)
   return request
 }
 
-async function fetchAccount(platform: Platform, account: FediverseAccount): Promise<AccountData | null> {
+async function fetchAccount(
+  platform: Platform,
+  account: FediverseAccount,
+): Promise<AccountData | null> {
   const key = `${platform}:${account.host}:${account.userId}`
   const cached = cache.get(key)
   if (cached) return cached
   const request = (async () => {
     try {
       if (platform === "misskey" || platform === "mk-go") {
-        const response = await fetch("/api/misskey", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ host: account.host, endpoint: "users/show", body: { username: account.userId, host: null } }) })
+        const response = await fetch("/api/misskey", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            host: account.host,
+            endpoint: "users/show",
+            body: { username: account.userId, host: null },
+          }),
+        })
         if (!response.ok) return null
         return (await response.json()) as AccountData
       }
       const endpoint = `accounts/lookup?acct=${encodeURIComponent(account.userId)}`
-      const response = await fetch(`/api/mastodon?host=${encodeURIComponent(account.host)}&endpoint=${encodeURIComponent(endpoint)}`)
+      const response = await fetch(
+        `/api/mastodon?host=${encodeURIComponent(account.host)}&endpoint=${encodeURIComponent(endpoint)}`,
+      )
       if (!response.ok) return null
       return (await response.json()) as AccountData
-    } catch { return null }
+    } catch {
+      return null
+    }
   })()
   cache.set(key, request)
   return request
 }
 
 onMounted(() => {
-  states.value = entries.value.map(({ account }) => ({ account, data: null, meta: null, loading: true, error: false }))
+  states.value = entries.value.map(({ account }) => ({
+    account,
+    data: null,
+    meta: null,
+    loading: true,
+    error: false,
+  }))
   entries.value.forEach(({ platform, account }, index) => {
     void Promise.all([
       fetchAccount(platform, account),
@@ -106,7 +185,12 @@ onMounted(() => {
 })
 
 function stateFor(platform: Platform, account: FediverseAccount) {
-  const index = entries.value.findIndex((entry) => entry.platform === platform && entry.account.host === account.host && entry.account.userId === account.userId)
+  const index = entries.value.findIndex(
+    (entry) =>
+      entry.platform === platform &&
+      entry.account.host === account.host &&
+      entry.account.userId === account.userId,
+  )
   return states.value[index]
 }
 </script>

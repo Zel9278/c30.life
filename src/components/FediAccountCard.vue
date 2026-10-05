@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import type { FediverseAccount } from "../../fediverseLinks"
 
-type Platform = "misskey" | "mk-go" | "mastodon" | "pleroma" | "mitra" | "pixelfed"
+type Platform =
+  | "misskey"
+  | "mk-go"
+  | "mastodon"
+  | "pleroma"
+  | "mitra"
+  | "pixelfed"
 type AccountData = {
   name?: string
   display_name?: string
@@ -14,7 +20,13 @@ type AccountData = {
   statuses_count?: number
 }
 type MetaData = { name?: string; version?: string }
-type AccountState = { account: FediverseAccount; data: AccountData | null; meta: MetaData | null; loading: boolean; error: boolean }
+type AccountState = {
+  account: FediverseAccount
+  data: AccountData | null
+  meta: MetaData | null
+  loading: boolean
+  error: boolean
+}
 
 defineProps<{ state: AccountState; platform: Platform; large?: boolean }>()
 

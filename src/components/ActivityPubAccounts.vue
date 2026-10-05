@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
 import {
+  type FediverseAccount,
   mitraAccounts,
   pixelfedAccounts,
-  type FediverseAccount,
 } from "../../fediverseLinks"
 
 type Account = {
@@ -29,14 +29,15 @@ const accounts = [
   ...pixelfedAccounts.map((account) => ({ platform: "Pixelfed", account })),
 ]
 const states = ref<State[]>(
-  accounts.map(({ account }) => ({ account, data: null, loading: true, error: false })),
+  accounts.map(({ account }) => ({
+    account,
+    data: null,
+    loading: true,
+    error: false,
+  })),
 )
 
-async function loadAccount(
-  platform: string,
-  account: FediverseAccount,
-  state: State,
-) {
+async function loadAccount(account: FediverseAccount, state: State) {
   try {
     const endpoint = `accounts/lookup?acct=${encodeURIComponent(account.userId)}`
     const response = await fetch(
@@ -52,8 +53,8 @@ async function loadAccount(
 }
 
 onMounted(() => {
-  states.value.forEach((state, index) => {
-    void loadAccount(accounts[index].platform, state.account, state)
+  states.value.forEach((state) => {
+    void loadAccount(state.account, state)
   })
 })
 

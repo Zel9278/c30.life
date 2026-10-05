@@ -2029,7 +2029,14 @@ watch(viewMode, async (newMode) => {
 })
 
 // Image upload helpers
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml"]
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/avif",
+  "image/svg+xml",
+]
 
 function insertImageMarkdown(url: string, alt = "image") {
   if (!monacoEditor) return
@@ -2043,12 +2050,16 @@ function insertImageMarkdown(url: string, alt = "image") {
 async function uploadImageFile(file: File) {
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
     imageUploadError.value = `非対応の形式です: ${file.type}`
-    setTimeout(() => { imageUploadError.value = "" }, 3000)
+    setTimeout(() => {
+      imageUploadError.value = ""
+    }, 3000)
     return
   }
   if (file.size > 10 * 1024 * 1024) {
     imageUploadError.value = "10MB 以下にしてください"
-    setTimeout(() => { imageUploadError.value = "" }, 3000)
+    setTimeout(() => {
+      imageUploadError.value = ""
+    }, 3000)
     return
   }
 
@@ -2071,7 +2082,9 @@ async function uploadImageFile(file: File) {
     insertImageMarkdown(url, file.name.replace(/\.[^.]+$/, ""))
   } catch (e) {
     imageUploadError.value = e instanceof Error ? e.message : "アップロード失敗"
-    setTimeout(() => { imageUploadError.value = "" }, 4000)
+    setTimeout(() => {
+      imageUploadError.value = ""
+    }, 4000)
   } finally {
     imageUploading.value = false
   }
@@ -2104,7 +2117,7 @@ function onEditorDrop(e: DragEvent) {
 
 function onEditorPaste(e: ClipboardEvent) {
   const file = Array.from(e.clipboardData?.items ?? [])
-    .find(i => i.kind === "file" && ALLOWED_IMAGE_TYPES.includes(i.type))
+    .find((i) => i.kind === "file" && ALLOWED_IMAGE_TYPES.includes(i.type))
     ?.getAsFile()
   if (file) {
     e.preventDefault()

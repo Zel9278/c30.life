@@ -70,7 +70,7 @@ export const mitraAccounts: FediverseAccount[] = [
 ]
 
 export const pixelfedAccounts: FediverseAccount[] = [
-  { host: "pixelfed.tokyo", userId: "c30" }
+  { host: "pixelfed.tokyo", userId: "c30" },
 ]
 
 function profileUrl(account: FediverseAccount): string {

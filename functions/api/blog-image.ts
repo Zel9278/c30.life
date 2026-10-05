@@ -108,12 +108,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     }
 
     const headers = new Headers(corsHeaders)
-    headers.set("Content-Type", object.httpMetadata?.contentType ?? "application/octet-stream")
+    headers.set(
+      "Content-Type",
+      object.httpMetadata?.contentType ?? "application/octet-stream",
+    )
     headers.set("Cache-Control", "public, max-age=31536000, immutable")
 
     return new Response(object.body, { headers })
   } catch {
-    return new Response("Internal Server Error", { status: 500, headers: corsHeaders })
+    return new Response("Internal Server Error", {
+      status: 500,
+      headers: corsHeaders,
+    })
   }
 }
 
@@ -126,7 +132,7 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
   const url = new URL(context.request.url)
   const key = url.searchParams.get("key")
   // .. を含むパスのトラバーサル（images/../blog/... 等）を防ぐ
-  if (!key || !key.startsWith("images/") || key.includes("..")) {
+  if (!key?.startsWith("images/") || key.includes("..")) {
     return json({ error: "Invalid key" }, 400)
   }
 
