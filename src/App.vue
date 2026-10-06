@@ -3,6 +3,7 @@ import { computed } from "vue"
 import { RouterView, useRoute } from "vue-router"
 import Confetti from "./components/Confetti.vue"
 import Header from "./components/Header.vue"
+import { footerText } from "./data/navigation"
 
 const route = useRoute()
 const hideFooter = computed(() => route.meta.hideFooter === true)
@@ -41,7 +42,7 @@ const hideHeader = computed(() => route.meta.hideHeader === true)
         v-if="!hideFooter"
         class="w-full max-w-4xl lg:max-w-6xl xl:max-w-full mx-auto mt-12 md:mt-16 text-center text-gray-500 text-sm"
       >
-        <p>© 2026 ced / c30.life</p>
+        <p>{{ footerText }}</p>
       </footer>
     </main>
   </div>

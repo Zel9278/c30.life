@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { dependencies, devDependencies, licenses } from "virtual:package-info"
+import {
+  siteInfo as baseSiteInfo,
+  siteFileLinks,
+  siteRepositories,
+} from "../data/siteInfo.ts"
 
 const siteInfo = {
-  host: "c30.life",
-  owner: "c30 (@c30@mk.c30.life)",
+  ...baseSiteInfo,
   version: __APP_VERSION__,
 }
 
@@ -33,51 +37,28 @@ const getLicenseColor = (license: string) => {
         <li class="bg-neutral-700 w-full h-0.5 rounded my-2" />
         <li>このサイトバージョン: {{ siteInfo.version }}</li>
         <li class="bg-neutral-700 w-full h-0.5 rounded my-2" />
-        <li>
-          Sitemap:
+        <li v-for="item in siteFileLinks" :key="item.href">
+          {{ item.label }}:
           <a
-            href="/sitemap.xml"
+            :href="item.href"
             target="_blank"
             class="text-sky-400 hover:text-sky-300 transition-colors"
           >
-            sitemap.xml
-          </a>
-        </li>
-        <li>
-          Robots:
-          <a
-            href="/robots.txt"
-            target="_blank"
-            class="text-sky-400 hover:text-sky-300 transition-colors"
-          >
-            robots.txt
+            {{ item.text }}
           </a>
         </li>
         <li>
           Repository:
-          <a
-            href="https://github.com/Zel9278/c30.life"
-            target="_blank"
-            class="text-sky-400 hover:text-sky-300 transition-colors"
-          >
-            github.com:zel9278/c30.life
-          </a>
-          ,
-          <a
-            href="https://gitea.moe/ced0180/c30.life"
-            target="_blank"
-            class="text-sky-400 hover:text-sky-300 transition-colors"
-          >
-            gitea.moe:ced0180/c30.life
-          </a>
-          ,
-          <a
-            href="https://git.c30.life/ced/c30.life"
-            target="_blank"
-            class="text-sky-400 hover:text-sky-300 transition-colors"
-          >
-            git.c30.life:ced/c30.life
-          </a>
+          <template v-for="(repo, index) in siteRepositories" :key="repo.href">
+            <template v-if="index > 0"> , </template>
+            <a
+              :href="repo.href"
+              target="_blank"
+              class="text-sky-400 hover:text-sky-300 transition-colors"
+            >
+              {{ repo.text }}
+            </a>
+          </template>
         </li>
       </ul>
 

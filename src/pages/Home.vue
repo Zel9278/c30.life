@@ -2,60 +2,20 @@
 import Counter from "../components/Counter.vue"
 import Piano from "../components/Piano.vue"
 import PianoRoll from "../components/PianoRoll.vue"
+import {
+  affiliations,
+  backgroundSong,
+  fictosexual,
+  getLocalAge,
+  getProfileFacts,
+  hobbies,
+  languages,
+  lgbtLetters,
+  profile,
+  secretBadges,
+} from "../data/profile.ts"
 
-function getAge(data: string): number {
-  const splitData = data.split("/")
-  const birthday = new Date(
-    Number.parseInt(splitData[0], 10),
-    Number.parseInt(splitData[1], 10) - 1,
-    Number.parseInt(splitData[2], 10),
-  )
-  const today = new Date()
-  const thisYearBirthday = new Date(
-    today.getFullYear(),
-    birthday.getMonth(),
-    birthday.getDate(),
-  )
-  const age = today.getFullYear() - birthday.getFullYear()
-  return today < thisYearBirthday ? age - 1 : age
-}
-
-const age = getAge("2003/04/25")
-
-const hobbies = [
-  "イラストレーション",
-  "曲制作・耳コピ",
-  "プログラミング",
-  "Fediverse, Discord",
-]
-
-const languages = [
-  { name: "Node.js", color: "bg-green-600" },
-  { name: "TypeScript", color: "bg-blue-600" },
-  { name: "Rust", color: "bg-red-600" },
-  { name: "C", color: "bg-blue-900" },
-  { name: "C++", color: "bg-blue-800" },
-  { name: "C#", color: "bg-purple-600" },
-  { name: "ShellScript", color: "bg-neutral-700" },
-]
-
-const lgbtLetters = [
-  { letter: "L", name: "Lesbian", highlight: false },
-  { letter: "G", name: "Gay", highlight: false },
-  { letter: "B", name: "Bisexual", highlight: false },
-  { letter: "T", name: "Transgender", highlight: false },
-  { letter: "Q", name: "Queer", highlight: true },
-  { letter: "Q", name: "Questioning", highlight: true },
-  { letter: "I", name: "Intersex", highlight: false },
-  { letter: "A", name: "Asexual", highlight: false },
-  { letter: "A", name: "Ally", highlight: false },
-  { letter: "P", name: "Pansexual", highlight: false },
-  { letter: "P", name: "Polyamorous", highlight: false },
-  { letter: "O", name: "Omnisexual", highlight: false },
-  { letter: "2S", name: "Two-Spirit", highlight: false },
-]
-
-const fictosexual = { letter: "F", name: "Fictosexual", highlight: true }
+const profileFacts = getProfileFacts(new Date(), getLocalAge)
 
 function toggleTooltip(event: Event) {
   const target = event.currentTarget as HTMLElement
@@ -70,7 +30,7 @@ function toggleTooltip(event: Event) {
 <template>
   <!-- Background Piano Roll -->
   <PianoRoll
-    midi-url="/My bad song(piano arrange).mid"
+    :midi-url="backgroundSong.midiUrl"
     note-color="#1133aa"
     :pixels-per-beat="64"
     :opacity="0.64"
@@ -78,7 +38,7 @@ function toggleTooltip(event: Event) {
 
   <!-- Song Title -->
   <div class="fixed top-14 left-4 z-10 text-neutral-500 text-sm opacity-60">
-    Background: Ced - My Bad Song
+    Background: {{ backgroundSong.title }}
   </div>
 
   <!-- Hero Section -->
@@ -104,18 +64,22 @@ function toggleTooltip(event: Event) {
             class="w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-r from-neutral-600 via-neutral-500 to-neutral-600 p-1"
           >
             <img
-              src="/c30_rounded.png"
-              alt="ced"
+              :src="profile.avatar.src"
+              :alt="profile.avatar.alt"
               class="w-full h-full rounded-full object-cover"
             />
           </div>
         </div>
 
         <!-- Name & Title -->
-        <h1 class="text-3xl md:text-5xl font-bold text-white mb-2">c30.life</h1>
-        <p class="text-base md:text-lg text-gray-400 mb-1">@ced</p>
+        <h1 class="text-3xl md:text-5xl font-bold text-white mb-2">
+          {{ profile.siteName }}
+        </h1>
+        <p class="text-base md:text-lg text-gray-400 mb-1">
+          {{ profile.handle }}
+        </p>
         <p class="text-sm text-gray-500 italic mb-2">
-          "I don't have the energy to make a website."
+          "{{ profile.tagline }}"
         </p>
         <Counter />
 
@@ -125,7 +89,7 @@ function toggleTooltip(event: Event) {
         <!-- Self Introduction -->
         <h2 class="text-lg font-semibold text-white mb-2">自己紹介</h2>
         <p class="text-neutral-400 text-sm mb-3 leading-relaxed">
-          いろいろな趣味を持っている変なポットであり空の存在です。
+          {{ profile.intro }}
         </p>
         <div
           class="collapse collapse-arrow bg-neutral-800/50 border border-neutral-700 rounded-lg mb-3"
@@ -139,43 +103,14 @@ function toggleTooltip(event: Event) {
           <div class="collapse-content text-neutral-400 text-sm">
             <div class="flex flex-wrap justify-center gap-1.5 pt-1">
               <span
-                class="badge bg-neutral-800 border-pink-500 text-neutral-300"
-                >み</span
-              >
-              <span
-                class="badge bg-neutral-800 border-orange-500 text-neutral-300"
-                >つ</span
-              >
-              <span
-                class="badge bg-neutral-800 border-yellow-500 text-neutral-300"
-                >か</span
-              >
-              <span
-                class="badge bg-neutral-800 border-green-500 text-neutral-300"
-                >ん</span
-              >
-              <span
-                class="badge bg-neutral-800 border-teal-500 text-neutral-300"
-                >あ</span
-              >
-              <span
-                class="badge bg-neutral-800 border-cyan-500 text-neutral-300"
-                >じ</span
-              >
-              <span
-                class="badge bg-neutral-800 border-blue-500 text-neutral-300"
-                >し</span
-              >
-              <span
-                class="badge bg-neutral-800 border-indigo-500 text-neutral-300"
-                >ょ</span
-              >
-              <span
-                class="badge bg-neutral-800 border-purple-500 text-neutral-300"
-                >う</span
-              >
-              <span class="badge bg-neutral-800 border-red-500 text-neutral-300"
-                >ユ!</span
+                v-for="(badge, index) in secretBadges"
+                :key="index"
+                :class="[
+                  'badge bg-neutral-800',
+                  badge.borderClass,
+                  'text-neutral-300',
+                ]"
+                >{{ badge.text }}</span
               >
             </div>
             <!-- Divider -->
@@ -208,25 +143,14 @@ function toggleTooltip(event: Event) {
         <!-- Profile Info -->
         <h3 class="text-sm text-neutral-500 mb-2">プロフィール</h3>
         <div class="flex flex-wrap justify-center gap-2 mb-4">
-          <div class="border border-neutral-700 rounded-lg p-2 min-w-[70px]">
-            <p class="text-xs text-neutral-500">名前</p>
-            <p class="text-white font-medium text-sm">c30</p>
-            <p class="text-xs text-neutral-400">ced(セド)</p>
-          </div>
-          <div class="border border-neutral-700 rounded-lg p-2 min-w-[70px]">
-            <p class="text-xs text-neutral-500">年齢</p>
-            <p class="text-white font-medium text-sm">{{ age }}</p>
-            <p class="text-xs text-neutral-400">4/25</p>
-          </div>
-          <div class="border border-neutral-700 rounded-lg p-2 min-w-[70px]">
-            <p class="text-xs text-neutral-500">性別</p>
-            <p class="text-white font-medium text-sm">男</p>
-            <p class="text-xs text-neutral-400">んい...</p>
-          </div>
-          <div class="border border-neutral-700 rounded-lg p-2 min-w-[70px]">
-            <p class="text-xs text-neutral-500">住居</p>
-            <p class="text-white font-medium text-sm">神奈川</p>
-            <p class="text-xs text-neutral-400">横浜</p>
+          <div
+            v-for="fact in profileFacts"
+            :key="fact.label"
+            class="border border-neutral-700 rounded-lg p-2 min-w-[70px]"
+          >
+            <p class="text-xs text-neutral-500">{{ fact.label }}</p>
+            <p class="text-white font-medium text-sm">{{ fact.value }}</p>
+            <p class="text-xs text-neutral-400">{{ fact.sub }}</p>
           </div>
         </div>
 
@@ -264,14 +188,12 @@ function toggleTooltip(event: Event) {
         <!-- Affiliations -->
         <h3 class="text-base text-neutral-400 mb-2">所属</h3>
         <div class="flex flex-wrap justify-center gap-1.5">
-          <span class="badge bg-green-900/50 border-green-500 text-green-300">
-            炒めて切った野菜ジュース（至り来たり宿）
-          </span>
-          <span class="badge bg-red-950/50 border-red-800 text-red-400">
-            DETDA
-          </span>
-          <span class="badge bg-pink-900/50 border-pink-500 text-pink-300">
-            Misskey.art
+          <span
+            v-for="affiliation in affiliations"
+            :key="affiliation.name"
+            :class="['badge', affiliation.className]"
+          >
+            {{ affiliation.name }}
           </span>
         </div>
       </div>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import confetti from "canvas-confetti"
 import { onMounted, onUnmounted } from "vue"
+import { BIRTHDAY } from "../data/profile.ts"
 
-// Birthday: April 25
-const BIRTHDAY_MONTH = 4
-const BIRTHDAY_DAY = 25
+const BIRTHDAY_MONTH = BIRTHDAY.month
+const BIRTHDAY_DAY = BIRTHDAY.day
 
 let intervalId: number | undefined
 

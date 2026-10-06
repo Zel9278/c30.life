@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LinksComponent from "../components/Links.vue"
+import { linksPage } from "../data/links.ts"
 </script>
 
 <template>
@@ -7,8 +8,8 @@ import LinksComponent from "../components/Links.vue"
     <div
       class="backdrop-blur-xl bg-neutral-900/80 border border-neutral-800 rounded-2xl p-4 md:p-6 shadow-2xl"
     >
-      <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">Links</h1>
-      <p class="text-neutral-400 text-sm mb-4">c30の各種リンク集</p>
+      <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">{{ linksPage.title }}</h1>
+      <p class="text-neutral-400 text-sm mb-4">{{ linksPage.subtitle }}</p>
 
       <div class="bg-neutral-700 w-full h-0.5 rounded mb-4" />
 

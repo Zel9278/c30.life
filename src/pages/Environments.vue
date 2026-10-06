@@ -1,23 +1,11 @@
 <script setup lang="ts">
-const pc = {
-  cpu: "11th Gen Intel(R) Core(TM) i7-11800H @ 2.30 GHz",
-  gpu: "RTX 3050 Ti Laptop GPU",
-  ram: "16GB",
-  storage: "512 GB NVMe + 1TB External SSD + 4TB External HDD",
-  os: "Fedora Linux 44 (KDE Plasma Desktop Edition) x86_64",
-  earPhone: "3ｍ earphone",
-  mouse: "Logicool G203 LIGHTSYNC",
-  tablet: "none",
-  controller: "Xbox One Controller",
-}
-
-const phones = [
-  {
-    name: "AQUOS R9",
-    os: "Android 15",
-    rooted: false,
-  },
-]
+import {
+  environmentsPage,
+  formatRooted,
+  pc,
+  pcSpecRows,
+  phones,
+} from "../data/environments.ts"
 </script>
 
 <template>
@@ -26,24 +14,20 @@ const phones = [
       class="backdrop-blur-xl bg-neutral-900/80 border border-neutral-800 rounded-2xl p-4 md:p-6 shadow-2xl"
     >
       <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
-        Environment
+        {{ environmentsPage.title }}
       </h1>
-      <p class="text-neutral-400 text-sm mb-4">c30の開発環境</p>
+      <p class="text-neutral-400 text-sm mb-4">
+        {{ environmentsPage.subtitle }}
+      </p>
 
       <div class="bg-neutral-700 w-full h-0.5 rounded mb-4" />
 
       <!-- PC Section -->
       <h3 class="text-xl font-semibold mb-2 text-white">PC</h3>
       <ul class="list-disc list-inside mb-6 text-neutral-300">
-        <li>CPU: {{ pc.cpu }}</li>
-        <li>GPU: {{ pc.gpu }}</li>
-        <li>RAM: {{ pc.ram }}</li>
-        <li>Storage: {{ pc.storage }}</li>
-        <li>OS: {{ pc.os }}</li>
-        <li>Earphone: {{ pc.earPhone }}</li>
-        <li>Mouse: {{ pc.mouse }}</li>
-        <li>Tablet: {{ pc.tablet }}</li>
-        <li>Controller: {{ pc.controller }}</li>
+        <li v-for="row in pcSpecRows" :key="row.key">
+          {{ row.label }}: {{ pc[row.key] }}
+        </li>
       </ul>
 
       <div class="bg-neutral-700 w-full h-0.5 rounded mb-6" />
@@ -68,7 +52,7 @@ const phones = [
           >
             <td class="py-2 px-4">{{ phone.name }}</td>
             <td class="py-2 px-4">{{ phone.os }}</td>
-            <td class="py-2 px-4">{{ phone.rooted ? "Yes" : "No" }}</td>
+            <td class="py-2 px-4">{{ formatRooted(phone.rooted) }}</td>
           </tr>
         </tbody>
       </table>

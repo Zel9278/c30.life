@@ -4,10 +4,13 @@ import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import tailwindcss from "@tailwindcss/vite"
 import vue from "@vitejs/plugin-vue"
-import { defineConfig } from "vite"
+import { defineConfig, type Plugin } from "vite"
 import Sitemap from "vite-plugin-sitemap"
 
 import { fediverseLinks } from "./fediverseLinks.ts"
+import { neutralizeNoscript } from "./src/noscript/html.ts"
+import { renderLayout } from "./src/noscript/layout.ts"
+import { renderHomeBody } from "./src/noscript/pages/home.ts"
 
 const fediverseRelMePlugin = {
   name: "fediverse-rel-me",
@@ -19,6 +22,18 @@ const fediverseRelMePlugin = {
     return html.replace(
       '  <link rel="alternate" type="application/rss+xml" title="c30.life Blog RSS" href="/api/rss" />',
       `  <link rel="alternate" type="application/rss+xml" title="c30.life Blog RSS" href="/api/rss" />\n${links}`,
+    )
+  },
+}
+
+// index.html の <noscript> に、Functions が無い環境 (vite dev / GitHub Pages) 向けの
+// フォールバックとしてトップページの内容を入れる。本番では middleware がルートごとに差し替える
+const noscriptFallbackPlugin = {
+  name: "noscript-fallback",
+  transformIndexHtml(html: string) {
+    return html.replace(
+      "<!-- noscript-fallback -->",
+      neutralizeNoscript(renderLayout("/", renderHomeBody(new Date()))),
     )
   },
 }
@@ -127,20 +142,44 @@ function collectLicenses() {
 
 // Info ページ用に、依存パッケージとライセンスをビルド時に package.json / node_modules から生成する
 const packageInfoModuleId = "virtual:package-info"
-const packageInfoPlugin = {
+const toDependencyList = (deps: Record<string, string>) =>
+  Object.entries(deps).map(([name, version]) => ({ name, version }))
+const packageInfoPlugin: Plugin = {
   name: "package-info",
   resolveId(id: string) {
     if (id === packageInfoModuleId) return `\0${packageInfoModuleId}`
   },
   load(id: string) {
     if (id !== `\0${packageInfoModuleId}`) return
-    const toList = (deps: Record<string, string>) =>
-      Object.entries(deps).map(([name, version]) => ({ name, version }))
     return [
-      `export const dependencies = ${JSON.stringify(toList(dependencies))}`,
-      `export const devDependencies = ${JSON.stringify(toList(devDependencies))}`,
+      `export const dependencies = ${JSON.stringify(toDependencyList(dependencies))}`,
+      `export const devDependencies = ${JSON.stringify(toDependencyList(devDependencies))}`,
       `export const licenses = ${JSON.stringify(collectLicenses())}`,
     ].join("\n")
+  },
+  // Pages Functions (noscript の /info) は仮想モジュールを読めないので、
+  // ライセンス本文を除いた同じ情報を静的アセット /package-info.json としても出力する
+  generateBundle() {
+    if (this.environment && this.environment.name !== "client") return
+    const packageInfo = {
+      version,
+      dependencies: toDependencyList(dependencies),
+      devDependencies: toDependencyList(devDependencies),
+      licenses: collectLicenses().map(
+        ({ name, version, license, repository, publisher }) => ({
+          name,
+          version,
+          license,
+          repository,
+          publisher,
+        }),
+      ),
+    }
+    this.emitFile({
+      type: "asset",
+      fileName: "package-info.json",
+      source: JSON.stringify(packageInfo),
+    })
   },
 }
 
@@ -165,6 +204,7 @@ export default defineConfig({
     vue(),
     tailwindcss(),
     fediverseRelMePlugin,
+    noscriptFallbackPlugin,
     packageInfoPlugin,
     Sitemap({
       hostname: "https://c30.life",

@@ -104,3 +104,42 @@ export const fediverseLinks: FediverseLink[] = [
     href: profileUrl(account),
   })),
 ]
+
+// /fediaccounts ページの構成。SPA (src/pages/FediAccounts.vue) と noscript レンダラーで共有する
+export type FediversePlatform =
+  | "misskey"
+  | "mk-go"
+  | "mastodon"
+  | "pleroma"
+  | "mitra"
+  | "pixelfed"
+
+export type FediverseSection = {
+  title: string
+  platform: FediversePlatform
+  accounts: FediverseAccount[]
+}
+
+export const mainFediverseAccounts: FediverseAccount[] = misskeyAccounts.slice(
+  0,
+  2,
+)
+
+export const fediverseSections: FediverseSection[] = [
+  { title: "Misskey", platform: "misskey", accounts: misskeyAccounts.slice(2) },
+  { title: "mk-go", platform: "mk-go", accounts: mkGoAccounts },
+  { title: "Mastodon", platform: "mastodon", accounts: mastodonAccounts },
+  { title: "Pleroma / Akkoma", platform: "pleroma", accounts: pleromaAccounts },
+  { title: "Mitra", platform: "mitra", accounts: mitraAccounts },
+  { title: "PixelFed", platform: "pixelfed", accounts: pixelfedAccounts },
+]
+
+// rel="me" 用のプロフィール URL (fediverseLinks と同じ規則。Pleroma は @ なし)
+export function accountProfileUrl(
+  platform: FediversePlatform,
+  account: FediverseAccount,
+): string {
+  return profileUrl(
+    platform === "pleroma" ? { ...account, profilePrefix: "plain" } : account,
+  )
+}

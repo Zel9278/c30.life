@@ -1,21 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue"
-
-const pubkeys = [
-  {
-    title: "SSH",
-    content:
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAUPX3H1WYraFO4i9XHZPA7Mytzxjl6buDkIsvP45adw",
-  },
-  {
-    title: "PGP",
-    content: "5717936DE6707ABE284ADB9A4C10C121022E422D",
-  },
-  {
-    title: "Steam",
-    content: ["1012960934", "fuji_midi"],
-  },
-]
+import { getPubkeyContents, pubkeys, pubkeysPage } from "../data/pubkeys.ts"
 
 const copiedKey = ref<string | null>(null)
 
@@ -25,10 +10,6 @@ const copyToClipboard = async (text: string, key: string) => {
   setTimeout(() => {
     copiedKey.value = null
   }, 2000)
-}
-
-const getContents = (content: string | string[]): string[] => {
-  return Array.isArray(content) ? content : [content]
 }
 
 const getCopyKey = (title: string, index: number): string => {
@@ -42,9 +23,9 @@ const getCopyKey = (title: string, index: number): string => {
       class="backdrop-blur-xl bg-neutral-900/80 border border-neutral-800 rounded-2xl p-4 md:p-6 shadow-2xl"
     >
       <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
-        Public Keys
+        {{ pubkeysPage.title }}
       </h1>
-      <p class="text-neutral-400 text-sm mb-4">c30の公開鍵・ID一覧</p>
+      <p class="text-neutral-400 text-sm mb-4">{{ pubkeysPage.subtitle }}</p>
 
       <div class="bg-neutral-700 w-full h-0.5 rounded mb-4" />
 
@@ -57,7 +38,7 @@ const getCopyKey = (title: string, index: number): string => {
           <h3 class="text-white font-semibold mb-2">{{ key.title }}</h3>
           <div class="space-y-2">
             <div
-              v-for="(content, idx) in getContents(key.content)"
+              v-for="(content, idx) in getPubkeyContents(key.content)"
               :key="idx"
               class="flex items-center gap-2"
             >

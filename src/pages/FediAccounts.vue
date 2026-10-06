@@ -2,22 +2,13 @@
 import { computed, onMounted, ref } from "vue"
 import {
   type FediverseAccount,
-  mastodonAccounts,
-  misskeyAccounts,
-  mitraAccounts,
-  mkGoAccounts,
-  pixelfedAccounts,
-  pleromaAccounts,
-} from "../../fediverseLinks"
+  type FediversePlatform,
+  fediverseSections,
+  mainFediverseAccounts,
+} from "../../fediverseLinks.ts"
 import FediAccountCard from "../components/FediAccountCard.vue"
 
-type Platform =
-  | "misskey"
-  | "mk-go"
-  | "mastodon"
-  | "pleroma"
-  | "mitra"
-  | "pixelfed"
+type Platform = FediversePlatform
 type AccountData = {
   name?: string
   display_name?: string
@@ -36,21 +27,8 @@ type AccountState = {
   loading: boolean
   error: boolean
 }
-type Section = {
-  title: string
-  platform: Platform
-  accounts: FediverseAccount[]
-}
-
-const mainAccounts = misskeyAccounts.slice(0, 2)
-const sections: Section[] = [
-  { title: "Misskey", platform: "misskey", accounts: misskeyAccounts.slice(2) },
-  { title: "mk-go", platform: "mk-go" as Platform, accounts: mkGoAccounts },
-  { title: "Mastodon", platform: "mastodon", accounts: mastodonAccounts },
-  { title: "Pleroma / Akkoma", platform: "pleroma", accounts: pleromaAccounts },
-  { title: "Mitra", platform: "mitra", accounts: mitraAccounts },
-  { title: "PixelFed", platform: "pixelfed", accounts: pixelfedAccounts },
-]
+const mainAccounts = mainFediverseAccounts
+const sections = fediverseSections
 const entries = computed(() => [
   ...mainAccounts.map((account) => ({
     platform: "misskey" as Platform,

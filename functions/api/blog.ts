@@ -1,143 +1,24 @@
+import type { Outline } from "../../src/lib/blog/frontmatter.ts"
+import {
+  type BlogPostSummary,
+  getPost,
+  isValidPostId,
+  listPosts,
+  paginate,
+} from "../../src/lib/blog/posts.ts"
+
 interface Env {
   BLOG_BUCKET: R2Bucket
   BLOG_VIEWS: KVNamespace
   BLOG_EDIT_KEY?: string
 }
 
-interface BlogPost {
-  id: string
-  title: string
-  date: string
-  views: number
-  description?: string
-  tags?: string[]
-  draft?: boolean
-}
-
-interface BlogPostDetail extends BlogPost {
+interface BlogPostDetail extends BlogPostSummary {
   content: string
   author?: string
   image?: string
-  outline?: number | [number, number] | "deep" | false
+  outline?: Outline
   draft?: boolean
-}
-
-// VitePress-compatible frontmatter interface
-interface Frontmatter {
-  title?: string
-  date?: string
-  description?: string
-  tags?: string[]
-  author?: string
-  image?: string
-  outline?: number | [number, number] | "deep" | false
-  draft?: boolean
-}
-
-// Parse frontmatter from markdown (VitePress compatible)
-function parseFrontmatter(content: string): {
-  data: Frontmatter
-  content: string
-} {
-  // Normalize line endings to LF
-  const normalized = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/
-  const match = normalized.match(frontmatterRegex)
-
-  if (!match) {
-    return { data: {}, content: normalized }
-  }
-
-  const frontmatter = match[1]
-  const body = match[2]
-
-  const data: Frontmatter = {}
-  let currentKey = ""
-  let inArray = false
-  let arrayValues: string[] = []
-
-  for (const line of frontmatter.split("\n")) {
-    // Handle array continuation
-    if (inArray) {
-      const arrayItemMatch = line.match(/^\s*-\s*(.+)$/)
-      if (arrayItemMatch) {
-        arrayValues.push(arrayItemMatch[1].replace(/^["']|["']$/g, "").trim())
-        continue
-      } else {
-        // End of array
-        if (currentKey === "tags") data.tags = arrayValues
-        inArray = false
-        arrayValues = []
-      }
-    }
-
-    const [key, ...valueParts] = line.split(":")
-    if (key && valueParts.length > 0) {
-      const rawValue = valueParts.join(":").trim()
-      const value = rawValue.replace(/^["']|["']$/g, "")
-      const trimmedKey = key.trim()
-
-      // Check if this starts an array (empty value or inline array)
-      if (rawValue === "" || rawValue === "[]") {
-        currentKey = trimmedKey
-        inArray = true
-        arrayValues = []
-        continue
-      }
-
-      // Handle inline array like tags: [tag1, tag2]
-      if (rawValue.startsWith("[") && rawValue.endsWith("]")) {
-        const arrayContent = rawValue.slice(1, -1)
-        const items = arrayContent
-          .split(",")
-          .map((item) => item.trim().replace(/^["']|["']$/g, ""))
-          .filter(Boolean)
-        if (trimmedKey === "tags") data.tags = items
-        continue
-      }
-
-      switch (trimmedKey) {
-        case "title":
-          data.title = value
-          break
-        case "date":
-          data.date = value
-          break
-        case "description":
-          data.description = value
-          break
-        case "author":
-          data.author = value
-          break
-        case "image":
-          data.image = value
-          break
-        case "outline":
-          if (value === "deep") data.outline = "deep"
-          else if (value === "false") data.outline = false
-          else if (value.startsWith("[")) {
-            const nums = value
-              .slice(1, -1)
-              .split(",")
-              .map((n) => parseInt(n.trim(), 10))
-            if (nums.length === 2) data.outline = [nums[0], nums[1]]
-          } else {
-            data.outline = parseInt(value, 10)
-          }
-          break
-        case "draft":
-          data.draft = value === "true"
-          break
-      }
-    }
-  }
-
-  // Handle trailing array
-  if (inArray && currentKey === "tags") {
-    data.tags = arrayValues
-  }
-
-  return { data, content: body.trim() }
 }
 
 // Verify edit key for authentication
@@ -215,9 +96,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const object = await context.env.BLOG_BUCKET.get(`${id}.md`)
+        const stored = await getPost(context.env.BLOG_BUCKET, id)
 
-        if (!object) {
+        if (!stored) {
           return new Response(JSON.stringify({ error: "Post not found" }), {
             status: 404,
             headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -235,8 +116,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           views = 0
         }
 
-        const text = await object.text()
-        const { data, content } = parseFrontmatter(text)
+        const { meta: data, content } = stored
 
         const post: BlogPostDetail = {
           id,
@@ -285,94 +165,28 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     verifyEditKey(context.request, context.env)
 
   try {
-    const listed = await context.env.BLOG_BUCKET.list()
-
-    const validObjects = listed.objects.filter(
-      (obj) => !obj.key.startsWith("_") && obj.key.endsWith(".md"),
+    const filteredPosts = await listPosts(
+      context.env.BLOG_BUCKET,
+      context.env.BLOG_VIEWS,
+      { includeDrafts },
     )
 
-    validObjects.sort((a, b) => b.key.localeCompare(a.key))
-
-    // Fetch all posts to determine which are drafts. Each post is an
-    // independent R2/KV round trip, so run them concurrently instead of
-    // awaiting one at a time - sequential awaits here meant list latency
-    // grew linearly with the number of posts in the bucket.
-    const fetchedPosts = await Promise.all(
-      validObjects.map(async (object): Promise<BlogPost | null> => {
-        const postId = object.key.replace(/\.md$/, "")
-
-        try {
-          const [file, viewCount] = await Promise.all([
-            context.env.BLOG_BUCKET.get(object.key),
-            context.env.BLOG_VIEWS.get(`views:${postId}`).catch(() => null),
-          ])
-          if (!file) return null
-
-          const views = viewCount ? parseInt(viewCount, 10) : 0
-          const text = await file.text()
-          const { data } = parseFrontmatter(text)
-
-          return {
-            id: postId,
-            title: data.title || postId,
-            date: data.date || "",
-            description: data.description,
-            tags: data.tags,
-            draft: data.draft,
-            views,
-          }
-        } catch (e) {
-          console.error(`Failed to fetch post ${postId}:`, e)
-          return null
-        }
-      }),
-    )
-
-    const allPosts: BlogPost[] = fetchedPosts.filter(
-      (post): post is BlogPost => post !== null,
-    )
-
-    // Filter out drafts unless includeDrafts is true
-    const filteredPosts = includeDrafts
-      ? allPosts
-      : allPosts.filter((post) => !post.draft)
-
-    filteredPosts.sort((a, b) => {
-      const dateA = new Date(a.date)
-      const dateB = new Date(b.date)
-      return dateB.getTime() - dateA.getTime()
+    // 範囲外のページは従来どおり空配列を返す (最終ページへは丸めない)
+    const { posts, pagination } = paginate(filteredPosts, page, limit, {
+      clampToLastPage: false,
     })
 
-    const totalPosts = filteredPosts.length
-    const totalPages = Math.ceil(totalPosts / limit)
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
-    const posts = filteredPosts.slice(startIndex, endIndex)
-
-    return new Response(
-      JSON.stringify({
-        posts,
-        pagination: {
-          page,
-          limit,
-          totalPosts,
-          totalPages,
-          hasNext: page < totalPages,
-          hasPrev: page > 1,
-        },
-      }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-          // Editor views (drafts) must always be fresh; public listings can
-          // be cached briefly at the edge/browser to cut repeat R2 traffic.
-          "Cache-Control": includeDrafts
-            ? "no-store"
-            : "public, max-age=30, stale-while-revalidate=300",
-        },
+    return new Response(JSON.stringify({ posts, pagination }), {
+      headers: {
+        "Content-Type": "application/json",
+        ...corsHeaders,
+        // Editor views (drafts) must always be fresh; public listings can
+        // be cached briefly at the edge/browser to cut repeat R2 traffic.
+        "Cache-Control": includeDrafts
+          ? "no-store"
+          : "public, max-age=30, stale-while-revalidate=300",
       },
-    )
+    })
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error"
@@ -417,7 +231,7 @@ export const onRequestPut: PagesFunction<Env> = async (context) => {
     }
 
     // Validate id format
-    if (!/^[a-zA-Z0-9-_]+$/.test(id)) {
+    if (!isValidPostId(id)) {
       return new Response(JSON.stringify({ error: "Invalid id format" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },

@@ -1,26 +1,4 @@
 <script setup lang="ts">
-// Import highlight.js core and only necessary languages
-import hljs from "highlight.js/lib/core"
-import bash from "highlight.js/lib/languages/bash"
-import c from "highlight.js/lib/languages/c"
-import cpp from "highlight.js/lib/languages/cpp"
-import css from "highlight.js/lib/languages/css"
-import dockerfile from "highlight.js/lib/languages/dockerfile"
-import go from "highlight.js/lib/languages/go"
-import java from "highlight.js/lib/languages/java"
-import javascript from "highlight.js/lib/languages/javascript"
-import json from "highlight.js/lib/languages/json"
-import lua from "highlight.js/lib/languages/lua"
-import markdown from "highlight.js/lib/languages/markdown"
-import plaintext from "highlight.js/lib/languages/plaintext"
-import python from "highlight.js/lib/languages/python"
-import rust from "highlight.js/lib/languages/rust"
-import sql from "highlight.js/lib/languages/sql"
-import typescript from "highlight.js/lib/languages/typescript"
-import xml from "highlight.js/lib/languages/xml"
-import yaml from "highlight.js/lib/languages/yaml"
-import { Marked, Renderer, type Tokens } from "marked"
-import { markedHighlight } from "marked-highlight"
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import "highlight.js/styles/github-dark.css"
@@ -28,37 +6,14 @@ import FediverseShare from "@/components/FediverseShare.vue"
 import ImageViewerProvider from "@/components/ImageViewerProvider.vue"
 import SocialEmbed from "@/components/SocialEmbed.vue"
 import Window from "@/components/Window.vue"
-
-// Register languages
-hljs.registerLanguage("javascript", javascript)
-hljs.registerLanguage("js", javascript)
-hljs.registerLanguage("typescript", typescript)
-hljs.registerLanguage("ts", typescript)
-hljs.registerLanguage("python", python)
-hljs.registerLanguage("py", python)
-hljs.registerLanguage("bash", bash)
-hljs.registerLanguage("sh", bash)
-hljs.registerLanguage("shell", bash)
-hljs.registerLanguage("json", json)
-hljs.registerLanguage("css", css)
-hljs.registerLanguage("xml", xml)
-hljs.registerLanguage("html", xml)
-hljs.registerLanguage("markdown", markdown)
-hljs.registerLanguage("md", markdown)
-hljs.registerLanguage("rust", rust)
-hljs.registerLanguage("rs", rust)
-hljs.registerLanguage("go", go)
-hljs.registerLanguage("java", java)
-hljs.registerLanguage("cpp", cpp)
-hljs.registerLanguage("c", c)
-hljs.registerLanguage("sql", sql)
-hljs.registerLanguage("yaml", yaml)
-hljs.registerLanguage("yml", yaml)
-hljs.registerLanguage("dockerfile", dockerfile)
-hljs.registerLanguage("docker", dockerfile)
-hljs.registerLanguage("lua", lua)
-hljs.registerLanguage("plaintext", plaintext)
-hljs.registerLanguage("text", plaintext)
+import { hasLanguage, highlightCode } from "@/lib/blog/hljs.ts"
+import {
+  countBlogCharacters,
+  estimateReadingMinutes,
+  type Outline,
+  renderBlogMarkdown,
+  type SocialEmbedData,
+} from "@/lib/blog/markdown.ts"
 
 interface BlogPostDetail {
   id: string
@@ -70,33 +25,7 @@ interface BlogPostDetail {
   tags?: string[]
   author?: string
   image?: string
-  outline?: number | [number, number] | "deep" | false
-}
-
-// TOC item interface
-interface TocItem {
-  level: number
-  text: string
-  slug: string
-}
-
-// Social embed types
-type SocialEmbedType =
-  | "x"
-  | "mastodon"
-  | "misskey"
-  | "pleroma"
-  | "x-profile"
-  | "mastodon-profile"
-  | "misskey-profile"
-  | "pleroma-profile"
-  | "github"
-  | "link"
-
-interface SocialEmbedData {
-  type: SocialEmbedType
-  url: string
-  id: string
+  outline?: Outline
 }
 
 const route = useRoute()
@@ -105,7 +34,6 @@ const router = useRouter()
 const post = ref<BlogPostDetail | null>(null)
 const loading = ref(true)
 const error = ref(false)
-const tocItems = ref<TocItem[]>([])
 const showFloatingToc = ref(false)
 const activeHeading = ref<string>("")
 const isEditor = ref(false)
@@ -173,643 +101,18 @@ onUnmounted(() => {
   window.removeEventListener("scroll", updateActiveHeading)
 })
 
-// Parse line highlight ranges (e.g., "{1,4-6,8}")
-function parseLineHighlights(meta: string): Set<number> {
-  const highlighted = new Set<number>()
-  const match = meta.match(/\{([\d,\s-]+)\}/)
-  if (!match) return highlighted
-
-  const parts = match[1].split(",")
-  for (const part of parts) {
-    const trimmed = part.trim()
-    if (trimmed.includes("-")) {
-      const [start, end] = trimmed.split("-").map((n) => parseInt(n.trim(), 10))
-      for (let i = start; i <= end; i++) {
-        highlighted.add(i)
-      }
-    } else {
-      highlighted.add(parseInt(trimmed, 10))
-    }
-  }
-  return highlighted
-}
-
-// Generate slug from text
-function generateSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim()
-}
-
-// Render code group tabs
-function renderCodeGroup(content: string): string {
-  // Match code blocks with optional title in brackets
-  // Format: ```lang [Title] or ```lang
-  const codeBlockRegex = /```(\w+)(?:\s+\[([^\]]+)\])?\s*\n([\s\S]*?)```/g
-  const blocks: { lang: string; title: string; code: string }[] = []
-
-  for (const match of content.matchAll(codeBlockRegex)) {
-    blocks.push({
-      lang: match[1],
-      title: match[2] || match[1],
-      code: match[3].trim(),
-    })
-  }
-
-  if (blocks.length === 0) {
-    return `<p>Code group: no code blocks found</p>`
-  }
-
-  const tabsHtml = blocks
-    .map(
-      (block, i) =>
-        `<button class="code-group-tab${i === 0 ? " active" : ""}" data-tab="${i}">${block.title}</button>`,
-    )
-    .join("")
-
-  const panelsHtml = blocks
-    .map((block, i) => {
-      const language = hljs.getLanguage(block.lang) ? block.lang : "plaintext"
-      const highlighted = hljs.highlight(block.code, { language }).value
-      return `<div class="code-group-panel${i === 0 ? " active" : ""}" data-panel="${i}">
-      <pre><code class="hljs language-${language}">${highlighted}</code></pre>
-    </div>`
-    })
-    .join("")
-
-  return `<div class="code-group">
-    <div class="code-group-tabs">${tabsHtml}</div>
-    ${panelsHtml}
-  </div>`
-}
-
-// Simple Marked instance for parsing nested content in containers
-const simpleMarked = new Marked()
-
-// VitePress-compatible custom containers extension
-const containerExtension = {
-  name: "container",
-  level: "block" as const,
-  start(src: string) {
-    const match = src.match(/^:::\s*\w+/)
-    return match?.index
-  },
-  tokenizer(src: string): Tokens.Generic | undefined {
-    // Match ::: container syntax - must start at beginning
-    const lines = src.split("\n")
-    if (!lines[0].match(/^:::\s*\w+/)) return undefined
-
-    const firstLine = lines[0]
-    const typeMatch = firstLine.match(/^:::\s*(\w+)(?:\s+(.+))?$/)
-    if (!typeMatch) return undefined
-
-    const type = typeMatch[1]
-    const title = typeMatch[2]?.trim()
-
-    // Skip code-group - handled by preprocessor
-    if (type === "code-group") return undefined
-
-    // Find closing ::: (skip lines inside code blocks)
-    let depth = 1
-    let endIndex = -1
-    let inCodeBlock = false
-
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i]
-
-      // Track code block state
-      if (line.startsWith("```")) {
-        inCodeBlock = !inCodeBlock
-        continue
-      }
-
-      // Skip ::: detection inside code blocks
-      if (inCodeBlock) continue
-
-      if (line.match(/^:::\s*\w+/)) {
-        depth++
-      } else if (line === ":::") {
-        depth--
-        if (depth === 0) {
-          endIndex = i
-          break
-        }
-      }
-    }
-
-    if (endIndex === -1) return undefined
-
-    const contentLines = lines.slice(1, endIndex)
-    const content = contentLines.join("\n")
-    const raw = `${lines.slice(0, endIndex + 1).join("\n")}\n`
-
-    return {
-      type: "container",
-      raw: raw,
-      containerType: type,
-      title: title,
-      content: content,
-    }
-  },
-  renderer(token: Tokens.Generic) {
-    const type = token.containerType as string
-    const title = token.title as string | undefined
-    const content = token.content as string
-
-    // Handle details container
-    if (type === "details") {
-      const summary = title || "Details"
-      const innerHtml = simpleMarked.parse(content) as string
-      return `<details class="custom-block details">
-<summary>${summary}</summary>
-<div class="details-content">${innerHtml}</div>
-</details>`
-    }
-
-    // Map container types to CSS classes and default titles
-    const typeMap: Record<string, { class: string; defaultTitle: string }> = {
-      info: { class: "info", defaultTitle: "INFO" },
-      tip: { class: "tip", defaultTitle: "TIP" },
-      warning: { class: "warning", defaultTitle: "WARNING" },
-      danger: { class: "danger", defaultTitle: "DANGER" },
-      note: { class: "info", defaultTitle: "NOTE" },
-    }
-
-    const config = typeMap[type] || {
-      class: "info",
-      defaultTitle: type.toUpperCase(),
-    }
-    const displayTitle = title || config.defaultTitle
-    const innerHtml = simpleMarked.parse(content) as string
-
-    return `<div class="custom-block ${config.class}">
-<p class="custom-block-title">${displayTitle}</p>
-${innerHtml}
-</div>`
-  },
-}
-
-// TOC extension - replaces [[toc]] with table of contents
-const tocExtension = {
-  name: "toc",
-  level: "block" as const,
-  start(src: string) {
-    return src.match(/^\[\[toc\]\]/i)?.index
-  },
-  tokenizer(src: string): Tokens.Generic | undefined {
-    const match = src.match(/^\[\[toc\]\]/i)
-    if (match) {
-      return {
-        type: "toc",
-        raw: match[0],
-      }
-    }
-    return undefined
-  },
-  renderer() {
-    // Placeholder - will be replaced after full parsing
-    return '<nav class="table-of-contents" data-toc-placeholder></nav>'
-  },
-}
-
-// Store line highlight info for post-processing
-const lineHighlightStore = new Map<string, Set<number>>()
-let codeBlockCounter = 0
-
-// Create a new Marked instance to avoid global state issues with client-side navigation
-const markedInstance = new Marked()
-
-// Configure marked with syntax highlighting and line highlighting
-// IMPORTANT: Register extensions FIRST before other configurations
-markedInstance.use({ extensions: [containerExtension, tocExtension] })
-markedInstance.use(
-  markedHighlight({
-    emptyLangClass: "hljs language-plaintext",
-    langPrefix: "hljs language-",
-    highlight(code, lang, _info) {
-      try {
-        // Parse language and line highlights (e.g., "js{1,3-5}")
-        const langMatch = lang.match(/^(\w+)/)
-        const actualLang = langMatch ? langMatch[1] : "plaintext"
-        const language = hljs.getLanguage(actualLang) ? actualLang : "plaintext"
-
-        const highlighted = hljs.highlight(code, { language }).value
-        const lineHighlights = parseLineHighlights(lang)
-
-        // If no line highlights, return as-is
-        if (lineHighlights.size === 0) {
-          return highlighted
-        }
-
-        // Store line highlights for post-processing and return with marker
-        const blockId = `__CODE_BLOCK_${codeBlockCounter++}__`
-        lineHighlightStore.set(blockId, lineHighlights)
-
-        // Return highlighted code with marker prefix for post-processing
-        return `${blockId}\n${highlighted}`
-      } catch {
-        // If highlighting fails, return escaped code
-        return code
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-      }
-    },
-  }),
-)
-
-// Post-process HTML to apply line highlighting
-function applyLineHighlighting(html: string): string {
-  // Find code blocks with our markers (with or without newline after marker)
-  const result = html.replace(
-    /<code([^>]*)>(__CODE_BLOCK_\d+__)(?:\n)?([\s\S]*?)<\/code>/g,
-    (_match, attrs, blockId, code) => {
-      const lineHighlights = lineHighlightStore.get(blockId)
-      if (!lineHighlights) {
-        return `<code${attrs}>${code}</code>`
-      }
-
-      // Apply line highlighting
-      const lines = code.split("\n")
-      const wrappedLines = lines
-        .map((line: string, i: number) => {
-          const lineNum = i + 1
-          if (lineHighlights.has(lineNum)) {
-            return `<span class="line highlighted">${line}</span>`
-          }
-          return `<span class="line">${line}</span>`
-        })
-        .join("\n")
-
-      return `<code${attrs}>${wrappedLines}</code>`
-    },
-  )
-
-  // Remove any leftover markers that weren't processed
-  return result.replace(/__CODE_BLOCK_\d+__\n?/g, "")
-}
-
-// Custom renderer
-const renderer = new Renderer()
-
-// Custom renderer to add data-viewer to images
-renderer.image = ({ href, title, text }) => {
-  const titleAttr = title ? ` title="${title}"` : ""
-  return `<img src="${href}" alt="${text}"${titleAttr} data-viewer="true" class="cursor-pointer transition-transform hover:scale-[1.02]" />`
-}
-
-// Open external links in a new tab so readers don't get navigated away
-// from the post; relative/internal links stay in the current tab.
-renderer.link = ({ href, title, text }) => {
-  const titleAttr = title ? ` title="${title}"` : ""
-  const isExternal = /^https?:\/\//i.test(href)
-  const externalAttrs = isExternal
-    ? ' target="_blank" rel="noopener noreferrer"'
-    : ""
-  return `<a href="${href}"${titleAttr}${externalAttrs}>${text}</a>`
-}
-
-// Custom heading renderer for TOC anchors
-renderer.heading = ({ tokens, depth }) => {
-  const text = tokens
-    .map(
-      (t) => (t as { text?: string }).text || (t as { raw?: string }).raw || "",
-    )
-    .join("")
-  const slug = generateSlug(text)
-  return `<h${depth} id="${slug}">${text}<a class="header-anchor" href="#${slug}">#</a></h${depth}>\n`
-}
-
-markedInstance.use({ renderer })
-
-// Extract TOC from content (excluding code blocks and code-groups)
-function extractToc(
-  content: string,
-  outline?: number | [number, number] | "deep" | false,
-): TocItem[] {
-  if (outline === false) return []
-
-  // Remove code blocks and code-groups before extracting headings
-  let cleanContent = content
-
-  // Remove fenced code blocks (```...```)
-  cleanContent = cleanContent.replace(/```[\s\S]*?```/g, "")
-
-  // Remove code-group blocks (::: code-group ... :::)
-  cleanContent = cleanContent.replace(/:::\s*code-group[\s\S]*?:::/g, "")
-
-  const items: TocItem[] = []
-  const headingRegex = /^(#{1,6})\s+(.+)$/gm
-  let match: RegExpExecArray | null = null
-
-  // Determine depth range
-  let minDepth = 2
-  let maxDepth = 3
-  if (outline === "deep") {
-    maxDepth = 6
-  } else if (typeof outline === "number") {
-    maxDepth = outline
-  } else if (Array.isArray(outline)) {
-    minDepth = outline[0]
-    maxDepth = outline[1]
-  }
-
-  for (const match of cleanContent.matchAll(headingRegex)) {
-    const level = match[1].length
-    if (level >= minDepth && level <= maxDepth) {
-      const text = match[2].trim()
-      items.push({
-        level,
-        text,
-        slug: generateSlug(text),
-      })
-    }
-  }
-
-  return items
-}
-
-// Generate TOC HTML
-function generateTocHtml(items: TocItem[]): string {
-  if (items.length === 0) return ""
-
-  const minLevel = Math.min(...items.map((i) => i.level))
-
-  return `<nav class="table-of-contents">
-    <ul>
-      ${items
-        .map(
-          (item) => `
-        <li style="margin-left: ${(item.level - minLevel) * 1}rem">
-          <a href="#${item.slug}">${item.text}</a>
-        </li>
-      `,
-        )
-        .join("")}
-    </ul>
-  </nav>`
-}
-
-// Store code groups for post-processing
-const codeGroupStore = new Map<string, string>()
-
-// Preprocess code-group before passing to marked
-function preprocessCodeGroups(content: string): string {
-  codeGroupStore.clear()
-
-  // Find all ::: code-group ... ::: blocks
-  const lines = content.split("\n")
-  const result: string[] = []
-  let i = 0
-  let groupId = 0
-
-  while (i < lines.length) {
-    const line = lines[i]
-
-    // Check for code-group start
-    if (line.match(/^:::\s*code-group\s*$/)) {
-      // Find the closing :::
-      let endIndex = -1
-      let inCodeBlock = false
-
-      for (let j = i + 1; j < lines.length; j++) {
-        if (lines[j].startsWith("```")) {
-          inCodeBlock = !inCodeBlock
-        }
-        if (!inCodeBlock && lines[j] === ":::") {
-          endIndex = j
-          break
-        }
-      }
-
-      if (endIndex !== -1) {
-        // Extract and render the code group
-        const codeGroupContent = lines.slice(i + 1, endIndex).join("\n")
-        const rendered = renderCodeGroup(codeGroupContent)
-        const placeholder = `<!--CODE_GROUP_${groupId}-->`
-        codeGroupStore.set(placeholder, rendered)
-        // Add empty lines around placeholder to ensure it's not wrapped in <p>
-        result.push("")
-        result.push(placeholder)
-        result.push("")
-        groupId++
-        i = endIndex + 1
-        continue
-      }
-    }
-
-    result.push(line)
-    i++
-  }
-
-  return result.join("\n")
-}
-
-// Restore code groups after marked parsing
-function restoreCodeGroups(html: string): string {
-  let result = html
-  for (const [placeholder, rendered] of codeGroupStore) {
-    // Remove potential <p> wrapping around placeholder
-    result = result.replace(`<p>${placeholder}</p>`, rendered)
-    result = result.replace(placeholder, rendered)
-  }
-  return result
-}
-
-// Social embed store for post-processing
-const socialEmbedStore = new Map<string, SocialEmbedData>()
-let socialEmbedCounter = 0
-
-// Detect social embed type from URL
-function detectSocialEmbedType(url: string): SocialEmbedType | null {
-  try {
-    const urlObj = new URL(url)
-    const hostname = urlObj.hostname.toLowerCase()
-
-    // X/Twitter
-    if (hostname === "twitter.com" || hostname === "x.com") {
-      // Profile: /username (no /status)
-      if (
-        urlObj.pathname.match(/^\/[\w]+$/) &&
-        ![
-          "home",
-          "explore",
-          "notifications",
-          "messages",
-          "settings",
-          "i",
-        ].includes(urlObj.pathname.slice(1))
-      ) {
-        return "x-profile"
-      }
-      // Status: /username/status/id
-      if (urlObj.pathname.match(/\/[\w]+\/status\/\d+/)) {
-        return "x"
-      }
-    }
-
-    // GitHub code: /owner/repo/blob/branch/path
-    if (
-      hostname === "github.com" &&
-      urlObj.pathname.match(/^\/[\w.-]+\/[\w.-]+\/blob\//)
-    ) {
-      return "github"
-    }
-
-    // Misskey note: /notes/xxx
-    if (urlObj.pathname.match(/\/notes\/[\w]+/)) {
-      return "misskey"
-    }
-
-    // Misskey profile: /@username (no /notes)
-    if (
-      urlObj.pathname.match(/^\/@[\w-]+$/) &&
-      !urlObj.pathname.includes("/notes/")
-    ) {
-      // Could be Misskey or Mastodon - check for common Misskey instances
-      const misskeyInstances = [
-        "misskey.io",
-        "misskey.art",
-        "nijimiss.moe",
-        "submarin.online",
-        "sushi.ski",
-      ]
-      if (misskeyInstances.some((inst) => hostname.includes(inst))) {
-        return "misskey-profile"
-      }
-      // Default to mastodon-profile for @user pattern without status ID
-      return "mastodon-profile"
-    }
-
-    // Mastodon status: /@user/123456 or /users/user/statuses/123456
-    if (
-      urlObj.pathname.match(/\/@[\w-]+\/\d+/) ||
-      urlObj.pathname.match(/\/users\/[\w-]+\/statuses\/\d+/)
-    ) {
-      return "mastodon"
-    }
-
-    // Mastodon profile: /users/username
-    if (urlObj.pathname.match(/^\/users\/[\w-]+$/)) {
-      return "mastodon-profile"
-    }
-
-    // Pleroma notice
-    if (urlObj.pathname.match(/\/notice\/[\w]+/)) {
-      return "pleroma"
-    }
-  } catch {
-    // Invalid URL
-  }
-  return null
-}
-
-// Preprocess social embeds: @[type](url) syntax
-function preprocessSocialEmbeds(content: string): string {
-  socialEmbedStore.clear()
-  socialEmbedCounter = 0
-
-  // Match @[type](url) or @[](url) for auto-detection
-  // type can be: x, mastodon, misskey, pleroma, x-profile, mastodon-profile, misskey-profile, pleroma-profile, github, link, or empty for auto-detect
-  const embedRegex =
-    /^@\[(x|mastodon|misskey|pleroma|x-profile|mastodon-profile|misskey-profile|pleroma-profile|github|link)?\]\(([^)]+)\)$/gm
-
-  return content.replace(embedRegex, (match, type, url) => {
-    // Auto-detect type if not specified
-    let embedType: SocialEmbedType | null = type || null
-    if (!embedType) {
-      embedType = detectSocialEmbedType(url)
-    }
-
-    // Fallback to link for any valid URL
-    if (!embedType) {
-      try {
-        new URL(url)
-        embedType = "link"
-      } catch {
-        return match
-      }
-    }
-
-    const embedId = `social-embed-${socialEmbedCounter++}`
-    const embedData: SocialEmbedData = {
-      type: embedType,
-      url: url.trim(),
-      id: embedId,
-    }
-    socialEmbedStore.set(embedId, embedData)
-
-    // Return a placeholder div that will be replaced with Vue component
-    return `\n<div data-social-embed="${embedId}"></div>\n`
+const rendered = computed(() => {
+  if (!post.value) return null
+  return renderBlogMarkdown(post.value.content, {
+    mode: "spa",
+    outline: post.value.outline,
+    highlight: highlightCode,
+    hasLanguage,
   })
-}
-
-// Get all social embeds from current content
-function getSocialEmbedsFromContent(): SocialEmbedData[] {
-  return Array.from(socialEmbedStore.values())
-}
-
-// CommonMark only opens/closes **bold** when the delimiter is "flanked" by
-// whitespace or punctuation on the outside. If a `**` sits directly against
-// ordinary text on one side and punctuation (e.g. `『`) on the other — common
-// in Japanese, e.g. "の**『名前』**を" — the flanking rule fails and the
-// literal ** shows up unrendered. Nudge it with an invisible U+2060 just
-// inside the delimiter so the rule passes without changing the visible text.
-function fixEmphasisFlanking(content: string): string {
-  const isPunct = (ch: string) => /\p{P}/u.test(ch)
-  // Skip fenced code blocks - `**` inside code is literal text, not markdown.
-  return content
-    .split(/(```[\s\S]*?```)/g)
-    .map((segment, i) => {
-      if (i % 2 === 1) return segment
-      return segment.replace(/\*\*([^\n*]+?)\*\*/g, (_match, inner: string) => {
-        const start = isPunct(inner[0]) ? "\u2060" : ""
-        const end = isPunct(inner[inner.length - 1]) ? "\u2060" : ""
-        return `**${start}${inner}${end}**`
-      })
-    })
-    .join("")
-}
-
-const renderedContent = computed(() => {
-  if (!post.value) return ""
-
-  // Reset code block counter for each render
-  codeBlockCounter = 0
-  lineHighlightStore.clear()
-
-  const rawContent = fixEmphasisFlanking(post.value.content)
-
-  // Extract TOC items
-  tocItems.value = extractToc(rawContent, post.value.outline)
-
-  // Preprocess social embeds before code-groups
-  let content = preprocessSocialEmbeds(rawContent)
-
-  // Preprocess code-groups before parsing
-  const preprocessed = preprocessCodeGroups(content)
-
-  // Parse markdown
-  let html = markedInstance.parse(preprocessed) as string
-
-  // Apply line highlighting post-processing
-  html = applyLineHighlighting(html)
-
-  // Restore code groups (replace placeholders with actual rendered HTML)
-  html = restoreCodeGroups(html)
-
-  // Replace TOC placeholder with actual TOC
-  const tocHtml = generateTocHtml(tocItems.value)
-  html = html.replace(
-    /<nav class="table-of-contents" data-toc-placeholder><\/nav>/g,
-    tocHtml,
-  )
-
-  return html
 })
+
+const renderedContent = computed(() => rendered.value?.html ?? "")
+const tocItems = computed(() => rendered.value?.toc ?? [])
 
 // Track rendered embeds to mount after DOM update
 const embedsToMount = ref<SocialEmbedData[]>([])
@@ -819,7 +122,7 @@ watch(
   renderedContent,
   () => {
     // Get embeds from content after parsing
-    embedsToMount.value = getSocialEmbedsFromContent()
+    embedsToMount.value = rendered.value?.embeds ?? []
     // Wait for DOM to update before Teleport can mount
     nextTick(() => {
       socialEmbeds.value = embedsToMount.value
@@ -839,36 +142,12 @@ const formatDate = (dateStr: string) => {
 }
 
 // Calculate character count (excluding code blocks and frontmatter)
-const characterCount = computed(() => {
-  if (!post.value) return 0
-
-  let content = post.value.content
-
-  // Remove frontmatter
-  content = content.replace(/^---[\s\S]*?---\n?/, "")
-
-  // Remove code blocks
-  content = content.replace(/```[\s\S]*?```/g, "")
-
-  // Remove inline code
-  content = content.replace(/`[^`]+`/g, "")
-
-  // Remove markdown syntax
-  content = content.replace(/[#*_[\]()!>-]/g, "")
-
-  // Remove URLs
-  content = content.replace(/https?:\/\/[^\s]+/g, "")
-
-  // Remove whitespace and count
-  return content.replace(/\s/g, "").length
-})
+const characterCount = computed(() =>
+  post.value ? countBlogCharacters(post.value.content) : 0,
+)
 
 // Calculate reading time (Japanese: ~400-600 chars/min, use 500)
-const readingTime = computed(() => {
-  const chars = characterCount.value
-  const minutes = Math.ceil(chars / 500)
-  return minutes < 1 ? 1 : minutes
-})
+const readingTime = computed(() => estimateReadingMinutes(characterCount.value))
 
 const shareTitle = computed(() => `${post.value?.title} | Blog`)
 
@@ -1256,14 +535,14 @@ function setupCodeGroupTabs() {
             <ul class="space-y-1">
               <li
                 v-for="item in tocItems"
-                :key="item.slug"
+                :key="item.id"
                 :style="{ paddingLeft: `${(item.level - 2) * 0.75}rem` }"
               >
                 <a
-                  :href="`#${item.slug}`"
+                  :href="`#${item.id}`"
                   class="block px-2 py-1.5 text-sm rounded transition-colors"
                   :class="
-                    activeHeading === item.slug
+                    activeHeading === item.id
                       ? 'text-blue-400 bg-blue-500/20 font-medium'
                       : 'text-neutral-300 hover:text-blue-400 hover:bg-neutral-800/50'
                   "
