@@ -127,6 +127,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
   }
   newHeaders.set("Content-Type", "text/html; charset=utf-8")
+  // どのページも同じオリジンからしか iframe に埋め込ませない。SPA なので、埋め込まれた
+  // 普通のページからでもクライアント側の遷移で編集画面やプレビューに行けてしまうため。
+  // public/_headers は Functions が返したレスポンスには付かないので、ここで付ける
+  newHeaders.set("Content-Security-Policy", "frame-ancestors 'self'")
+  newHeaders.set("X-Frame-Options", "SAMEORIGIN")
 
   return rewriter.transform(
     new Response(response.body, {

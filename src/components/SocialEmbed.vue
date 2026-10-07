@@ -24,6 +24,8 @@ import xml from "highlight.js/lib/languages/xml"
 import yaml from "highlight.js/lib/languages/yaml"
 import * as mfm from "mfm-js"
 import { computed, onMounted, ref } from "vue"
+import { sanitizeRemoteHtml } from "@/lib/blog/sanitize.ts"
+import { httpUrl } from "@/lib/url.ts"
 
 // Register languages
 hljs.registerLanguage("javascript", javascript)
@@ -1161,7 +1163,7 @@ onMounted(() => {
       <p class="text-neutral-400 text-sm">
         Failed to load embed from
         <a
-          :href="embedData.url"
+          :href="httpUrl(embedData.url)"
           target="_blank"
           rel="noopener noreferrer"
           class="text-primary hover:underline"
@@ -1180,13 +1182,13 @@ onMounted(() => {
         <!-- Header -->
         <div class="flex items-start gap-3 mb-3">
           <a
-            :href="`https://x.com/${twitterData.author.screen_name}`"
+            :href="httpUrl(`https://x.com/${twitterData.author.screen_name}`)"
             target="_blank"
             rel="noopener noreferrer"
           >
             <img
               v-if="twitterData.author.avatar_url"
-              :src="twitterData.author.avatar_url"
+              :src="httpUrl(twitterData.author.avatar_url)"
               :alt="twitterData.author.name"
               class="w-12 h-12 rounded-full"
             />
@@ -1201,7 +1203,7 @@ onMounted(() => {
           </a>
           <div class="flex-1 min-w-0">
             <a
-              :href="`https://x.com/${twitterData.author.screen_name}`"
+              :href="httpUrl(`https://x.com/${twitterData.author.screen_name}`)"
               target="_blank"
               rel="noopener noreferrer"
               class="block hover:underline"
@@ -1236,7 +1238,7 @@ onMounted(() => {
           <div class="flex items-center gap-2 mb-2">
             <img
               v-if="twitterData.quote.author.avatar_url"
-              :src="twitterData.quote.author.avatar_url"
+              :src="httpUrl(twitterData.quote.author.avatar_url)"
               :alt="twitterData.quote.author.name"
               class="w-5 h-5 rounded-full"
             />
@@ -1278,7 +1280,7 @@ onMounted(() => {
           <!-- Mosaic (multiple photos stitched) -->
           <img
             v-if="twitterData.media.mosaic"
-            :src="twitterData.media.mosaic.formats.webp"
+            :src="httpUrl(twitterData.media.mosaic.formats.webp)"
             alt="Tweet media"
             class="w-full rounded-lg"
             loading="lazy"
@@ -1297,7 +1299,7 @@ onMounted(() => {
             <img
               v-for="(photo, index) in twitterData.media.photos"
               :key="index"
-              :src="photo.url"
+              :src="httpUrl(photo.url)"
               alt="Tweet photo"
               class="w-full rounded-lg object-cover max-h-80"
               loading="lazy"
@@ -1315,14 +1317,14 @@ onMounted(() => {
             >
               <video
                 v-if="video.type === 'video'"
-                :src="video.url"
+                :src="httpUrl(video.url)"
                 :poster="video.thumbnail_url"
                 controls
                 class="w-full rounded-lg max-h-80"
               />
               <video
                 v-else-if="video.type === 'gif'"
-                :src="video.url"
+                :src="httpUrl(video.url)"
                 :poster="video.thumbnail_url"
                 autoplay
                 loop
@@ -1409,7 +1411,7 @@ onMounted(() => {
             </span>
           </div>
           <a
-            :href="embedData.url"
+            :href="httpUrl(embedData.url)"
             target="_blank"
             rel="noopener noreferrer"
             class="text-neutral-500 hover:text-primary"
@@ -1432,19 +1434,19 @@ onMounted(() => {
         <!-- Header -->
         <div class="flex items-start gap-3 mb-3">
           <a
-            :href="mastodonData.account.url"
+            :href="httpUrl(mastodonData.account.url)"
             target="_blank"
             rel="noopener noreferrer"
           >
             <img
-              :src="mastodonData.account.avatar"
+              :src="httpUrl(mastodonData.account.avatar)"
               :alt="mastodonData.account.display_name"
               class="w-12 h-12 rounded-full"
             />
           </a>
           <div class="flex-1 min-w-0">
             <a
-              :href="mastodonData.account.url"
+              :href="httpUrl(mastodonData.account.url)"
               target="_blank"
               rel="noopener noreferrer"
               class="block hover:underline"
@@ -1501,7 +1503,7 @@ onMounted(() => {
         <!-- eslint-disable-next-line vue/no-v-html -->
         <div
           class="prose prose-invert prose-sm max-w-none mb-3"
-          v-html="mastodonData.content"
+          v-html="sanitizeRemoteHtml(mastodonData.content)"
         ></div>
 
         <!-- Media attachments -->
@@ -1522,14 +1524,14 @@ onMounted(() => {
           >
             <img
               v-if="media.type === 'image'"
-              :src="media.preview_url || media.url"
+              :src="httpUrl(media.preview_url || media.url)"
               :alt="media.description || 'Attached image'"
               class="w-full rounded-lg object-cover max-h-80"
               loading="lazy"
             />
             <video
               v-else-if="media.type === 'video' || media.type === 'gifv'"
-              :src="media.url"
+              :src="httpUrl(media.url)"
               :poster="media.preview_url"
               controls
               :autoplay="media.type === 'gifv'"
@@ -1593,7 +1595,7 @@ onMounted(() => {
             </span>
           </div>
           <a
-            :href="embedData.url"
+            :href="httpUrl(embedData.url)"
             target="_blank"
             rel="noopener noreferrer"
             class="text-neutral-500 hover:text-primary"
@@ -1613,19 +1615,19 @@ onMounted(() => {
         <!-- Header -->
         <div class="flex items-start gap-3 mb-3">
           <a
-            :href="`https://${misskeyData.user.host || parseMisskeyUrl(embedData.url)?.instance}/@${misskeyData.user.username}`"
+            :href="httpUrl(`https://${misskeyData.user.host || parseMisskeyUrl(embedData.url)?.instance}/@${misskeyData.user.username}`)"
             target="_blank"
             rel="noopener noreferrer"
           >
             <img
-              :src="misskeyData.user.avatarUrl"
+              :src="httpUrl(misskeyData.user.avatarUrl)"
               :alt="misskeyData.user.name || misskeyData.user.username"
               class="w-12 h-12 rounded-full"
             />
           </a>
           <div class="flex-1 min-w-0">
             <a
-              :href="`https://${misskeyData.user.host || parseMisskeyUrl(embedData.url)?.instance}/@${misskeyData.user.username}`"
+              :href="httpUrl(`https://${misskeyData.user.host || parseMisskeyUrl(embedData.url)?.instance}/@${misskeyData.user.username}`)"
               target="_blank"
               rel="noopener noreferrer"
               class="block hover:underline"
@@ -1692,14 +1694,14 @@ onMounted(() => {
           <template v-for="(file, index) in misskeyData.files" :key="index">
             <img
               v-if="file.type.startsWith('image/')"
-              :src="file.thumbnailUrl || file.url"
+              :src="httpUrl(file.thumbnailUrl || file.url)"
               :alt="file.comment || 'Attached image'"
               class="w-full rounded-lg object-cover max-h-80"
               loading="lazy"
             />
             <video
               v-else-if="file.type.startsWith('video/')"
-              :src="file.url"
+              :src="httpUrl(file.url)"
               :poster="file.thumbnailUrl"
               controls
               class="w-full rounded-lg max-h-80"
@@ -1760,7 +1762,7 @@ onMounted(() => {
             </span>
           </div>
           <a
-            :href="embedData.url"
+            :href="httpUrl(embedData.url)"
             target="_blank"
             rel="noopener noreferrer"
             class="text-neutral-500 hover:text-primary"
@@ -1795,12 +1797,12 @@ onMounted(() => {
         <!-- Avatar and basic info -->
         <div class="flex items-end gap-4 mb-4">
           <a
-            :href="mastodonProfile.url"
+            :href="httpUrl(mastodonProfile.url)"
             target="_blank"
             rel="noopener noreferrer"
           >
             <img
-              :src="mastodonProfile.avatar"
+              :src="httpUrl(mastodonProfile.avatar)"
               :alt="mastodonProfile.display_name"
               class="w-20 h-20 rounded-full border-4 border-neutral-900"
             />
@@ -1808,7 +1810,7 @@ onMounted(() => {
           <div class="flex-1 min-w-0 pb-1">
             <div class="flex items-center gap-2">
               <a
-                :href="mastodonProfile.url"
+                :href="httpUrl(mastodonProfile.url)"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="font-bold text-white text-lg truncate hover:underline"
@@ -1869,7 +1871,7 @@ onMounted(() => {
         <div
           v-if="mastodonProfile.note"
           class="prose prose-invert prose-sm max-w-none mb-4"
-          v-html="mastodonProfile.note"
+          v-html="sanitizeRemoteHtml(mastodonProfile.note)"
         ></div>
 
         <!-- Fields -->
@@ -1886,7 +1888,7 @@ onMounted(() => {
               field.name
             }}</span>
             <!-- eslint-disable-next-line vue/no-v-html -->
-            <span class="text-neutral-100 flex-1" v-html="field.value"></span>
+            <span class="text-neutral-100 flex-1" v-html="sanitizeRemoteHtml(field.value)"></span>
             <svg
               v-if="field.verified_at"
               class="w-4 h-4 text-green-500"
@@ -1941,9 +1943,9 @@ onMounted(() => {
       <div class="p-4 -mt-12">
         <!-- Avatar and basic info -->
         <div class="flex items-end gap-4 mb-4">
-          <a :href="embedData.url" target="_blank" rel="noopener noreferrer">
+          <a :href="httpUrl(embedData.url)" target="_blank" rel="noopener noreferrer">
             <img
-              :src="misskeyProfile.avatarUrl"
+              :src="httpUrl(misskeyProfile.avatarUrl)"
               :alt="misskeyProfile.name || misskeyProfile.username"
               class="w-20 h-20 rounded-full border-4 border-neutral-900"
             />
@@ -1951,7 +1953,7 @@ onMounted(() => {
           <div class="flex-1 min-w-0 pb-1">
             <div class="flex items-center gap-2">
               <a
-                :href="embedData.url"
+                :href="httpUrl(embedData.url)"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="font-bold text-white text-lg truncate hover:underline"
@@ -2052,19 +2054,19 @@ onMounted(() => {
         <!-- Avatar and basic info -->
         <div class="flex items-end gap-4 mb-4">
           <a
-            :href="`https://x.com/${twitterProfile.screen_name}`"
+            :href="httpUrl(`https://x.com/${twitterProfile.screen_name}`)"
             target="_blank"
             rel="noopener noreferrer"
           >
             <img
-              :src="twitterProfile.avatar_url"
+              :src="httpUrl(twitterProfile.avatar_url)"
               :alt="twitterProfile.name"
               class="w-20 h-20 rounded-full border-4 border-neutral-900"
             />
           </a>
           <div class="flex-1 min-w-0 pb-1">
             <a
-              :href="`https://x.com/${twitterProfile.screen_name}`"
+              :href="httpUrl(`https://x.com/${twitterProfile.screen_name}`)"
               target="_blank"
               rel="noopener noreferrer"
               class="font-bold text-white text-lg truncate hover:underline block"
@@ -2116,7 +2118,7 @@ onMounted(() => {
             />
           </svg>
           <a
-            :href="embedData.url"
+            :href="httpUrl(embedData.url)"
             target="_blank"
             rel="noopener noreferrer"
             class="text-neutral-300 hover:text-white text-sm font-medium truncate"
@@ -2174,7 +2176,7 @@ onMounted(() => {
         class="px-4 py-2 bg-neutral-800 border-t border-neutral-700 text-xs text-neutral-500"
       >
         <a
-          :href="embedData.url"
+          :href="httpUrl(embedData.url)"
           target="_blank"
           rel="noopener noreferrer"
           class="hover:text-neutral-300"
@@ -2187,7 +2189,7 @@ onMounted(() => {
     <!-- Link (OGP) embed -->
     <a
       v-else-if="embedData.type === 'link' && ogpData"
-      :href="ogpData.url"
+      :href="httpUrl(ogpData.url)"
       target="_blank"
       rel="noopener noreferrer"
       class="block bg-neutral-900 rounded-lg border border-neutral-700 overflow-hidden hover:border-neutral-600 transition-colors no-underline"
@@ -2196,7 +2198,7 @@ onMounted(() => {
         <!-- Image -->
         <div v-if="ogpData.image" class="w-32 sm:w-48 shrink-0 bg-neutral-800">
           <img
-            :src="ogpData.image"
+            :src="httpUrl(ogpData.image)"
             :alt="ogpData.title || ''"
             class="w-full h-full object-cover"
             loading="lazy"
@@ -2210,7 +2212,7 @@ onMounted(() => {
           <div class="flex items-center gap-2 mb-2">
             <img
               v-if="ogpData.favicon"
-              :src="ogpData.favicon"
+              :src="httpUrl(ogpData.favicon)"
               class="w-4 h-4"
               loading="lazy"
               @error="

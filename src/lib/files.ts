@@ -1,5 +1,6 @@
 // Downloads (R2 の FILES_BUCKET) のファイル一覧まわりの純粋な処理。
-// functions/api/files と noscript のレンダラーで共有する (R2 / Env には依存しない)
+// SPA (Downloads.vue)、functions/api/files・download・download-counts、noscript のレンダラーで共有する
+// (R2 / Env には依存しない。KV はメソッドの形だけを受け取る)
 
 export interface FileItem {
   name: string
@@ -144,13 +145,71 @@ export function formatDate(dateStr: string, timeZone?: string): string {
   })
 }
 
+function encodeKeyPath(key: string): string {
+  return key.split("/").map(encodeURIComponent).join("/")
+}
+
 // 公開ホスト上のダウンロード URL。キーはセグメントごとに URL エンコードする
 export function fileUrl(key: string): string {
-  return `${FILES_PUBLIC_BASE}/${key.split("/").map(encodeURIComponent).join("/")}`
+  return `${FILES_PUBLIC_BASE}/${encodeKeyPath(key)}`
+}
+
+// SPA (Downloads.vue) がこれまで window.open に渡してきた URL。キーをエンコードせずにつなぐ。
+// fileUrl とはキーに % や # などを含むときに結果が変わるので、SPA の挙動を変えないために残している
+export function rawFileUrl(key: string): string {
+  return `${FILES_PUBLIC_BASE}/${key}`
+}
+
+// ダウンロード数を数えてから公開 URL へリダイレクトするエンドポイント (functions/api/download.ts)。
+// JS なしの noscript ページから使う。キーはパスではなくクエリで渡す
+// (public/_routes.json が /*.txt などを Functions から外しているので、パスの末尾に拡張子があると届かない)
+export const DOWNLOAD_ENDPOINT = "/api/download"
+
+export function downloadHref(key: string): string {
+  return `${DOWNLOAD_ENDPOINT}?key=${encodeURIComponent(key)}`
 }
 
 // /downloads 配下のフォルダのページ URL
 export function folderHref(segments: string[]): string {
   if (segments.length === 0) return "/downloads"
   return `/downloads/${segments.map(encodeURIComponent).join("/")}/`
+}
+
+// ダウンロード数は DOWNLOAD_COUNTS (KV) の 1 つのキーに { [ファイルのキー]: 回数 } の JSON でまとめて持つ。
+// POST /api/download-counts と GET /api/download で同じ処理を使う
+export const DOWNLOAD_COUNTS_KEY = "all_counts"
+
+export type DownloadCounts = Record<string, number>
+
+// KVNamespace のうち、ここで使うメソッドだけ
+export interface DownloadCountsStore {
+  get(key: string, type: "json"): Promise<unknown>
+  put(key: string, value: string): Promise<void>
+}
+
+export async function readDownloadCounts(
+  store: DownloadCountsStore,
+): Promise<DownloadCounts> {
+  const data = (await store.get(
+    DOWNLOAD_COUNTS_KEY,
+    "json",
+  )) as DownloadCounts | null
+  return data ?? {}
+}
+
+// counts[key] だと "constructor" などで Object.prototype の値を拾うので自前のプロパティだけ見る
+export function downloadCountOf(counts: DownloadCounts, key: string): number {
+  return Object.hasOwn(counts, key) ? counts[key] : 0
+}
+
+// 読んで +1 して書き戻す。KV に原子的な加算はないので、同時に来たリクエストの分は取りこぼすことがある
+export async function incrementDownloadCount(
+  store: DownloadCountsStore,
+  key: string,
+): Promise<number> {
+  const counts = await readDownloadCounts(store)
+  const count = downloadCountOf(counts, key) + 1
+  counts[key] = count
+  await store.put(DOWNLOAD_COUNTS_KEY, JSON.stringify(counts))
+  return count
 }

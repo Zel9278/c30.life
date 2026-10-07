@@ -41,7 +41,17 @@ const entries = computed(() => [
     })),
   ),
 ])
-const states = ref<AccountState[]>([])
+// 最初の描画から entries と同じ数・同じ順番の state を用意しておく
+// (onMounted で入れると、初回描画で FediAccountCard に undefined が渡って落ちる)
+const states = ref<AccountState[]>(
+  entries.value.map(({ account }) => ({
+    account,
+    data: null,
+    meta: null,
+    loading: true,
+    error: false,
+  })),
+)
 const cache = new Map<string, Promise<AccountData | null>>()
 const metaCache = new Map<string, Promise<MetaData | null>>()
 const totalPosts = computed(() =>
@@ -142,22 +152,17 @@ async function fetchAccount(
 }
 
 onMounted(() => {
-  states.value = entries.value.map(({ account }) => ({
-    account,
-    data: null,
-    meta: null,
-    loading: true,
-    error: false,
-  }))
   entries.value.forEach(({ platform, account }, index) => {
     void Promise.all([
       fetchAccount(platform, account),
       fetchMeta(platform, account.host),
     ]).then(([data, meta]) => {
-      states.value[index].data = data
-      states.value[index].meta = meta
-      states.value[index].loading = false
-      states.value[index].error = !data
+      const state = states.value[index]
+      if (!state) return
+      state.data = data
+      state.meta = meta
+      state.loading = false
+      state.error = !data
     })
   })
 })

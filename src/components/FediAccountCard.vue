@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import type { FediverseAccount } from "../../fediverseLinks"
+import { httpUrl } from "@/lib/url.ts"
+import {
+  accountProfileUrl,
+  type FediverseAccount,
+  type FediversePlatform,
+} from "../../fediverseLinks.ts"
 
-type Platform =
-  | "misskey"
-  | "mk-go"
-  | "mastodon"
-  | "pleroma"
-  | "mitra"
-  | "pixelfed"
+type Platform = FediversePlatform
 type AccountData = {
   name?: string
   display_name?: string
@@ -40,14 +39,14 @@ function formatNumber(value: number): string {
   <p v-else-if="state.error" class="text-red-400 text-sm">読み込みエラー</p>
   <a
     v-else
-    :href="state.data?.url || (platform === 'misskey' ? `https://${state.account.host}/@${state.account.userId}` : `https://${state.account.host}/${state.account.profilePrefix === 'plain' ? '' : '@'}${state.account.userId}`)"
+    :href="httpUrl(state.data?.url) || accountProfileUrl(platform, state.account)"
     target="_blank"
     rel="noopener noreferrer"
     class="flex items-start gap-3"
   >
     <img
       v-if="state.data?.avatarUrl || state.data?.avatar"
-      :src="state.data.avatarUrl || state.data.avatar"
+      :src="httpUrl(state.data.avatarUrl || state.data.avatar)"
       :alt="state.data.name || state.data.display_name || state.data.username || state.account.userId"
       :class="large ? 'w-16 h-16' : 'w-12 h-12'"
       class="rounded-full object-cover shrink-0"

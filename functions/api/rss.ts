@@ -1,3 +1,5 @@
+import { listPublishedPostSources } from "../../src/lib/blog/posts.ts"
+
 interface Env {
   BLOG_BUCKET: R2Bucket
 }
@@ -8,56 +10,6 @@ interface BlogPost {
   date: string
   description?: string
   content: string
-}
-
-interface Frontmatter {
-  title?: string
-  date?: string
-  description?: string
-}
-
-// Parse frontmatter from markdown
-function parseFrontmatter(content: string): {
-  data: Frontmatter
-  content: string
-} {
-  const normalized = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/
-  const match = normalized.match(frontmatterRegex)
-
-  if (!match) {
-    return { data: {}, content: normalized }
-  }
-
-  const frontmatter = match[1]
-  const body = match[2]
-
-  const data: Frontmatter = {}
-
-  for (const line of frontmatter.split("\n")) {
-    const [key, ...valueParts] = line.split(":")
-    if (key && valueParts.length > 0) {
-      const value = valueParts
-        .join(":")
-        .trim()
-        .replace(/^["']|["']$/g, "")
-      const trimmedKey = key.trim()
-
-      switch (trimmedKey) {
-        case "title":
-          data.title = value
-          break
-        case "date":
-          data.date = value
-          break
-        case "description":
-          data.description = value
-          break
-      }
-    }
-  }
-
-  return { data, content: body }
 }
 
 // Escape XML special characters
@@ -145,31 +97,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const baseUrl = `${url.protocol}//${url.host}`
 
   try {
-    // List all blog posts
-    const listed = await env.BLOG_BUCKET.list()
-    const posts: BlogPost[] = []
-
-    for (const object of listed.objects) {
-      if (!object.key.endsWith(".md")) continue
-
-      const file = await env.BLOG_BUCKET.get(object.key)
-      if (!file) continue
-
-      const rawContent = await file.text()
-      const { data, content } = parseFrontmatter(rawContent)
-
-      const id = object.key.replace(/\.md$/, "")
-      const title = data.title || id
-      const date = data.date || object.uploaded.toISOString().split("T")[0]
-
-      posts.push({
+    // 公開済みの記事だけ (下書きと "_" 始まりなど無効な ID は除外)。キーの昇順
+    const sources = await listPublishedPostSources(env.BLOG_BUCKET)
+    const posts: BlogPost[] = sources.map(
+      ({ id, meta, content, uploaded }) => ({
         id,
-        title,
-        date,
-        description: data.description,
+        title: meta.title || id,
+        date: meta.date || uploaded.toISOString().split("T")[0],
+        description: meta.description,
         content,
-      })
-    }
+      }),
+    )
 
     // Sort by date (newest first)
     posts.sort(

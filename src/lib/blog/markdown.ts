@@ -1,23 +1,41 @@
 // ブログ本文の Markdown → HTML パイプライン (DOM 非依存)。
-// SPA (BlogPost.vue) と noscript (サーバー側) の両方から使う。
+// SPA (BlogPost.vue / BlogPreview.vue / BlogEditor.vue) と noscript (サーバー側) の両方から使う。
 //
-// - mode "spa": BlogPost.vue がもともと出していたのと完全に同じマークアップ。
-//   公開済み記事の描画結果を変えないため、出力はバイト単位で一致させている
-//   (エスケープしない箇所や String.replace の "$" 置換の癖も含めて元のまま)。
+// - mode "spa": ブラウザで v-html に入れる用のマークアップ。生 HTML はそのまま通すので、
+//   呼び出し側は必ず ./sanitize.ts の sanitizeBlogHtml (DOMPurify) に通してから描画すること。
+//   Markdown 由来のリンク/画像の URL は http(s) / mailto / 相対 / # 以外を "#" にし、
+//   属性値・コンテナのタイトル・コードグループのタイトルはエスケープする。
 // - mode "static": noscript 用。JS 不要で、生 HTML は許可リストのタグだけを属性なしで通し、
 //   それ以外はすべてエスケープする。
+//
+// どちらのモードも同じ記法に対応する:
+// - VitePress 互換のカスタムコンテナ (::: info / tip / warning / danger / details / code-group)
+// - [[toc]] / 見出しアンカー (id は GitHub と同じく slug, slug-1, slug-2 … で重複しない)
+// - 脚注 ([^1] と [^1]: 本文) / <Badge type="..." text="..." /> / GitHub 形式のアラート (> [!NOTE] など)
+// - @[type](url) のソーシャル埋め込み / コードの行ハイライト (```js{1,3-5})
 //
 // Workers の isolate ではモジュールの状態がリクエスト間で共有されるので、
 // Marked インスタンスと一時的な Map/カウンタは呼び出しごとに作り直す。
 // highlight.js はここでは import しない (Worker のバンドルを小さく保つため)。
 // SPA 側は ./hljs.ts の関数を options で渡す。
 
-import { Marked, Renderer, type RendererObject, type Tokens } from "marked"
+import {
+  Marked,
+  Renderer,
+  type RendererObject,
+  type Token,
+  Tokenizer,
+  type TokenizerAndRendererExtension,
+  type TokenizerObject,
+  type Tokens,
+} from "marked"
 import { markedHighlight } from "marked-highlight"
 import { escapeHtml, neutralizeNoscript, safeUrl } from "../../noscript/html.ts"
 
 export interface TocItem {
+  // 描画された見出しの id と同じ値 (重複は -1, -2 … で区別済み)
   id: string
+  // 見出しの表示テキスト (Markdown 記法や HTML タグを除いたプレーンテキスト)
   text: string
   level: number
 }
@@ -43,9 +61,11 @@ export interface SocialEmbedData {
 }
 
 export interface RenderBlogMarkdownOptions {
-  // "spa": BlogPost.vue が今出しているのと同じマークアップ
+  // "spa": ブラウザ用 (呼び出し側で sanitizeBlogHtml に通すこと)
   // "static": noscript 用。JS 不要・生 HTML は許可リスト以外エスケープ
   mode: "spa" | "static"
+  // [[toc]] と戻り値の toc に含める見出しレベル (VitePress の outline と同じ)。
+  // 未指定なら h2〜h3、false なら目次なし
   outline?: Outline
   // コードハイライト (spa のみ)。未指定ならエスケープしたプレーンテキスト
   // lang は hasLanguage で解決済みの言語名 (未登録なら "plaintext")
@@ -56,10 +76,18 @@ export interface RenderBlogMarkdownOptions {
 
 export interface RenderedBlogMarkdown {
   html: string
+  // outline で絞り込んだ見出しの一覧 ([[toc]] と同じ内容)
   toc: TocItem[]
   // @[type](url) の埋め込み。spa では <div data-social-embed="id"> の中身を
   // SocialEmbed コンポーネントで描画するのに使う
   embeds: SocialEmbedData[]
+}
+
+// 描画中に集めた見出し
+interface HeadingEntry {
+  level: number
+  text: string
+  slug: string
 }
 
 // 呼び出しごとの一時状態
@@ -70,17 +98,18 @@ interface RenderState {
   codeGroupStore: Map<string, string>
   socialEmbedStore: Map<string, SocialEmbedData>
   socialEmbedCounter: number
+  // 見出し (文書順)。目次はここから作る
+  headings: HeadingEntry[]
+  // slug ごとの出現回数 (github-slugger と同じ規則で重複を避ける)
+  slugOccurrences: Map<string, number>
+  // 脚注 id → 描画済みの本文 HTML (最初の定義を使う)
+  footnotes: Map<string, string>
+  // 脚注 id → 本文中の参照回数 (2 回目以降の参照の id を fnref-x-2 … にする)
+  footnoteRefCounts: Map<string, number>
   // static: 生 HTML 中で開いたままの許可タグ
   openTags: string[]
   // static: 今描画中のブロックより外側で開いたタグの数。ブロックの中から外側のタグは閉じさせない
   floor: number
-}
-
-// 元の extractToc の戻り値 (slug は見出しの id と同じ規則)
-interface RawTocItem {
-  level: number
-  text: string
-  slug: string
 }
 
 // ---------------------------------------------------------------------------
@@ -118,6 +147,19 @@ export function generateSlug(text: string): string {
     .trim()
 }
 
+// 重複しない slug (GitHub と同じく 2 回目以降は slug-1, slug-2 …)
+function uniqueSlug(state: RenderState, base: string): string {
+  const seen = state.slugOccurrences
+  let slug = base
+  while (seen.has(slug)) {
+    const count = (seen.get(base) ?? 0) + 1
+    seen.set(base, count)
+    slug = `${base}-${count}`
+  }
+  seen.set(slug, 0)
+  return slug
+}
+
 function resolveLanguage(state: RenderState, lang: string): string {
   return state.options.hasLanguage?.(lang) ? lang : "plaintext"
 }
@@ -144,6 +186,153 @@ function cleanUrl(url: string): string {
   return safeUrl(withoutBreaks.slice(start, end))
 }
 
+// 生 HTML / 属性値の中のテキスト。既存の文字参照 (&amp; など) は二重にエスケープしない
+function escapeHtmlText(text: string): string {
+  return text
+    .replace(
+      /&(?!(?:#\d{1,7}|#[xX][\da-fA-F]{1,6}|[a-zA-Z][a-zA-Z\d]*);)/g,
+      "&amp;",
+    )
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+}
+
+// 目次のテキストや URL の判定用。数値文字参照とよく使う名前付き文字参照だけ戻す
+// (知らない名前はそのまま残す。URL はこの後で必ず全部エスケープするので、
+// ブラウザ側で別の文字に化けることはない)
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: "\u00a0",
+  copy: "©",
+  reg: "®",
+  trade: "™",
+  hellip: "…",
+  mdash: "—",
+  ndash: "–",
+  middot: "·",
+  times: "×",
+  divide: "÷",
+  laquo: "«",
+  raquo: "»",
+  lsquo: "‘",
+  rsquo: "’",
+  ldquo: "“",
+  rdquo: "”",
+  larr: "←",
+  rarr: "→",
+  uarr: "↑",
+  darr: "↓",
+  yen: "¥",
+  deg: "°",
+}
+
+function decodeEntities(text: string): string {
+  return text.replace(
+    /&(?:#(\d{1,7})|#[xX]([\da-fA-F]{1,6})|([a-zA-Z][a-zA-Z\d]*));/g,
+    (whole, dec?: string, hex?: string, name?: string) => {
+      if (name !== undefined) return NAMED_ENTITIES[name] ?? whole
+      const code =
+        dec !== undefined ? parseInt(dec, 10) : parseInt(hex ?? "", 16)
+      return code === 0 || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)
+        ? "\uFFFD"
+        : String.fromCodePoint(code)
+    },
+  )
+}
+
+// Markdown のリンク/画像の URL。文字参照を戻してから (ブラウザが属性値でするのと同じ)
+// スキームを判定し、http(s) / mailto / 相対 / # 以外は "#" にする。
+// 戻り値はエスケープ前の文字列なので、属性に入れるときは escapeHtml を通す
+// (文字参照を残すエスケープだと、ここで判定していない文字に化ける可能性がある)
+function markdownUrl(href: string): string {
+  return cleanUrl(decodeEntities(href))
+}
+
+// marked の既定のレンダラーと同じ URL のパーセントエンコード (コンテナ内の出力を変えないため)
+function encodeUrl(url: string): string | null {
+  try {
+    return encodeURI(url).replace(/%25/g, "%")
+  } catch {
+    return null
+  }
+}
+
+// 生 HTML のタグを除く (属性値の中の ">" は飛ばす)
+const STRIP_TAG_RE =
+  /<!--[\s\S]*?(?:-->|$)|<\/?[a-zA-Z][^\s/>]*(?:[^>"']|"[^"]*"|'[^']*')*>/g
+
+// <Badge type="info" text="..." /> (VitePress 互換)
+const BADGE_RE =
+  /<badge\s+type=["']([^"']+)["']\s+text=["']([^"']+)["']\s*\/?>/gi
+const BADGE_TAG_RE =
+  /^<badge\s+type=["']([^"']+)["']\s+text=["']([^"']+)["']\s*\/?>$/i
+
+function renderBadge(type: string, text: string): string {
+  const typeClass = type.replace(/[^\w-]/g, "")
+  return `<span class="badge badge-${typeClass}">${escapeHtmlText(text)}</span>`
+}
+
+function transformBadges(html: string): string {
+  return html.replace(BADGE_RE, (_match, type: string, text: string) =>
+    renderBadge(type, text),
+  )
+}
+
+// 見出しの表示テキスト (目次と slug 用)。描画結果の textContent に相当するものを
+// トークンから作るので、モードによらず同じ値になる
+function plainText(tokens: Token[]): string {
+  let out = ""
+  for (const token of tokens) {
+    switch (token.type) {
+      case "html":
+        out += decodeEntities(
+          token.text
+            .replace(
+              BADGE_RE,
+              (_match: string, _type: string, text: string) => text,
+            )
+            .replace(STRIP_TAG_RE, ""),
+        )
+        break
+      case "text":
+        out +=
+          "tokens" in token && token.tokens
+            ? plainText(token.tokens)
+            : decodeEntities(token.text)
+        break
+      case "br":
+      case "checkbox":
+      case "footnoteRef":
+        break
+      default:
+        if ("tokens" in token && Array.isArray(token.tokens)) {
+          out += plainText(token.tokens as Token[])
+        } else if ("text" in token && typeof token.text === "string") {
+          out += token.text
+        }
+    }
+  }
+  return out
+}
+
+// 見出しを登録して id を返す (描画順に呼ばれるので重複時の連番も文書順になる)
+function registerHeading(
+  state: RenderState,
+  tokens: Token[],
+  depth: number,
+): string {
+  const text = plainText(tokens).trim()
+  const slug = uniqueSlug(state, generateSlug(text))
+  state.headings.push({ level: depth, text, slug })
+  return slug
+}
+
 interface CodeGroupBlock {
   lang: string
   title: string
@@ -166,21 +355,10 @@ function parseCodeGroupBlocks(content: string): CodeGroupBlock[] {
   return blocks
 }
 
-// Extract TOC from content (excluding code blocks and code-groups)
-function extractToc(content: string, outline?: Outline): RawTocItem[] {
+// outline に合う見出しだけを目次にする
+function selectToc(state: RenderState): HeadingEntry[] {
+  const outline = state.options.outline
   if (outline === false) return []
-
-  // Remove code blocks and code-groups before extracting headings
-  let cleanContent = content
-
-  // Remove fenced code blocks (```...```)
-  cleanContent = cleanContent.replace(/```[\s\S]*?```/g, "")
-
-  // Remove code-group blocks (::: code-group ... :::)
-  cleanContent = cleanContent.replace(/:::\s*code-group[\s\S]*?:::/g, "")
-
-  const items: RawTocItem[] = []
-  const headingRegex = /^(#{1,6})\s+(.+)$/gm
 
   // Determine depth range
   let minDepth = 2
@@ -194,19 +372,9 @@ function extractToc(content: string, outline?: Outline): RawTocItem[] {
     maxDepth = outline[1]
   }
 
-  for (const match of cleanContent.matchAll(headingRegex)) {
-    const level = match[1].length
-    if (level >= minDepth && level <= maxDepth) {
-      const text = match[2].trim()
-      items.push({
-        level,
-        text,
-        slug: generateSlug(text),
-      })
-    }
-  }
-
-  return items
+  return state.headings.filter(
+    (item) => item.level >= minDepth && item.level <= maxDepth,
+  )
 }
 
 // Preprocess code-group before passing to marked
@@ -352,6 +520,15 @@ function detectSocialEmbedType(url: string): SocialEmbedType | null {
   return null
 }
 
+function isHttpUrl(url: string): boolean {
+  try {
+    const { protocol } = new URL(url)
+    return protocol === "https:" || protocol === "http:"
+  } catch {
+    return false
+  }
+}
+
 // Preprocess social embeds: @[type](url) syntax
 function preprocessSocialEmbeds(
   content: string,
@@ -367,6 +544,9 @@ function preprocessSocialEmbeds(
     /^@\[(x|mastodon|misskey|pleroma|x-profile|mastodon-profile|misskey-profile|pleroma-profile|github|link)?\]\(([^)]+)\)$/gm
 
   return content.replace(embedRegex, (match, type, url) => {
+    // 埋め込みにするのは http(s) の URL だけ (javascript: などは普通の Markdown として扱う)
+    if (!isHttpUrl(url.trim())) return match
+
     // Auto-detect type if not specified
     let embedType: SocialEmbedType | null = type || null
     if (!embedType) {
@@ -489,7 +669,9 @@ const CONTAINER_TYPES: Record<string, { class: string; defaultTitle: string }> =
 
 function containerConfig(type: string) {
   return (
-    CONTAINER_TYPES[type] || {
+    (Object.hasOwn(CONTAINER_TYPES, type)
+      ? CONTAINER_TYPES[type]
+      : undefined) ?? {
       class: "info",
       defaultTitle: type.toUpperCase(),
     }
@@ -535,16 +717,145 @@ const tocExtension = {
 const TOC_PLACEHOLDER_RE =
   /<nav class="table-of-contents" data-toc-placeholder><\/nav>/g
 
-function headingText(tokens: Tokens.Generic[]): string {
-  return tokens
-    .map(
-      (t) => (t as { text?: string }).text || (t as { raw?: string }).raw || "",
-    )
-    .join("")
+// ---------------------------------------------------------------------------
+// 脚注 ([^id] と [^id]: 本文)。マークアップは両モード共通
+// ---------------------------------------------------------------------------
+
+interface FootnoteToken extends Tokens.Generic {
+  id: string
+  tokens: Token[]
+}
+
+function renderFootnoteRef(state: RenderState, id: string): string {
+  const count = (state.footnoteRefCounts.get(id) ?? 0) + 1
+  state.footnoteRefCounts.set(id, count)
+  const refId = count === 1 ? `fnref-${id}` : `fnref-${id}-${count}`
+  const escaped = escapeHtml(id)
+  return `<sup><a href="#fn-${escaped}" id="${escapeHtml(refId)}" class="footnote-ref">[${escaped}]</a></sup>`
+}
+
+// renderInline は脚注の本文 (インライン) を描画する。static では開いたタグの後始末もする
+function createFootnoteExtensions(
+  state: RenderState,
+  renderInline: (
+    parser: { parseInline(tokens: Token[]): string },
+    tokens: Token[],
+  ) => string,
+): TokenizerAndRendererExtension[] {
+  const ref: TokenizerAndRendererExtension = {
+    name: "footnoteRef",
+    level: "inline",
+    start(src: string) {
+      return src.match(/\[\^/)?.index
+    },
+    tokenizer(src: string) {
+      const match = src.match(/^\[\^([^\]\n]+)\](?!:)/)
+      if (!match) return undefined
+      return { type: "footnoteRef", raw: match[0], id: match[1] }
+    },
+    renderer(token: Tokens.Generic) {
+      return renderFootnoteRef(state, (token as FootnoteToken).id)
+    },
+  }
+
+  const def: TokenizerAndRendererExtension = {
+    name: "footnoteDef",
+    level: "block",
+    start(src: string) {
+      return src.match(/^\[\^/)?.index
+    },
+    tokenizer(src: string) {
+      const match = src.match(/^\[\^([^\]\n]+)\]:[ \t]*(.+)(?:\n|$)/)
+      if (!match) return undefined
+      const token: FootnoteToken = {
+        type: "footnoteDef",
+        raw: match[0],
+        id: match[1],
+        text: match[2],
+        tokens: [],
+      }
+      this.lexer.inline(token.text, token.tokens)
+      return token
+    },
+    renderer(token: Tokens.Generic) {
+      // 定義は本文の位置には何も出さず、最後にまとめて出す (同じ id は最初の定義を使う)
+      const { id, tokens } = token as FootnoteToken
+      if (!state.footnotes.has(id)) {
+        state.footnotes.set(id, renderInline(this.parser, tokens))
+      }
+      return ""
+    },
+  }
+
+  return [ref, def]
+}
+
+function renderFootnotesSection(state: RenderState): string {
+  if (state.footnotes.size === 0) return ""
+
+  const footnotes = Array.from(state.footnotes, ([id, html]) => {
+    const escaped = escapeHtml(id)
+    return `<div class="footnote" id="fn-${escaped}"><span class="footnote-id">[${escaped}]</span> ${html} <a href="#fnref-${escaped}" class="footnote-backref">↩</a></div>`
+  }).join("\n")
+
+  return `<div class="footnotes-section">${footnotes}</div>`
 }
 
 // ---------------------------------------------------------------------------
-// mode "spa": BlogPost.vue と同一の出力
+// GitHub 形式のアラート (> [!NOTE] など)。カスタムコンテナと同じ見た目で出す
+// ---------------------------------------------------------------------------
+
+const ALERT_TYPES = {
+  note: { class: "info", title: "NOTE" },
+  tip: { class: "tip", title: "TIP" },
+  important: { class: "important", title: "IMPORTANT" },
+  warning: { class: "warning", title: "WARNING" },
+  caution: { class: "danger", title: "CAUTION" },
+} as const
+
+type AlertType = keyof typeof ALERT_TYPES
+
+type BlockquoteToken = Tokens.Blockquote & { alert?: AlertType }
+
+// 引用の 1 行目が [!TYPE] だけならアラート
+const ALERT_START_RE =
+  /^ {0,3}>[ \t]?\[!(note|tip|important|warning|caution)\][ \t]*(?:\n|$)/i
+
+// 引用のトークナイザーを包み、1 行目のマーカーを取り除いた残りを通常の引用として解析する
+const alertTokenizer: TokenizerObject = {
+  blockquote(src) {
+    const match = ALERT_START_RE.exec(src)
+    if (!match) return false
+
+    const alert = match[1].toLowerCase() as AlertType
+    const rest = src.slice(match[0].length)
+    const body = /^ {0,3}>/.test(rest)
+      ? Tokenizer.prototype.blockquote.call(this, rest)
+      : undefined
+
+    const token: BlockquoteToken = body
+      ? { ...body, raw: match[0] + body.raw, alert }
+      : {
+          type: "blockquote",
+          raw: match[0].replace(/\n$/, ""),
+          text: "",
+          tokens: [],
+          alert,
+        }
+    return token
+  },
+}
+
+function renderAlert(alert: AlertType, inner: string): string {
+  const config = ALERT_TYPES[alert]
+  return `<div class="custom-block ${config.class} github-alert">
+<p class="custom-block-title">${config.title}</p>
+${inner}</div>
+`
+}
+
+// ---------------------------------------------------------------------------
+// mode "spa"
 // ---------------------------------------------------------------------------
 
 // Render code group tabs
@@ -558,7 +869,7 @@ function renderCodeGroupSpa(content: string, state: RenderState): string {
   const tabsHtml = blocks
     .map(
       (block, i) =>
-        `<button class="code-group-tab${i === 0 ? " active" : ""}" data-tab="${i}">${block.title}</button>`,
+        `<button class="code-group-tab${i === 0 ? " active" : ""}" data-tab="${i}">${escapeHtmlText(block.title)}</button>`,
     )
     .join("")
 
@@ -578,9 +889,57 @@ function renderCodeGroupSpa(content: string, state: RenderState): string {
   </div>`
 }
 
+// 見出し・生 HTML (Badge)・アラート・脚注はコンテナの中と外で共通
+function spaSharedRenderer(state: RenderState): RendererObject {
+  return {
+    heading({ tokens, depth }) {
+      const slug = escapeHtml(registerHeading(state, tokens, depth))
+      return `<h${depth} id="${slug}">${this.parser.parseInline(tokens)}<a class="header-anchor" href="#${slug}">#</a></h${depth}>\n`
+    },
+    html({ text }) {
+      return transformBadges(text)
+    },
+    blockquote(token) {
+      const { alert } = token as BlockquoteToken
+      if (!alert) return Renderer.prototype.blockquote.call(this, token)
+      return renderAlert(alert, this.parser.parse(token.tokens))
+    },
+  }
+}
+
 function createSpaMarked(state: RenderState): Marked {
+  const footnoteExtensions = createFootnoteExtensions(state, (parser, tokens) =>
+    parser.parseInline(tokens),
+  )
+
   // Simple Marked instance for parsing nested content in containers
+  // (ハイライトや入れ子のコンテナは無し。リンク/画像は marked の既定と同じ形で URL だけ無害化する)
   const simpleMarked = new Marked()
+  simpleMarked.use({
+    extensions: footnoteExtensions,
+    tokenizer: alertTokenizer,
+    renderer: {
+      ...spaSharedRenderer(state),
+      link(token) {
+        const inner = this.parser.parseInline(token.tokens)
+        const href = encodeUrl(markdownUrl(token.href))
+        if (href === null) return inner
+        const titleAttr = token.title
+          ? ` title="${escapeHtmlText(token.title)}"`
+          : ""
+        return `<a href="${escapeHtml(href)}"${titleAttr}>${inner}</a>`
+      },
+      image({ href, title, text, tokens }) {
+        const alt = tokens
+          ? this.parser.parseInline(tokens, this.parser.textRenderer)
+          : text
+        const src = encodeUrl(markdownUrl(href))
+        if (src === null) return escapeHtmlText(alt)
+        const titleAttr = title ? ` title="${escapeHtmlText(title)}"` : ""
+        return `<img src="${escapeHtml(src)}" alt="${escapeHtmlText(alt)}"${titleAttr}>`
+      },
+    },
+  })
 
   const containerExtension = createContainerExtension((token) => {
     const type = token.containerType as string
@@ -590,19 +949,19 @@ function createSpaMarked(state: RenderState): Marked {
     // Handle details container
     if (type === "details") {
       const summary = title || "Details"
-      const innerHtml = simpleMarked.parse(content) as string
+      const innerHtml = simpleMarked.parse(content, { async: false })
       return `<details class="custom-block details">
-<summary>${summary}</summary>
+<summary>${escapeHtmlText(summary)}</summary>
 <div class="details-content">${innerHtml}</div>
 </details>`
     }
 
     const config = containerConfig(type)
     const displayTitle = title || config.defaultTitle
-    const innerHtml = simpleMarked.parse(content) as string
+    const innerHtml = simpleMarked.parse(content, { async: false })
 
     return `<div class="custom-block ${config.class}">
-<p class="custom-block-title">${displayTitle}</p>
+<p class="custom-block-title">${escapeHtmlText(displayTitle)}</p>
 ${innerHtml}
 </div>`
   })
@@ -611,7 +970,10 @@ ${innerHtml}
 
   // Configure marked with syntax highlighting and line highlighting
   // IMPORTANT: Register extensions FIRST before other configurations
-  markedInstance.use({ extensions: [containerExtension, tocExtension] })
+  markedInstance.use({
+    extensions: [containerExtension, tocExtension, ...footnoteExtensions],
+    tokenizer: alertTokenizer,
+  })
   markedInstance.use(
     markedHighlight({
       emptyLangClass: "hljs language-plaintext",
@@ -645,34 +1007,32 @@ ${innerHtml}
     }),
   )
 
-  // Custom renderer
-  const renderer = new Renderer()
+  markedInstance.use({
+    renderer: {
+      ...spaSharedRenderer(state),
 
-  // Custom renderer to add data-viewer to images
-  renderer.image = ({ href, title, text }) => {
-    const titleAttr = title ? ` title="${title}"` : ""
-    return `<img src="${href}" alt="${text}"${titleAttr} data-viewer="true" class="cursor-pointer transition-transform hover:scale-[1.02]" />`
-  }
+      // Custom renderer to add data-viewer to images
+      image({ href, title, text }) {
+        const titleAttr = title ? ` title="${escapeHtmlText(title)}"` : ""
+        return `<img src="${escapeHtml(markdownUrl(href))}" alt="${escapeHtmlText(text)}"${titleAttr} data-viewer="true" class="cursor-pointer transition-transform hover:scale-[1.02]" />`
+      },
 
-  // Open external links in a new tab so readers don't get navigated away
-  // from the post; relative/internal links stay in the current tab.
-  renderer.link = ({ href, title, text }) => {
-    const titleAttr = title ? ` title="${title}"` : ""
-    const isExternal = /^https?:\/\//i.test(href)
-    const externalAttrs = isExternal
-      ? ' target="_blank" rel="noopener noreferrer"'
-      : ""
-    return `<a href="${href}"${titleAttr}${externalAttrs}>${text}</a>`
-  }
-
-  // Custom heading renderer for TOC anchors
-  renderer.heading = ({ tokens, depth }) => {
-    const text = headingText(tokens)
-    const slug = generateSlug(text)
-    return `<h${depth} id="${slug}">${text}<a class="header-anchor" href="#${slug}">#</a></h${depth}>\n`
-  }
-
-  markedInstance.use({ renderer })
+      // Open external links in a new tab so readers don't get navigated away
+      // from the post; relative/internal links stay in the current tab.
+      link(token) {
+        const href = markdownUrl(token.href)
+        const inner = this.parser.parseInline(token.tokens)
+        const titleAttr = token.title
+          ? ` title="${escapeHtmlText(token.title)}"`
+          : ""
+        const isExternal = /^https?:\/\//i.test(href)
+        const externalAttrs = isExternal
+          ? ' target="_blank" rel="noopener noreferrer"'
+          : ""
+        return `<a href="${escapeHtml(href)}"${titleAttr}${externalAttrs}>${inner}</a>`
+      },
+    },
+  })
   return markedInstance
 }
 
@@ -708,19 +1068,19 @@ function applyLineHighlighting(html: string, state: RenderState): string {
 }
 
 // Restore code groups after marked parsing
-// (元の実装どおり文字列置換なので、置換文字列中の "$&" などは解釈される)
+// (置換文字列は関数で返し、コード中の "$&" などが String.replace に解釈されないようにする)
 function restoreCodeGroupsSpa(html: string, state: RenderState): string {
   let result = html
   for (const [placeholder, rendered] of state.codeGroupStore) {
     // Remove potential <p> wrapping around placeholder
-    result = result.replace(`<p>${placeholder}</p>`, rendered)
-    result = result.replace(placeholder, rendered)
+    result = result.replace(`<p>${placeholder}</p>`, () => rendered)
+    result = result.replace(placeholder, () => rendered)
   }
   return result
 }
 
 // Generate TOC HTML
-function generateTocHtmlSpa(items: RawTocItem[]): string {
+function generateTocHtmlSpa(items: HeadingEntry[]): string {
   if (items.length === 0) return ""
 
   const minLevel = Math.min(...items.map((i) => i.level))
@@ -731,7 +1091,7 @@ function generateTocHtmlSpa(items: RawTocItem[]): string {
         .map(
           (item) => `
         <li style="margin-left: ${(item.level - minLevel) * 1}rem">
-          <a href="#${item.slug}">${item.text}</a>
+          <a href="#${escapeHtml(item.slug)}">${escapeHtml(item.text)}</a>
         </li>
       `,
         )
@@ -740,11 +1100,7 @@ function generateTocHtmlSpa(items: RawTocItem[]): string {
   </nav>`
 }
 
-function renderSpa(
-  rawContent: string,
-  tocItems: RawTocItem[],
-  state: RenderState,
-): string {
+function renderSpa(rawContent: string, state: RenderState): string {
   // Preprocess social embeds before code-groups
   // Return a placeholder div that will be replaced with Vue component
   const content = preprocessSocialEmbeds(
@@ -759,7 +1115,7 @@ function renderSpa(
   )
 
   // Parse markdown
-  let html = createSpaMarked(state).parse(preprocessed) as string
+  let html = createSpaMarked(state).parse(preprocessed, { async: false })
 
   // Apply line highlighting post-processing
   html = applyLineHighlighting(html, state)
@@ -768,10 +1124,10 @@ function renderSpa(
   html = restoreCodeGroupsSpa(html, state)
 
   // Replace TOC placeholder with actual TOC
-  const tocHtml = generateTocHtmlSpa(tocItems)
-  html = html.replace(TOC_PLACEHOLDER_RE, tocHtml)
+  const tocHtml = generateTocHtmlSpa(selectToc(state))
+  html = html.replace(TOC_PLACEHOLDER_RE, () => tocHtml)
 
-  return html
+  return html + renderFootnotesSection(state)
 }
 
 // ---------------------------------------------------------------------------
@@ -810,19 +1166,6 @@ const VOID_TAGS = new Set(["br", "hr"])
 // 自前のプレースホルダーだけはコメントのまま残し、後で差し替える
 const STATIC_PLACEHOLDER_RE = /^<!--(?:CODE_GROUP|SOCIAL_EMBED)_\d+-->$/
 
-// 生 HTML 内のテキスト。既存の文字参照 (&amp; など) は二重にエスケープしない
-function escapeHtmlText(text: string): string {
-  return text
-    .replace(
-      /&(?!(?:#\d{1,7}|#[xX][\da-fA-F]{1,6}|[a-zA-Z][a-zA-Z\d]*);)/g,
-      "&amp;",
-    )
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;")
-}
-
 function closeOpenTags(state: RenderState, depth: number): string {
   let out = ""
   while (state.openTags.length > depth) {
@@ -851,6 +1194,15 @@ function sanitizeRawHtml(html: string, state: RenderState): string {
     }
 
     const name = match[2].toLowerCase()
+
+    // <Badge type="..." text="..." /> は SPA と同じ <span class="badge ..."> にする
+    if (name === "badge") {
+      const badge = match[1] === "/" ? null : whole.match(BADGE_TAG_RE)
+      if (badge) out += renderBadge(badge[1], badge[2])
+      else if (match[1] !== "/") out += escapeHtmlText(whole)
+      continue
+    }
+
     if (!ALLOWED_TAGS.has(name)) {
       out += escapeHtmlText(whole)
       continue
@@ -873,12 +1225,13 @@ function sanitizeRawHtml(html: string, state: RenderState): string {
   return out
 }
 
+// URL は SPA と同じく文字参照を戻してから判定し、属性には全部エスケープして入れる
 function staticLink(
   href: string,
   title: string | null | undefined,
   inner: string,
 ): string {
-  const url = cleanUrl(href)
+  const url = markdownUrl(href)
   const titleAttr = title ? ` title="${escapeHtml(title)}"` : ""
   const externalAttrs = /^https?:\/\//i.test(url)
     ? ' target="_blank" rel="noopener noreferrer"'
@@ -892,7 +1245,7 @@ function staticImage(
   text: string,
 ): string {
   const titleAttr = title ? ` title="${escapeHtml(title)}"` : ""
-  return `<img src="${escapeHtml(cleanUrl(href))}" alt="${escapeHtml(text)}"${titleAttr} loading="lazy">`
+  return `<img src="${escapeHtml(markdownUrl(href))}" alt="${escapeHtml(text)}"${titleAttr} loading="lazy">`
 }
 
 function staticCodeBlock(code: string, lang: string, info: string): string {
@@ -911,8 +1264,8 @@ function staticCodeBlock(code: string, lang: string, info: string): string {
   return `<pre><code${classAttr}>${body}\n</code></pre>\n`
 }
 
-// コンテナ内の Markdown 用。SPA の simpleMarked と同じく拡張・ハイライト・
-// 見出し id は無いが、生 HTML とリンク/画像は無害化する
+// コンテナ内の Markdown 用。SPA の simpleMarked と同じく拡張・ハイライトは
+// 無いが、生 HTML とリンク/画像は無害化する
 // ブロック要素 (li / blockquote / 見出し / 表のセル) の中で開いたままの生 HTML タグは、
 // ブラウザがそのブロックの終了タグで暗黙に閉じる。最後にまとめて閉じると余った </div> などが
 // 外側のレイアウト (.blog-content やカード) を閉じてしまうので、ブロックの終了タグの直前で閉じる
@@ -938,6 +1291,13 @@ function withScope<T>(state: RenderState, render: () => T): T {
   }
 }
 
+// render の中で開いたタグを最後に閉じる (中から外側のタグは閉じさせない)
+function scopedInline(state: RenderState, render: () => string): string {
+  const depth = state.openTags.length
+  const html = withScope(state, render)
+  return html + closeOpenTags(state, depth)
+}
+
 function scopedBlock<T>(
   state: RenderState,
   render: (this: Renderer, token: T) => string,
@@ -950,6 +1310,7 @@ function scopedBlock<T>(
 }
 
 function sharedStaticRenderer(state: RenderState): RendererObject {
+  const quote = scopedBlock(state, Renderer.prototype.blockquote)
   return {
     html({ text }) {
       return sanitizeRawHtml(text, state)
@@ -964,10 +1325,21 @@ function sharedStaticRenderer(state: RenderState): RendererObject {
       return false
     },
     listitem: scopedBlock(state, Renderer.prototype.listitem),
-    blockquote: scopedBlock(state, Renderer.prototype.blockquote),
+    blockquote(token) {
+      const { alert } = token as BlockquoteToken
+      if (!alert) return quote.call(this, token)
+      return renderAlert(
+        alert,
+        scopedInline(state, () => this.parser.parse(token.tokens)),
+      )
+    },
     tablecell: scopedBlock(state, Renderer.prototype.tablecell),
-    // コンテナ内の見出し用 (外側の Marked は id 付きの heading で上書きする)
-    heading: scopedBlock(state, Renderer.prototype.heading),
+    heading({ tokens, depth }) {
+      // id は SPA と同じ規則 (目次やアンカーのリンクが一致するように)
+      const slug = escapeHtml(registerHeading(state, tokens, depth))
+      const inner = scopedInline(state, () => this.parser.parseInline(tokens))
+      return `<h${depth} id="${slug}">${inner}<a class="header-anchor" href="#${slug}">#</a></h${depth}>\n`
+    },
     link({ href, title, tokens }) {
       return staticLink(href, title, this.parser.parseInline(tokens))
     },
@@ -993,7 +1365,7 @@ function renderCodeGroupStatic(content: string): string {
   return `<div class="code-group">\n${panels}</div>\n`
 }
 
-function generateTocHtmlStatic(items: RawTocItem[]): string {
+function generateTocHtmlStatic(items: HeadingEntry[]): string {
   if (items.length === 0) return ""
 
   const minLevel = Math.min(...items.map((i) => i.level))
@@ -1012,16 +1384,19 @@ function renderEmbedStatic(embed: SocialEmbedData): string {
 }
 
 function createStaticMarked(state: RenderState): Marked {
-  const innerMarked = new Marked()
-  innerMarked.use({ renderer: sharedStaticRenderer(state) })
+  const footnoteExtensions = createFootnoteExtensions(state, (parser, tokens) =>
+    scopedInline(state, () => parser.parseInline(tokens)),
+  )
 
-  const parseInner = (content: string) => {
-    const depth = state.openTags.length
-    const html = withScope(state, () =>
-      innerMarked.parse(content, { async: false }),
-    )
-    return html + closeOpenTags(state, depth)
-  }
+  const innerMarked = new Marked()
+  innerMarked.use({
+    extensions: footnoteExtensions,
+    tokenizer: alertTokenizer,
+    renderer: sharedStaticRenderer(state),
+  })
+
+  const parseInner = (content: string) =>
+    scopedInline(state, () => innerMarked.parse(content, { async: false }))
 
   const containerExtension = createContainerExtension((token) => {
     const type = token.containerType as string
@@ -1045,7 +1420,10 @@ ${parseInner(content)}
   })
 
   const markedInstance = new Marked()
-  markedInstance.use({ extensions: [containerExtension, tocExtension] })
+  markedInstance.use({
+    extensions: [containerExtension, tocExtension, ...footnoteExtensions],
+    tokenizer: alertTokenizer,
+  })
   markedInstance.use({
     renderer: {
       ...sharedStaticRenderer(state),
@@ -1054,23 +1432,12 @@ ${parseInner(content)}
         const name = info.match(/^(\w+)/)?.[1] ?? ""
         return staticCodeBlock(text, name, info)
       },
-      heading({ tokens, depth }) {
-        // id は SPA と同じ規則 (目次やアンカーのリンクが一致するように)
-        const slug = escapeHtml(generateSlug(headingText(tokens)))
-        const openDepth = state.openTags.length
-        const inner = withScope(state, () => this.parser.parseInline(tokens))
-        return `<h${depth} id="${slug}">${inner}${closeOpenTags(state, openDepth)}<a class="header-anchor" href="#${slug}">#</a></h${depth}>\n`
-      },
     },
   })
   return markedInstance
 }
 
-function renderStatic(
-  rawContent: string,
-  tocItems: RawTocItem[],
-  state: RenderState,
-): string {
+function renderStatic(rawContent: string, state: RenderState): string {
   const content = preprocessSocialEmbeds(
     rawContent,
     state,
@@ -1098,7 +1465,10 @@ function renderStatic(
       return embed ? renderEmbedStatic(embed) : ""
     },
   )
-  html = html.replace(TOC_PLACEHOLDER_RE, () => generateTocHtmlStatic(tocItems))
+  html = html.replace(TOC_PLACEHOLDER_RE, () =>
+    generateTocHtmlStatic(selectToc(state)),
+  )
+  html += renderFootnotesSection(state)
 
   return neutralizeNoscript(html)
 }
@@ -1118,23 +1488,24 @@ export function renderBlogMarkdown(
     codeGroupStore: new Map(),
     socialEmbedStore: new Map(),
     socialEmbedCounter: 0,
+    headings: [],
+    slugOccurrences: new Map(),
+    footnotes: new Map(),
+    footnoteRefCounts: new Map(),
     openTags: [],
     floor: 0,
   }
 
   const rawContent = fixEmphasisFlanking(content)
 
-  // Extract TOC items
-  const tocItems = extractToc(rawContent, options.outline)
-
   const html =
     options.mode === "static"
-      ? renderStatic(rawContent, tocItems, state)
-      : renderSpa(rawContent, tocItems, state)
+      ? renderStatic(rawContent, state)
+      : renderSpa(rawContent, state)
 
   return {
     html,
-    toc: tocItems.map((item) => ({
+    toc: selectToc(state).map((item) => ({
       id: item.slug,
       text: item.text,
       level: item.level,

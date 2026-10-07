@@ -1,3 +1,5 @@
+import { isValidEditKey } from "../../src/lib/auth.ts"
+
 interface Env {
   BLOG_BUCKET: R2Bucket
   BLOG_EDIT_KEY?: string
@@ -21,16 +23,7 @@ const corsHeaders = {
 }
 
 function verifyEditKey(request: Request, env: Env): boolean {
-  const key = request.headers.get("X-Edit-Key")
-  const envKey = env.BLOG_EDIT_KEY
-  if (!key || !envKey) return false
-  // タイミング攻撃対策: 長さが違っても比較を最後まで行う
-  if (key.length !== envKey.length) return false
-  let diff = 0
-  for (let i = 0; i < key.length; i++) {
-    diff |= key.charCodeAt(i) ^ envKey.charCodeAt(i)
-  }
-  return diff === 0
+  return isValidEditKey(request.headers.get("X-Edit-Key"), env.BLOG_EDIT_KEY)
 }
 
 function json(data: unknown, status = 200) {

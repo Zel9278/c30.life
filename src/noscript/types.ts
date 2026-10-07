@@ -2,6 +2,7 @@ export interface NoscriptEnv {
   BLOG_BUCKET: R2Bucket
   BLOG_VIEWS: KVNamespace
   FILES_BUCKET: R2Bucket
+  DOWNLOAD_COUNTS: KVNamespace
   ASSETS: Fetcher
 }
 

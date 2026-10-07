@@ -336,6 +336,9 @@ pre code {
 .blog-content .custom-block.danger {
   border-left-color: #f87171;
 }
+.blog-content .custom-block.important {
+  border-left-color: #a78bfa;
+}
 .blog-content .code-group-title {
   margin: 1rem 0 -0.5rem;
   color: var(--ns-muted);
@@ -680,4 +683,63 @@ html {
   .ns-menu-lines > span {
     transition: none;
   }
+}
+
+/* Blog: badges and footnotes (from the shared markdown pipeline) */
+.blog-content .badge {
+  display: inline-block;
+  background: transparent;
+  height: auto;
+  padding: 0 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  vertical-align: middle;
+  border: 1px solid var(--ns-line);
+  border-radius: 999px;
+}
+.blog-content .badge-tip {
+  color: #34d399;
+  border-color: #34d399;
+}
+.blog-content .badge-info {
+  color: #60a5fa;
+  border-color: #60a5fa;
+}
+.blog-content .badge-warning {
+  color: #fbbf24;
+  border-color: #fbbf24;
+}
+.blog-content .badge-danger {
+  color: #f87171;
+  border-color: #f87171;
+}
+.blog-content .footnote-ref {
+  text-decoration: none;
+}
+.blog-content .footnotes-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  font-size: 0.875rem;
+  border-top: 1px solid var(--ns-line);
+}
+.blog-content .footnote {
+  margin: 0.4rem 0;
+}
+.blog-content .footnote-id {
+  color: var(--ns-muted);
+}
+.blog-content .footnote-backref {
+  text-decoration: none;
+}
+
+/* ダウンロード一覧はファイル名の列だけ折り返し、サイズや日付などの短い列は 1 行のまま
+   (はみ出したら .table-wrap で横スクロール) */
+.downloads-table th:not(:first-child),
+.downloads-table td:not(:first-child) {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.downloads-table td:first-child {
+  min-width: 8em;
 }

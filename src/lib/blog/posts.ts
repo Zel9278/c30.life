@@ -65,17 +65,58 @@ export async function readViews(
   }
 }
 
-// バケット直下のオブジェクトを全部列挙する。
+// バケット直下のオブジェクトを全部列挙する (キーの昇順)。
 // 画像は images/ 以下にあるので delimiter で除外し、1000 件を超えても cursor で続きを取る
-async function listTopLevelKeys(bucket: R2Bucket): Promise<string[]> {
-  const keys: string[] = []
+async function listTopLevelObjects(bucket: R2Bucket): Promise<R2Object[]> {
+  const objects: R2Object[] = []
   let cursor: string | undefined
   do {
     const listed = await bucket.list({ delimiter: "/", cursor })
-    for (const object of listed.objects) keys.push(object.key)
+    objects.push(...listed.objects)
     cursor = listed.truncated ? listed.cursor : undefined
   } while (cursor)
-  return keys
+  return objects
+}
+
+async function listTopLevelKeys(bucket: R2Bucket): Promise<string[]> {
+  return (await listTopLevelObjects(bucket)).map((object) => object.key)
+}
+
+// 記事ファイルとして扱うキーか (`<有効な ID>.md`)
+function isPostKey(key: string): boolean {
+  return key.endsWith(".md") && isValidPostId(key.slice(0, -3))
+}
+
+export interface PublishedPostSource extends StoredPost {
+  id: string
+  // R2 へのアップロード日時 (frontmatter に date が無いときの代わりに使う)
+  uploaded: Date
+}
+
+// 公開済み (draft でない、有効な ID の) 記事を本文込みで列挙する。順序はキーの昇順。
+// 閲覧数は読まない。RSS など本文が必要な用途向け
+export async function listPublishedPostSources(
+  bucket: R2Bucket,
+): Promise<PublishedPostSource[]> {
+  const objects = (await listTopLevelObjects(bucket)).filter((object) =>
+    isPostKey(object.key),
+  )
+
+  const fetched = await Promise.all(
+    objects.map(async (object): Promise<PublishedPostSource | null> => {
+      const id = object.key.slice(0, -3)
+      try {
+        const stored = await getPost(bucket, id)
+        if (!stored || stored.meta.draft) return null
+        return { id, uploaded: object.uploaded, ...stored }
+      } catch (e) {
+        console.error(`Failed to fetch post ${id}:`, e)
+        return null
+      }
+    }),
+  )
+
+  return fetched.filter((post): post is PublishedPostSource => post !== null)
 }
 
 // 記事一覧 (日付の新しい順)。includeDrafts が false なら draft: true を除外する
@@ -84,9 +125,7 @@ export async function listPosts(
   views: KVNamespace,
   options: { includeDrafts?: boolean } = {},
 ): Promise<BlogPostSummary[]> {
-  const keys = (await listTopLevelKeys(bucket)).filter(
-    (key) => key.endsWith(".md") && isValidPostId(key.slice(0, -3)),
-  )
+  const keys = (await listTopLevelKeys(bucket)).filter(isPostKey)
 
   keys.sort((a, b) => b.localeCompare(a))
 

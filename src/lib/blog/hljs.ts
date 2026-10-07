@@ -1,4 +1,4 @@
-// ブログ記事のコードハイライト (SPA 専用)。
+// ブログ記事の SPA 専用のコードハイライト。
 // markdown.ts からは import しない (Worker のバンドルに highlight.js を入れないため)。
 // Import highlight.js core and only necessary languages
 import hljs from "highlight.js/lib/core"

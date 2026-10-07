@@ -45,6 +45,8 @@ next-env.d.ts
 wrangler.toml
 .wrangler/
 .dev.vars
+# pnpm r2:sync のダウンロード先
+/r2-files/
 
 # Vite
 /dist

@@ -1,0 +1,5 @@
+# どのページも同じオリジンからしか iframe に埋め込ませない (編集画面・プレビューを含む SPA 全体)。
+# Functions (middleware) が返す HTML には付かないので、functions/_middleware.ts でも同じヘッダーを付けている
+/*
+  Content-Security-Policy: frame-ancestors 'self'
+  X-Frame-Options: SAMEORIGIN

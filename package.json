@@ -13,12 +13,13 @@
     "wrangler": "wrangler",
     "wrangler:dev": "wrangler pages dev dist",
     "r2:list": "cf r2 objects list --bucket-name c30-life-files",
-    "r2:sync": "wrangler r2 object get c30-life-files"
+    "r2:sync": "node scripts/r2-sync.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
     "chart.js": "^4.5.1",
     "daisyui": "^5.7.47",
+    "dompurify": "^3.4.16",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.12.0",
     "markdownlint": "^0.41.1",

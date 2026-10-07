@@ -1,9 +1,11 @@
+import {
+  type DownloadCounts,
+  incrementDownloadCount,
+  readDownloadCounts,
+} from "../../src/lib/files.ts"
+
 interface Env {
   DOWNLOAD_COUNTS: KVNamespace
-}
-
-interface DownloadCountsData {
-  [key: string]: number
 }
 
 // Get download counts for all files or specific files
@@ -14,16 +16,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   try {
     // Get all counts
-    const data = await DOWNLOAD_COUNTS.get<DownloadCountsData>(
-      "all_counts",
-      "json",
-    )
-    const counts = data ?? {}
+    const counts = await readDownloadCounts(DOWNLOAD_COUNTS)
 
     // If specific keys requested, filter
     if (keys) {
       const requestedKeys = keys.split(",")
-      const filtered: DownloadCountsData = {}
+      const filtered: DownloadCounts = {}
       for (const key of requestedKeys) {
         filtered[key] = counts[key] ?? 0
       }
@@ -71,20 +69,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       })
     }
 
-    // Get current counts
-    const data = await DOWNLOAD_COUNTS.get<DownloadCountsData>(
-      "all_counts",
-      "json",
-    )
-    const counts = data ?? {}
+    // Increment count (GET /api/download/* と同じ処理)
+    const count = await incrementDownloadCount(DOWNLOAD_COUNTS, key)
 
-    // Increment count
-    counts[key] = (counts[key] ?? 0) + 1
-
-    // Save updated counts
-    await DOWNLOAD_COUNTS.put("all_counts", JSON.stringify(counts))
-
-    return new Response(JSON.stringify({ count: counts[key] }), {
+    return new Response(JSON.stringify({ count }), {
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",

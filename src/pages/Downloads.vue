@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
-
-interface FileItem {
-  name: string
-  key: string
-  size: number
-  lastModified: string
-  type: "file" | "folder"
-  children?: FileItem[]
-}
+import {
+  decodeName,
+  type FileItem,
+  findFolder,
+  formatDate,
+  formatSize,
+  rawFileUrl,
+} from "../lib/files.ts"
 
 const route = useRoute()
 const router = useRouter()
@@ -56,22 +55,10 @@ async function fetchFiles() {
 }
 
 // Get current directory contents based on path
-const currentItems = computed(() => {
-  let items = allFiles.value
-  for (const folder of currentPath.value) {
-    const found =
-      items.find((item) => item.name === folder && item.type === "folder") ||
-      items.find(
-        (item) => decodeName(item.name) === folder && item.type === "folder",
-      )
-    if (found?.children) {
-      items = found.children
-    } else {
-      return null // Path not found
-    }
-  }
-  return items
-})
+// 見つからなければ null
+const currentItems = computed(() =>
+  findFolder(allFiles.value, currentPath.value),
+)
 
 // Check if path is valid and redirect to 404 if not
 const isPathValid = computed(() => {
@@ -80,9 +67,17 @@ const isPathValid = computed(() => {
   return currentItems.value !== null
 })
 
+// NotFound を名前だけで開くと URL が "/" になるので、今のパスを pathMatch に渡して
+// アドレスバーの URL (クエリ・ハッシュ含む) をそのまま残す。
+// route.path はエンコード済みで、params は vue-router がもう一度エンコードするのでデコードしてから渡す
 watch(isPathValid, (valid) => {
   if (!valid) {
-    router.replace({ name: "NotFound" })
+    router.replace({
+      name: "NotFound",
+      params: { pathMatch: route.path.slice(1).split("/").map(decodeName) },
+      query: route.query,
+      hash: route.hash,
+    })
   }
 })
 
@@ -110,7 +105,7 @@ function goUp() {
 }
 
 async function downloadFile(key: string) {
-  window.open(`https://fs.c30.life/${key}`, "_blank")
+  window.open(rawFileUrl(key), "_blank")
 
   // Increment download count
   try {
@@ -130,34 +125,6 @@ async function downloadFile(key: string) {
 
 function getDownloadCount(key: string): number {
   return downloadCounts.value[key] ?? 0
-}
-
-function formatSize(bytes: number): string {
-  if (bytes === 0) return "-"
-  const k = 1024
-  const sizes = ["B", "KB", "MB", "GB"]
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return "-"
-  const date = new Date(dateStr)
-  return date.toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
-function decodeName(name: string): string {
-  try {
-    return decodeURIComponent(name)
-  } catch {
-    return name
-  }
 }
 
 function getFileIconType(name: string): string {

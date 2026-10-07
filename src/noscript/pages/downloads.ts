@@ -1,12 +1,15 @@
 import {
   buildTree,
+  type DownloadCounts,
   decodeName,
+  downloadCountOf,
+  downloadHref,
   type FileItem,
-  fileUrl,
   findFolder,
   folderHref,
   formatDate,
   formatSize,
+  readDownloadCounts,
 } from "../../lib/files.ts"
 import { cached } from "../cache.ts"
 import { escapeHtml, link, safeUrl } from "../html.ts"
@@ -18,6 +21,17 @@ async function loadTree(ctx: NoscriptContext): Promise<FileItem[]> {
     const listed = await ctx.env.FILES_BUCKET.list()
     return buildTree(listed.objects)
   })
+}
+
+// /api/download-counts と同じ値。数は頻繁に変わるのでキャッシュしない。
+// 読めなくても一覧は出す (SPA と同じく 0 扱い)
+async function loadCounts(ctx: NoscriptContext): Promise<DownloadCounts> {
+  try {
+    return await readDownloadCounts(ctx.env.DOWNLOAD_COUNTS)
+  } catch (e) {
+    console.error("Failed to read download counts:", e)
+    return {}
+  }
 }
 
 function renderHeader(segments: string[]): string {
@@ -46,7 +60,11 @@ Please do not redistribute them.</p>
 </section>`
 }
 
-function renderItems(segments: string[], items: FileItem[]): string {
+function renderItems(
+  segments: string[],
+  items: FileItem[],
+  counts: DownloadCounts,
+): string {
   if (items.length === 0 && segments.length === 0) {
     return `<p class="muted center">このフォルダは空です</p>`
   }
@@ -55,6 +73,7 @@ function renderItems(segments: string[], items: FileItem[]): string {
   if (segments.length > 0) {
     rows.push(`<tr>
 <td>${link(folderHref(segments.slice(0, -1)), "..")}</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>`)
@@ -67,19 +86,21 @@ function renderItems(segments: string[], items: FileItem[]): string {
 <td>${link(folderHref([...segments, name]), `${name}/`)}</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
 </tr>`)
     } else {
       rows.push(`<tr>
-<td><a href="${escapeHtml(safeUrl(fileUrl(item.key)))}" rel="nofollow" download>${escapeHtml(name)}</a></td>
+<td><a href="${escapeHtml(safeUrl(downloadHref(item.key)))}" rel="nofollow" download>${escapeHtml(name)}</a></td>
+<td>${escapeHtml(downloadCountOf(counts, item.key))}</td>
 <td>${escapeHtml(formatSize(item.size))}</td>
 <td><time datetime="${escapeHtml(item.lastModified)}">${escapeHtml(formatDate(item.lastModified, "Asia/Tokyo"))}</time></td>
 </tr>`)
     }
   }
 
-  return `<div class="table-wrap">
+  return `<div class="table-wrap downloads-table">
 <table>
-<thead><tr><th scope="col">Name</th><th scope="col">Size</th><th scope="col">Modified</th></tr></thead>
+<thead><tr><th scope="col">Name</th><th scope="col">DLs</th><th scope="col">Size</th><th scope="col">Modified</th></tr></thead>
 <tbody>
 ${rows.join("\n")}
 </tbody>
@@ -100,8 +121,9 @@ export const render: NoscriptRenderer = async (ctx) => {
       : {}
 
   let tree: FileItem[]
+  let counts: DownloadCounts
   try {
-    tree = await loadTree(ctx)
+    ;[tree, counts] = await Promise.all([loadTree(ctx), loadCounts(ctx)])
   } catch (e) {
     console.error("Failed to list files:", e)
     return {
@@ -135,7 +157,7 @@ ${renderHeader(segments)}
     ...meta,
     body: `<div class="noscript-card">
 ${renderHeader(segments)}
-${renderItems(segments, items)}
+${renderItems(segments, items, counts)}
 </div>`,
   }
 }

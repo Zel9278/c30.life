@@ -1,60 +1,16 @@
 <script setup lang="ts">
-import hljs from "highlight.js/lib/core"
-import bash from "highlight.js/lib/languages/bash"
-import c from "highlight.js/lib/languages/c"
-import cpp from "highlight.js/lib/languages/cpp"
-import css from "highlight.js/lib/languages/css"
-import dockerfile from "highlight.js/lib/languages/dockerfile"
-import go from "highlight.js/lib/languages/go"
-import java from "highlight.js/lib/languages/java"
-import javascript from "highlight.js/lib/languages/javascript"
-import json from "highlight.js/lib/languages/json"
-import lua from "highlight.js/lib/languages/lua"
-import markdown from "highlight.js/lib/languages/markdown"
-import plaintext from "highlight.js/lib/languages/plaintext"
-import python from "highlight.js/lib/languages/python"
-import rust from "highlight.js/lib/languages/rust"
-import sql from "highlight.js/lib/languages/sql"
-import typescript from "highlight.js/lib/languages/typescript"
-import xml from "highlight.js/lib/languages/xml"
-import yaml from "highlight.js/lib/languages/yaml"
-import { marked, type TokenizerAndRendererExtension, type Tokens } from "marked"
-import { markedHighlight } from "marked-highlight"
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
 import "highlight.js/styles/github-dark.css"
 import ImageViewerProvider from "@/components/ImageViewerProvider.vue"
 import SocialEmbed from "@/components/SocialEmbed.vue"
-
-// Register languages
-hljs.registerLanguage("javascript", javascript)
-hljs.registerLanguage("js", javascript)
-hljs.registerLanguage("typescript", typescript)
-hljs.registerLanguage("ts", typescript)
-hljs.registerLanguage("python", python)
-hljs.registerLanguage("py", python)
-hljs.registerLanguage("bash", bash)
-hljs.registerLanguage("sh", bash)
-hljs.registerLanguage("shell", bash)
-hljs.registerLanguage("json", json)
-hljs.registerLanguage("css", css)
-hljs.registerLanguage("xml", xml)
-hljs.registerLanguage("html", xml)
-hljs.registerLanguage("markdown", markdown)
-hljs.registerLanguage("md", markdown)
-hljs.registerLanguage("rust", rust)
-hljs.registerLanguage("rs", rust)
-hljs.registerLanguage("go", go)
-hljs.registerLanguage("java", java)
-hljs.registerLanguage("cpp", cpp)
-hljs.registerLanguage("c", c)
-hljs.registerLanguage("sql", sql)
-hljs.registerLanguage("yaml", yaml)
-hljs.registerLanguage("yml", yaml)
-hljs.registerLanguage("dockerfile", dockerfile)
-hljs.registerLanguage("docker", dockerfile)
-hljs.registerLanguage("lua", lua)
-hljs.registerLanguage("plaintext", plaintext)
-hljs.registerLanguage("text", plaintext)
+import { parseFrontmatter as parseBlogFrontmatter } from "@/lib/blog/frontmatter.ts"
+import { hasLanguage, highlightCode } from "@/lib/blog/hljs.ts"
+import {
+  type Outline,
+  renderBlogMarkdown,
+  type SocialEmbedData,
+} from "@/lib/blog/markdown.ts"
+import { sanitizeBlogHtml } from "@/lib/blog/sanitize.ts"
 
 interface PostData {
   title: string
@@ -62,516 +18,13 @@ interface PostData {
   description?: string
   tags?: string[]
   author?: string
+  outline?: Outline
   content: string
-}
-
-// Social embed types
-type SocialEmbedType =
-  | "x"
-  | "mastodon"
-  | "misskey"
-  | "pleroma"
-  | "x-profile"
-  | "mastodon-profile"
-  | "misskey-profile"
-  | "pleroma-profile"
-  | "github"
-  | "link"
-
-interface SocialEmbedData {
-  type: SocialEmbedType
-  url: string
-  id: string
 }
 
 const postData = ref<PostData | null>(null)
 const contentContainer = ref<HTMLElement | null>(null)
 const socialEmbeds = ref<SocialEmbedData[]>([])
-
-// Parse line highlight ranges
-function parseLineHighlights(meta: string): Set<number> {
-  const highlighted = new Set<number>()
-  const match = meta.match(/\{([\d,\s-]+)\}/)
-  if (!match) return highlighted
-
-  const parts = match[1].split(",")
-  for (const part of parts) {
-    const trimmed = part.trim()
-    if (trimmed.includes("-")) {
-      const [start, end] = trimmed.split("-").map((n) => parseInt(n.trim(), 10))
-      for (let i = start; i <= end; i++) {
-        highlighted.add(i)
-      }
-    } else {
-      highlighted.add(parseInt(trimmed, 10))
-    }
-  }
-  return highlighted
-}
-
-// Generate slug from text
-function generateSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim()
-}
-
-// Render code group tabs
-function renderCodeGroup(content: string): string {
-  const codeBlockRegex = /```(\w+)(?:\s+\[([^\]]+)\])?\s*\n([\s\S]*?)```/g
-  const blocks: { lang: string; title: string; code: string }[] = []
-
-  for (const match of content.matchAll(codeBlockRegex)) {
-    blocks.push({
-      lang: match[1],
-      title: match[2] || match[1],
-      code: match[3].trim(),
-    })
-  }
-
-  if (blocks.length === 0) {
-    return `<p>Code group: no code blocks found</p>`
-  }
-
-  const tabsHtml = blocks
-    .map(
-      (block, i) =>
-        `<button class="code-group-tab${i === 0 ? " active" : ""}" data-tab="${i}">${block.title}</button>`,
-    )
-    .join("")
-
-  const panelsHtml = blocks
-    .map((block, i) => {
-      const language = hljs.getLanguage(block.lang) ? block.lang : "plaintext"
-      const highlighted = hljs.highlight(block.code, { language }).value
-      return `<div class="code-group-panel${i === 0 ? " active" : ""}" data-panel="${i}">
-      <pre><code class="hljs language-${language}">${highlighted}</code></pre>
-    </div>`
-    })
-    .join("")
-
-  return `<div class="code-group">
-    <div class="code-group-tabs">${tabsHtml}</div>
-    ${panelsHtml}
-  </div>`
-}
-
-// VitePress-compatible custom containers extension
-const containerExtension = {
-  name: "container",
-  level: "block" as const,
-  start(src: string) {
-    const match = src.match(/^:::\s*\w+/)
-    return match?.index
-  },
-  tokenizer(src: string): Tokens.Generic | undefined {
-    const lines = src.split("\n")
-    if (!lines[0].match(/^:::\s*\w+/)) return undefined
-
-    const firstLine = lines[0]
-    const typeMatch = firstLine.match(/^:::\s*(\w+)(?:\s+(.+))?$/)
-    if (!typeMatch) return undefined
-
-    const type = typeMatch[1]
-    const title = typeMatch[2]?.trim()
-
-    if (type === "code-group") return undefined
-
-    let depth = 1
-    let endIndex = -1
-    let inCodeBlock = false
-
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i]
-
-      if (line.startsWith("```")) {
-        inCodeBlock = !inCodeBlock
-        continue
-      }
-
-      if (inCodeBlock) continue
-
-      if (line.match(/^:::\s*\w+/)) {
-        depth++
-      } else if (line === ":::") {
-        depth--
-        if (depth === 0) {
-          endIndex = i
-          break
-        }
-      }
-    }
-
-    if (endIndex === -1) return undefined
-
-    const contentLines = lines.slice(1, endIndex)
-    const content = contentLines.join("\n")
-    const raw = `${lines.slice(0, endIndex + 1).join("\n")}\n`
-
-    return {
-      type: "container",
-      raw: raw,
-      containerType: type,
-      title: title,
-      content: content,
-    }
-  },
-  renderer(token: Tokens.Generic) {
-    const type = token.containerType as string
-    const title = token.title as string | undefined
-    const content = token.content as string
-
-    if (type === "details") {
-      const summary = title || "Details"
-      const innerHtml = marked.parse(content)
-      return `<details class="custom-block details">
-<summary>${summary}</summary>
-<div class="details-content">${innerHtml}</div>
-</details>`
-    }
-
-    const typeMap: Record<string, { class: string; defaultTitle: string }> = {
-      info: { class: "info", defaultTitle: "INFO" },
-      tip: { class: "tip", defaultTitle: "TIP" },
-      warning: { class: "warning", defaultTitle: "WARNING" },
-      danger: { class: "danger", defaultTitle: "DANGER" },
-      note: { class: "info", defaultTitle: "NOTE" },
-    }
-
-    const config = typeMap[type] || {
-      class: "info",
-      defaultTitle: type.toUpperCase(),
-    }
-    const displayTitle = title || config.defaultTitle
-    const innerHtml = marked.parse(content)
-
-    return `<div class="custom-block ${config.class}">
-<p class="custom-block-title">${displayTitle}</p>
-${innerHtml}
-</div>`
-  },
-}
-
-// Footnote extension
-const footnoteStore = new Map<string, string>()
-
-const footnoteRefExtension: TokenizerAndRendererExtension = {
-  name: "footnoteRef",
-  level: "inline",
-  start(src: string) {
-    return src.match(/\[\^/)?.index
-  },
-  tokenizer(src: string) {
-    const match = src.match(/^\[\^([^\]]+)\](?!:)/)
-    if (match) {
-      return {
-        type: "footnoteRef",
-        raw: match[0],
-        id: match[1],
-      }
-    }
-    return undefined
-  },
-  renderer(token: Tokens.Generic) {
-    const id = token.id as string
-    return `<sup><a href="#fn-${id}" id="fnref-${id}" class="footnote-ref">[${id}]</a></sup>`
-  },
-}
-
-const footnoteDefExtension: TokenizerAndRendererExtension = {
-  name: "footnoteDef",
-  level: "block",
-  start(src: string) {
-    return src.match(/^\[\^/)?.index
-  },
-  tokenizer(src: string) {
-    const match = src.match(/^\[\^([^\]]+)\]:\s*(.+)(?:\n|$)/)
-    if (match) {
-      footnoteStore.set(match[1], match[2])
-      return {
-        type: "footnoteDef",
-        raw: match[0],
-        id: match[1],
-        text: match[2],
-      }
-    }
-    return undefined
-  },
-  renderer() {
-    return ""
-  },
-}
-
-function renderFootnotes(): string {
-  if (footnoteStore.size === 0) return ""
-
-  const footnotes = Array.from(footnoteStore.entries())
-    .map(
-      ([id, text]) =>
-        `<div class="footnote" id="fn-${id}"><span class="footnote-id">[${id}]</span> ${text} <a href="#fnref-${id}" class="footnote-backref">↩</a></div>`,
-    )
-    .join("\n")
-
-  return `<div class="footnotes-section">${footnotes}</div>`
-}
-
-// TOC item interface
-interface TocItem {
-  level: number
-  text: string
-  slug: string
-}
-
-// TOC extension
-const tocExtension = {
-  name: "toc",
-  level: "block" as const,
-  start(src: string) {
-    return src.match(/^\[\[toc\]\]/i)?.index
-  },
-  tokenizer(src: string): Tokens.Generic | undefined {
-    const match = src.match(/^\[\[toc\]\]/i)
-    if (match) {
-      return {
-        type: "toc",
-        raw: match[0],
-      }
-    }
-    return undefined
-  },
-  renderer() {
-    return '<nav class="table-of-contents" data-toc-placeholder></nav>'
-  },
-}
-
-// Extract TOC from content
-function extractToc(content: string): TocItem[] {
-  let cleanContent = content
-  cleanContent = cleanContent.replace(/```[\s\S]*?```/g, "")
-  cleanContent = cleanContent.replace(/:::\s*code-group[\s\S]*?:::/g, "")
-
-  const items: TocItem[] = []
-  const headingRegex = /^(#{1,6})\s+(.+)$/gm
-  let match: RegExpExecArray | null = null
-
-  for (const match of cleanContent.matchAll(headingRegex)) {
-    const level = match[1].length
-    if (level >= 2 && level <= 3) {
-      const text = match[2].trim()
-      items.push({
-        level,
-        text,
-        slug: generateSlug(text),
-      })
-    }
-  }
-
-  return items
-}
-
-// Generate TOC HTML
-function generateTocHtml(items: TocItem[]): string {
-  if (items.length === 0) return ""
-
-  const minLevel = Math.min(...items.map((i) => i.level))
-
-  return `<nav class="table-of-contents">
-    <ul>
-      ${items
-        .map(
-          (item) => `
-        <li style="margin-left: ${(item.level - minLevel) * 1}rem">
-          <a href="#${item.slug}">${item.text}</a>
-        </li>
-      `,
-        )
-        .join("")}
-    </ul>
-  </nav>`
-}
-
-const lineHighlightStore = new Map<string, Set<number>>()
-let codeBlockCounter = 0
-const codeGroupStore = new Map<string, string>()
-
-// Configure marked
-marked.use({
-  extensions: [
-    containerExtension,
-    tocExtension,
-    footnoteRefExtension,
-    footnoteDefExtension,
-  ],
-})
-marked.use(
-  markedHighlight({
-    emptyLangClass: "hljs language-plaintext",
-    langPrefix: "hljs language-",
-    highlight(code, lang) {
-      try {
-        const langMatch = lang.match(/^(\w+)/)
-        const actualLang = langMatch ? langMatch[1] : "plaintext"
-        const language = hljs.getLanguage(actualLang) ? actualLang : "plaintext"
-
-        const highlighted = hljs.highlight(code, { language }).value
-        const lineHighlights = parseLineHighlights(lang)
-
-        if (lineHighlights.size === 0) {
-          return highlighted
-        }
-
-        const blockId = `__CODE_BLOCK_${codeBlockCounter++}__`
-        lineHighlightStore.set(blockId, lineHighlights)
-
-        return `${blockId}\n${highlighted}`
-      } catch {
-        return code
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-      }
-    },
-  }),
-)
-
-// Apply line highlighting
-function applyLineHighlighting(html: string): string {
-  return html.replace(
-    /<code([^>]*)>(__CODE_BLOCK_\d+__)\n([\s\S]*?)<\/code>/g,
-    (_match, attrs, blockId, code) => {
-      const lineHighlights = lineHighlightStore.get(blockId)
-      if (!lineHighlights) {
-        return `<code${attrs}>${code}</code>`
-      }
-
-      const lines = code.split("\n")
-      const wrappedLines = lines
-        .map((line: string, i: number) => {
-          const lineNum = i + 1
-          if (lineHighlights.has(lineNum)) {
-            return `<span class="line highlighted">${line}</span>`
-          }
-          return `<span class="line">${line}</span>`
-        })
-        .join("\n")
-
-      return `<code${attrs}>${wrappedLines}</code>`
-    },
-  )
-}
-
-// Custom renderer
-const renderer = new marked.Renderer()
-
-renderer.image = ({ href, title, text }) => {
-  const titleAttr = title ? ` title="${title}"` : ""
-  return `<img src="${href}" alt="${text}"${titleAttr} class="max-w-full rounded" />`
-}
-
-renderer.heading = ({ tokens, depth }) => {
-  const text = tokens
-    .map(
-      (t) => (t as { text?: string }).text || (t as { raw?: string }).raw || "",
-    )
-    .join("")
-  const slug = generateSlug(text)
-  return `<h${depth} id="${slug}">${text}<a class="header-anchor" href="#${slug}">#</a></h${depth}>\n`
-}
-
-// Open external links in a new tab so readers don't get navigated away
-// from the post; relative/internal links stay in the current tab.
-renderer.link = ({ href, title, text }) => {
-  const titleAttr = title ? ` title="${title}"` : ""
-  const isExternal = /^https?:\/\//i.test(href)
-  const externalAttrs = isExternal
-    ? ' target="_blank" rel="noopener noreferrer"'
-    : ""
-  return `<a href="${href}"${titleAttr}${externalAttrs}>${text}</a>`
-}
-
-marked.use({ renderer })
-
-// CommonMark only opens/closes **bold** when the delimiter is "flanked" by
-// whitespace or punctuation on the outside. If a `**` sits directly against
-// ordinary text on one side and punctuation (e.g. `『`) on the other — common
-// in Japanese, e.g. "の**『名前』**を" — the flanking rule fails and the
-// literal ** shows up unrendered. Nudge it with an invisible U+2060 just
-// inside the delimiter so the rule passes without changing the visible text.
-function fixEmphasisFlanking(content: string): string {
-  const isPunct = (ch: string) => /\p{P}/u.test(ch)
-  // Skip fenced code blocks - `**` inside code is literal text, not markdown.
-  return content
-    .split(/(```[\s\S]*?```)/g)
-    .map((segment, i) => {
-      if (i % 2 === 1) return segment
-      return segment.replace(/\*\*([^\n*]+?)\*\*/g, (_match, inner: string) => {
-        const start = isPunct(inner[0]) ? "\u2060" : ""
-        const end = isPunct(inner[inner.length - 1]) ? "\u2060" : ""
-        return `**${start}${inner}${end}**`
-      })
-    })
-    .join("")
-}
-
-// Preprocess code-group
-function preprocessCodeGroups(content: string): string {
-  codeGroupStore.clear()
-
-  const lines = content.split("\n")
-  const result: string[] = []
-  let i = 0
-  let groupId = 0
-
-  while (i < lines.length) {
-    const line = lines[i]
-
-    if (line.match(/^:::\s*code-group\s*$/)) {
-      let endIndex = -1
-      let inCodeBlock = false
-
-      for (let j = i + 1; j < lines.length; j++) {
-        if (lines[j].startsWith("```")) {
-          inCodeBlock = !inCodeBlock
-        }
-        if (!inCodeBlock && lines[j] === ":::") {
-          endIndex = j
-          break
-        }
-      }
-
-      if (endIndex !== -1) {
-        const codeGroupContent = lines.slice(i + 1, endIndex).join("\n")
-        const rendered = renderCodeGroup(codeGroupContent)
-        const placeholder = `<!--CODE_GROUP_${groupId}-->`
-        codeGroupStore.set(placeholder, rendered)
-        result.push("")
-        result.push(placeholder)
-        result.push("")
-        groupId++
-        i = endIndex + 1
-        continue
-      }
-    }
-
-    result.push(line)
-    i++
-  }
-
-  return result.join("\n")
-}
-
-// Restore code groups after parsing
-function restoreCodeGroups(html: string): string {
-  let result = html
-  for (const [placeholder, rendered] of codeGroupStore) {
-    result = result.replace(`<p>${placeholder}</p>`, rendered)
-    result = result.replace(placeholder, rendered)
-  }
-  return result
-}
 
 // Extract frontmatter and content
 function parseFrontmatter(raw: string): PostData {
@@ -609,183 +62,29 @@ function parseFrontmatter(raw: string): PostData {
         .map((t) => t.trim().replace(/^["']|["']$/g, ""))
         .filter(Boolean)
     }
+
+    // 目次の深さは公開ページと同じパーサーで読む ([[toc]] の中身を一致させるため)
+    result.outline = parseBlogFrontmatter(normalized).data.outline
   }
 
   return result
 }
 
-// Transform Badge components to proper HTML
-function transformBadges(html: string): string {
-  return html.replace(
-    /<(Badge|badge)\s+type=["']([^"']+)["']\s+text=["']([^"']+)["']\s*\/?>/gi,
-    (_match, _tag, type, text) => {
-      return `<span class="badge badge-${type}">${text}</span>`
-    },
-  )
-}
-
-// Social embed store for post-processing
-const socialEmbedStore = new Map<string, SocialEmbedData>()
-let socialEmbedCounter = 0
-
-// Detect social embed type from URL
-function detectSocialEmbedType(url: string): SocialEmbedType | null {
-  try {
-    const urlObj = new URL(url)
-    const hostname = urlObj.hostname.toLowerCase()
-
-    // X/Twitter
-    if (hostname === "twitter.com" || hostname === "x.com") {
-      // Profile: /username (no /status)
-      if (
-        urlObj.pathname.match(/^\/[\w]+$/) &&
-        ![
-          "home",
-          "explore",
-          "notifications",
-          "messages",
-          "settings",
-          "i",
-        ].includes(urlObj.pathname.slice(1))
-      ) {
-        return "x-profile"
-      }
-      // Status: /username/status/id
-      if (urlObj.pathname.match(/\/[\w]+\/status\/\d+/)) {
-        return "x"
-      }
-    }
-
-    // GitHub code: /owner/repo/blob/branch/path
-    if (
-      hostname === "github.com" &&
-      urlObj.pathname.match(/^\/[\w.-]+\/[\w.-]+\/blob\//)
-    ) {
-      return "github"
-    }
-
-    // Misskey note: /notes/xxx
-    if (urlObj.pathname.match(/\/notes\/[\w]+/)) {
-      return "misskey"
-    }
-
-    // Misskey profile: /@username (no /notes)
-    if (
-      urlObj.pathname.match(/^\/@[\w-]+$/) &&
-      !urlObj.pathname.includes("/notes/")
-    ) {
-      // Could be Misskey or Mastodon - check for common Misskey instances
-      const misskeyInstances = [
-        "misskey.io",
-        "misskey.art",
-        "nijimiss.moe",
-        "submarin.online",
-        "sushi.ski",
-      ]
-      if (misskeyInstances.some((inst) => hostname.includes(inst))) {
-        return "misskey-profile"
-      }
-      // Default to mastodon-profile for @user pattern without status ID
-      return "mastodon-profile"
-    }
-
-    // Mastodon status: /@user/123456 or /users/user/statuses/123456
-    if (
-      urlObj.pathname.match(/\/@[\w-]+\/\d+/) ||
-      urlObj.pathname.match(/\/users\/[\w-]+\/statuses\/\d+/)
-    ) {
-      return "mastodon"
-    }
-
-    // Mastodon profile: /users/username
-    if (urlObj.pathname.match(/^\/users\/[\w-]+$/)) {
-      return "mastodon-profile"
-    }
-
-    // Pleroma notice
-    if (urlObj.pathname.match(/\/notice\/[\w]+/)) {
-      return "pleroma"
-    }
-  } catch {
-    // Invalid URL
-  }
-  return null
-}
-
-// Preprocess social embeds: @[type](url) syntax
-function preprocessSocialEmbeds(content: string): string {
-  socialEmbedStore.clear()
-  socialEmbedCounter = 0
-
-  const embedRegex =
-    /^@\[(x|mastodon|misskey|pleroma|x-profile|mastodon-profile|misskey-profile|pleroma-profile|github|link)?\]\(([^)]+)\)$/gm
-
-  return content.replace(embedRegex, (match, type, url) => {
-    let embedType: SocialEmbedType | null = type || null
-    if (!embedType) {
-      embedType = detectSocialEmbedType(url)
-    }
-
-    // Fallback to link for any valid URL
-    if (!embedType) {
-      try {
-        new URL(url)
-        embedType = "link"
-      } catch {
-        return match
-      }
-    }
-
-    const embedId = `social-embed-${socialEmbedCounter++}`
-    const embedData: SocialEmbedData = {
-      type: embedType,
-      url: url.trim(),
-      id: embedId,
-    }
-    socialEmbedStore.set(embedId, embedData)
-
-    return `\n<div data-social-embed="${embedId}"></div>\n`
+// 公開ページ (BlogPost.vue) と同じパイプラインで描画する
+const rendered = computed(() => {
+  if (!postData.value) return null
+  return renderBlogMarkdown(postData.value.content, {
+    mode: "spa",
+    outline: postData.value.outline,
+    highlight: highlightCode,
+    hasLanguage,
   })
-}
-
-// Get all social embeds from current content
-function getSocialEmbedsFromContent(): SocialEmbedData[] {
-  return Array.from(socialEmbedStore.values())
-}
-
-// Rendered content
-const renderedContent = computed(() => {
-  if (!postData.value) return ""
-
-  codeBlockCounter = 0
-  lineHighlightStore.clear()
-  footnoteStore.clear()
-
-  let content = fixEmphasisFlanking(postData.value.content)
-
-  // Preprocess social embeds
-  content = preprocessSocialEmbeds(content)
-
-  // Extract TOC items
-  const tocItems = extractToc(content)
-
-  const preprocessed = preprocessCodeGroups(content)
-  let html = marked.parse(preprocessed) as string
-  html = applyLineHighlighting(html)
-  html = restoreCodeGroups(html)
-  html = transformBadges(html)
-
-  // Replace TOC placeholder with actual TOC
-  const tocHtml = generateTocHtml(tocItems)
-  html = html.replace(
-    /<nav class="table-of-contents" data-toc-placeholder><\/nav>/g,
-    tocHtml,
-  )
-
-  html += renderFootnotes()
-
-  return html
 })
+
+// Rendered content (生 HTML を含むので DOMPurify を通してから v-html に渡す)
+const renderedContent = computed(() =>
+  sanitizeBlogHtml(rendered.value?.html ?? ""),
+)
 
 // Format date
 function formatDate(dateStr: string): string {
@@ -808,10 +107,18 @@ const readingTime = computed(() => {
   return Math.max(1, Math.ceil(characterCount.value / 500))
 })
 
+// iframe として埋め込まれているときだけ、同じオリジンの親 (エディター) とやり取りする
+const isEmbedded = window.parent !== window
+
 // Handle message from parent (editor)
 function handleMessage(event: MessageEvent) {
+  // 他のオリジンのページや親以外のウィンドウからの内容は描画しない
+  if (!isEmbedded) return
+  if (event.origin !== window.location.origin) return
+  if (event.source !== window.parent) return
+
   if (event.data?.type === "blog-preview-update" && event.data?.content) {
-    postData.value = parseFrontmatter(event.data.content)
+    postData.value = parseFrontmatter(String(event.data.content))
     // Scroll to top on content update if requested
     if (event.data.scrollToTop) {
       window.scrollTo({ top: 0 })
@@ -854,8 +161,13 @@ function setupCodeGroupTabs() {
 onMounted(() => {
   window.addEventListener("message", handleMessage)
 
-  // Notify parent that preview is ready
-  window.parent.postMessage({ type: "blog-preview-ready" }, "*")
+  // Notify parent that preview is ready (同じオリジンの親にだけ送る)
+  if (isEmbedded) {
+    window.parent.postMessage(
+      { type: "blog-preview-ready" },
+      window.location.origin,
+    )
+  }
 })
 
 onUnmounted(() => {
@@ -867,7 +179,7 @@ watch(renderedContent, () => {
   setupCodeGroupTabs()
   // Update social embeds after DOM update
   nextTick(() => {
-    socialEmbeds.value = getSocialEmbedsFromContent()
+    socialEmbeds.value = rendered.value?.embeds ?? []
   })
 })
 </script>
@@ -1170,6 +482,16 @@ watch(renderedContent, () => {
 
 .blog-content .custom-block.danger .custom-block-title {
   color: #f87171;
+}
+
+/* GitHub-style alert: > [!IMPORTANT] */
+.blog-content .custom-block.important {
+  background-color: rgba(168, 85, 247, 0.1);
+  border-color: #a855f7;
+}
+
+.blog-content .custom-block.important .custom-block-title {
+  color: #c084fc;
 }
 
 .blog-content .custom-block p:last-child {

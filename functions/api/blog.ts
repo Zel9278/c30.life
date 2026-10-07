@@ -1,3 +1,4 @@
+import { isValidEditKey } from "../../src/lib/auth.ts"
 import type { Outline } from "../../src/lib/blog/frontmatter.ts"
 import {
   type BlogPostSummary,
@@ -21,11 +22,9 @@ interface BlogPostDetail extends BlogPostSummary {
   draft?: boolean
 }
 
-// Verify edit key for authentication
+// Verify edit key for authentication (constant-time comparison)
 function verifyEditKey(request: Request, env: Env): boolean {
-  const key = request.headers.get("X-Edit-Key")
-  const envKey = env.BLOG_EDIT_KEY
-  return !!key && !!envKey && key === envKey
+  return isValidEditKey(request.headers.get("X-Edit-Key"), env.BLOG_EDIT_KEY)
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -92,17 +91,26 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   // Get single post
   if (id) {
+    const notFound = () =>
+      new Response(JSON.stringify({ error: "Post not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      })
+
+    // 不正な ID (先頭 _ や予約語など) は存在しない記事と同じ扱いにする
+    if (!isValidPostId(id)) return notFound()
+
     const maxRetries = 2
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const stored = await getPost(context.env.BLOG_BUCKET, id)
 
-        if (!stored) {
-          return new Response(JSON.stringify({ error: "Post not found" }), {
-            status: 404,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-          })
+        if (!stored) return notFound()
+
+        // 下書きは編集キーが正しいときだけ返す。それ以外は存在しない記事と同じ 404 にし、閲覧数も加算しない
+        if (stored.meta.draft && !verifyEditKey(context.request, context.env)) {
+          return notFound()
         }
 
         let views = 0

@@ -6,6 +6,7 @@ import FediverseShare from "@/components/FediverseShare.vue"
 import ImageViewerProvider from "@/components/ImageViewerProvider.vue"
 import SocialEmbed from "@/components/SocialEmbed.vue"
 import Window from "@/components/Window.vue"
+import { formatDateJa } from "@/lib/blog/format.ts"
 import { hasLanguage, highlightCode } from "@/lib/blog/hljs.ts"
 import {
   countBlogCharacters,
@@ -14,6 +15,7 @@ import {
   renderBlogMarkdown,
   type SocialEmbedData,
 } from "@/lib/blog/markdown.ts"
+import { sanitizeBlogHtml } from "@/lib/blog/sanitize.ts"
 
 interface BlogPostDetail {
   id: string
@@ -111,7 +113,10 @@ const rendered = computed(() => {
   })
 })
 
-const renderedContent = computed(() => rendered.value?.html ?? "")
+// 生 HTML を含むので DOMPurify を通してから v-html に渡す
+const renderedContent = computed(() =>
+  sanitizeBlogHtml(rendered.value?.html ?? ""),
+)
 const tocItems = computed(() => rendered.value?.toc ?? [])
 
 // Track rendered embeds to mount after DOM update
@@ -131,15 +136,8 @@ watch(
   { immediate: true },
 )
 
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return ""
-  const date = new Date(dateStr)
-  return date.toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
-}
+// noscript 版と同じ表示 ("2025年1月5日")。日付だけの値は閲覧者のタイムゾーンでずれない
+const formatDate = (dateStr: string) => (dateStr ? formatDateJa(dateStr) : "")
 
 // Calculate character count (excluding code blocks and frontmatter)
 const characterCount = computed(() =>
@@ -173,12 +171,16 @@ onMounted(async () => {
   const maxRetries = 2
 
   // Check if user has edit key stored
-  isEditor.value = !!localStorage.getItem("blog_edit_key")
+  const editKey = localStorage.getItem("blog_edit_key")
+  isEditor.value = !!editKey
 
   try {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const response = await fetch(`/api/blog?id=${encodeURIComponent(id)}`)
+        // 編集キーがあれば送る (下書きは編集キー付きのリクエストにだけ返される)
+        const response = await fetch(`/api/blog?id=${encodeURIComponent(id)}`, {
+          headers: editKey ? { "X-Edit-Key": editKey } : undefined,
+        })
         if (!response.ok) {
           if (response.status === 404) {
             router.push("/404")
@@ -763,6 +765,16 @@ function setupCodeGroupTabs() {
   color: #f87171;
 }
 
+/* GitHub-style alert: > [!IMPORTANT] */
+.blog-content .custom-block.important {
+  background-color: rgba(168, 85, 247, 0.1);
+  border-color: #a855f7;
+}
+
+.blog-content .custom-block.important .custom-block-title {
+  color: #c084fc;
+}
+
 .blog-content .custom-block p:last-child {
   margin-bottom: 0;
 }
@@ -979,6 +991,81 @@ function setupCodeGroupTabs() {
   margin: 0 -1rem;
   padding: 0 1rem;
   border-left: 3px solid #3b82f6;
+}
+
+/* Badges: <Badge type="..." text="..." /> */
+.blog-content .badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.blog-content .badge-info {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.blog-content .badge-tip {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.blog-content .badge-warning {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.blog-content .badge-danger {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Footnotes */
+.blog-content .footnotes-section {
+  border-top: 1px solid #404040;
+  padding-top: 1rem;
+  margin-top: 2rem;
+}
+
+.blog-content .footnote {
+  display: block;
+  font-size: 0.875rem;
+  color: #a3a3a3;
+  padding: 0.25rem 0;
+  scroll-margin-top: 5rem;
+}
+
+.blog-content .footnote-id {
+  color: #60a5fa;
+  font-weight: 500;
+  margin-right: 0.25rem;
+}
+
+.blog-content .footnote-backref {
+  color: #60a5fa;
+  text-decoration: none;
+  margin-left: 0.25rem;
+}
+
+.blog-content .footnote-backref:hover {
+  text-decoration: underline;
+}
+
+.blog-content .footnote-ref {
+  color: #60a5fa;
+  text-decoration: none;
+  scroll-margin-top: 5rem;
+}
+
+.blog-content .footnote-ref:hover {
+  text-decoration: underline;
 }
 
 /* Floating TOC popup animation */
