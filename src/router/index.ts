@@ -9,6 +9,7 @@ const Environments = () => import("../pages/Environments.vue")
 const Servers = () => import("../pages/Servers.vue")
 const Pubkeys = () => import("../pages/Pubkeys.vue")
 const WatchedAnimes = () => import("../pages/WatchedAnimes.vue")
+const Products = () => import("../pages/Products.vue")
 const Downloads = () => import("../pages/Downloads.vue")
 const Blog = () => import("../pages/Blog.vue")
 const BlogPost = () => import("../pages/BlogPost.vue")
@@ -46,6 +47,12 @@ const routes = [
     name: "Environments",
     component: Environments,
     meta: { title: "Environments | c30.life" },
+  },
+  {
+    path: "/products",
+    name: "Products",
+    component: Products,
+    meta: { title: "Products | c30.life" },
   },
   {
     path: "/servers",

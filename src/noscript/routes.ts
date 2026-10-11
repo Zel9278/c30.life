@@ -8,6 +8,7 @@ import { render as renderHome } from "./pages/home.ts"
 import { render as renderInfo } from "./pages/info.ts"
 import { render as renderLinks } from "./pages/links.ts"
 import { render as renderNotFound } from "./pages/notFound.ts"
+import { render as renderProducts } from "./pages/products.ts"
 import { render as renderPubkeys } from "./pages/pubkeys.ts"
 import { render as renderServers } from "./pages/servers.ts"
 import { render as renderWatchedAnimes } from "./pages/watchedAnimes.ts"
@@ -57,6 +58,12 @@ export const routes: NoscriptRoute[] = [
     title: "Environments - c30.life",
     description: "c30の開発環境",
     render: renderEnvironments,
+  },
+  {
+    pattern: /^\/products\/?$/i,
+    title: "Products - c30.life",
+    description: "c30が運営しているサービスの一覧",
+    render: renderProducts,
   },
   {
     pattern: /^\/servers\/?$/i,

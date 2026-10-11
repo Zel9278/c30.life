@@ -743,3 +743,21 @@ html {
 .downloads-table td:first-child {
   min-width: 8em;
 }
+
+/* Products: サービス名の下にホスト名を出す */
+.product-list .link-item a {
+  padding-bottom: 0.2rem;
+}
+.product-list .link-item > span {
+  display: block;
+  padding: 0 1rem;
+  overflow-wrap: anywhere;
+}
+.product-list .link-item > span:last-child {
+  padding-bottom: 0.8rem;
+}
+.product-list .product-description {
+  margin-top: 0.3rem;
+  color: #d1d5db;
+  font-size: 0.85rem;
+}

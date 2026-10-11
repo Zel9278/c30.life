@@ -190,6 +190,7 @@ const routes = [
   "/fediaccounts",
   "/info",
   "/environments",
+  "/products",
   "/servers",
   "/pubkeys",
   "/watched-animes",

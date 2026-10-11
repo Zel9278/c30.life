@@ -42,6 +42,10 @@ export const navIcons = {
     type: "stroke",
     d: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
   },
+  cube: {
+    type: "stroke",
+    d: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+  },
   fediverse: { type: "image", src: "/fediverse.svg" },
 } satisfies Record<string, NavIcon>
 
@@ -57,6 +61,7 @@ export const menuItems: NavItem[] = [
   { to: "/blog", label: "Blog", icon: navIcons.document },
   { to: "/downloads", label: "Downloads", icon: navIcons.download },
   { to: "/environments", label: "Environments", icon: navIcons.pc },
+  { to: "/products", label: "Products", icon: navIcons.cube },
   { to: "/servers", label: "Servers", icon: navIcons.server },
   { to: "/pubkeys", label: "Pubkeys", icon: navIcons.key },
   { to: "/watched-animes", label: "Animes", icon: navIcons.film },
