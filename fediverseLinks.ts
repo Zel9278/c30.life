@@ -48,7 +48,7 @@ export const misskeyAccounts: FediverseAccount[] = [
   { host: "soukun.io", userId: "c", isNSFW: true },
 ]
 
-export const mkGoAccounts: FediverseAccount[] = [
+export const elythiaAccounts: FediverseAccount[] = [
   { host: "go.k7a.org", userId: "c30" },
 ]
 
@@ -83,8 +83,8 @@ export const fediverseLinks: FediverseLink[] = [
     title: `Misskey (${account.host})`,
     href: profileUrl(account),
   })),
-  ...mkGoAccounts.map((account) => ({
-    title: `mk-go (${account.host})`,
+  ...elythiaAccounts.map((account) => ({
+    title: `Elythia (${account.host})`,
     href: profileUrl(account),
   })),
   ...mastodonAccounts.map((account) => ({
@@ -108,7 +108,7 @@ export const fediverseLinks: FediverseLink[] = [
 // /fediaccounts ページの構成。SPA (src/pages/FediAccounts.vue) と noscript レンダラーで共有する
 export type FediversePlatform =
   | "misskey"
-  | "mk-go"
+  | "elythia"
   | "mastodon"
   | "pleroma"
   | "mitra"
@@ -127,7 +127,7 @@ export const mainFediverseAccounts: FediverseAccount[] = misskeyAccounts.slice(
 
 export const fediverseSections: FediverseSection[] = [
   { title: "Misskey", platform: "misskey", accounts: misskeyAccounts.slice(2) },
-  { title: "mk-go", platform: "mk-go", accounts: mkGoAccounts },
+  { title: "Elythia", platform: "elythia", accounts: elythiaAccounts },
   { title: "Mastodon", platform: "mastodon", accounts: mastodonAccounts },
   { title: "Pleroma / Akkoma", platform: "pleroma", accounts: pleromaAccounts },
   { title: "Mitra", platform: "mitra", accounts: mitraAccounts },

@@ -77,7 +77,7 @@ async function fetchMeta(
   if (cached) return cached
   const request = (async () => {
     try {
-      if (platform === "misskey" || platform === "mk-go") {
+      if (platform === "misskey" || platform === "elythia") {
         const response = await fetch("/api/misskey", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -95,7 +95,7 @@ async function fetchMeta(
         return {
           name: data.name,
           version: data.version,
-          software: "Misskey",
+          software: platform === "elythia" ? "Elythia" : "Misskey",
         } as MetaData
       }
       const response = await fetch(
@@ -124,7 +124,7 @@ async function fetchAccount(
   if (cached) return cached
   const request = (async () => {
     try {
-      if (platform === "misskey" || platform === "mk-go") {
+      if (platform === "misskey" || platform === "elythia") {
         const response = await fetch("/api/misskey", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
