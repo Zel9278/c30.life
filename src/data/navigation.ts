@@ -61,7 +61,7 @@ export const menuItems: NavItem[] = [
   { to: "/blog", label: "Blog", icon: navIcons.document },
   { to: "/downloads", label: "Downloads", icon: navIcons.download },
   { to: "/environments", label: "Environments", icon: navIcons.pc },
-  { to: "/products", label: "Products", icon: navIcons.cube },
+  { to: "/services", label: "Services", icon: navIcons.cube },
   { to: "/servers", label: "Servers", icon: navIcons.server },
   { to: "/pubkeys", label: "Pubkeys", icon: navIcons.key },
   { to: "/watched-animes", label: "Animes", icon: navIcons.film },

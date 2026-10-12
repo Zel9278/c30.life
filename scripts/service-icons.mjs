@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// /products に出す各サービスのアイコン (favicon) を取ってきて、小さい PNG にして置く
+// /services に出す各サービスのアイコン (favicon) を取ってきて、小さい PNG にして置く
 //
-//   pnpm product-icons      # 全サービス分を取り直す
+//   pnpm service-icons      # 全サービス分を取り直す
 //
 // 各サービスのトップページの <link rel="icon"> / <link rel="apple-touch-icon"> を見て、
 // 無ければ /favicon.ico を使う。ImageMagick (magick) で 96x96 の PNG にして
-// public/product-icons/<ホスト名>.png に置き、取れたものの一覧を src/data/productIcons.json に書く
+// public/service-icons/<ホスト名>.png に置き、取れたものの一覧を src/data/serviceIcons.json に書く
 // （暗い絵柄で透明な部分があるものは light: true。ページでは明るい下地に置く）。
 // 取れなかったサービスは、ページでは頭文字のアイコンのまま。
 // ページを開くたびに各サービスへ取りに行かないよう、できたファイルはコミットする。
@@ -16,19 +16,19 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { promisify } from "node:util"
-import { productCategories, productHost } from "../src/data/products.ts"
+import { serviceCategories, serviceHost } from "../src/data/services.ts"
 
 const run = promisify(execFile)
 const PROJECT_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 )
-const OUT_DIR = path.join(PROJECT_ROOT, "public", "product-icons")
-const MANIFEST = path.join(PROJECT_ROOT, "src", "data", "productIcons.json")
+const OUT_DIR = path.join(PROJECT_ROOT, "public", "service-icons")
+const MANIFEST = path.join(PROJECT_ROOT, "src", "data", "serviceIcons.json")
 const SIZE = 96
 const TIMEOUT_MS = 10_000
 const MAX_BYTES = 2 * 1024 * 1024
-const USER_AGENT = "c30.life product-icons (https://c30.life/products)"
+const USER_AGENT = "c30.life service-icons (https://c30.life/services)"
 
 async function get(url) {
   const response = await fetch(url, {
@@ -155,18 +155,18 @@ async function needsLightBackdrop(file) {
   return alpha > 0 && alpha < 0.85 && lit / alpha < 0.3
 }
 
-async function iconFor(product, work) {
-  const origin = new URL(product.url).origin
+async function iconFor(service, work) {
+  const origin = new URL(service.url).origin
   const candidates = []
   try {
-    const html = await (await get(product.url)).text()
-    candidates.push(...iconLinks(html, product.url))
+    const html = await (await get(service.url)).text()
+    candidates.push(...iconLinks(html, service.url))
   } catch (error) {
-    console.warn(`  ${productHost(product.url)}: top page: ${error.message}`)
+    console.warn(`  ${serviceHost(service.url)}: top page: ${error.message}`)
   }
   candidates.push({ url: `${origin}/favicon.ico`, score: 0 })
 
-  const out = path.join(OUT_DIR, `${productHost(product.url)}.png`)
+  const out = path.join(OUT_DIR, `${serviceHost(service.url)}.png`)
   for (const candidate of candidates) {
     try {
       const response = await get(candidate.url)
@@ -184,7 +184,7 @@ async function iconFor(product, work) {
       }
     } catch (error) {
       console.warn(
-        `  ${productHost(product.url)}: ${candidate.url}: ${error.message}`,
+        `  ${serviceHost(service.url)}: ${candidate.url}: ${error.message}`,
       )
     }
   }
@@ -194,13 +194,13 @@ async function iconFor(product, work) {
 await rm(OUT_DIR, { recursive: true, force: true })
 await mkdir(OUT_DIR, { recursive: true })
 const manifest = {}
-for (const product of productCategories.flatMap((c) => c.products)) {
-  const work = await mkdtemp(path.join(tmpdir(), "product-icon-"))
+for (const service of serviceCategories.flatMap((c) => c.services)) {
+  const work = await mkdtemp(path.join(tmpdir(), "service-icon-"))
   try {
-    const icon = await iconFor(product, work)
-    const host = productHost(product.url)
+    const icon = await iconFor(service, work)
+    const host = serviceHost(service.url)
     if (icon) {
-      manifest[host] = { src: `/product-icons/${host}.png`, light: icon.light }
+      manifest[host] = { src: `/service-icons/${host}.png`, light: icon.light }
       console.log(
         `✓ ${host} ← ${icon.from}${icon.light ? " (light backdrop)" : ""}`,
       )

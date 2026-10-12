@@ -13,6 +13,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const url = new URL(request.url)
   const pathname = url.pathname
 
+  // /products は /services に名前を変えた。貼られたリンクのために恒久的に飛ばす
+  if (/^\/products\/?$/i.test(pathname)) {
+    return Response.redirect(`${url.origin}/services${url.search}`, 301)
+  }
+
   // Skip API routes and static assets - must call next() for API handlers
   if (pathname.startsWith("/api/")) {
     return next()

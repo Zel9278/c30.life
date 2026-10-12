@@ -1,27 +1,27 @@
-// /products ページのデータ (SPA と noscript で共有する)。
+// /services ページのデータ (SPA と noscript で共有する)。
 // 元は status.c30.life の servers.json (Social / Tools)。監視用の API エンドポイントとこのサイト自身は載せない
 
-export type Product = {
+export type Service = {
   title: string
   url: string
   description: string
 }
 
-export type ProductCategory = {
+export type ServiceCategory = {
   name: string
-  products: Product[]
+  services: Service[]
 }
 
-export const productsPage = {
-  title: "Products",
+export const servicesPage = {
+  title: "Services",
   subtitle: "c30が運営しているサービスの一覧",
   statusUrl: "https://status.c30.life",
 }
 
-export const productCategories: ProductCategory[] = [
+export const serviceCategories: ServiceCategory[] = [
   {
     name: "Social",
-    products: [
+    services: [
       {
         title: "Misskey (炒めて切った野菜ジュース)",
         url: "https://mk.c30.life",
@@ -96,7 +96,7 @@ export const productCategories: ProductCategory[] = [
   },
   {
     name: "Tools",
-    products: [
+    services: [
       {
         title: "PC Status",
         url: "https://pc-stats.eov2.com",
@@ -154,7 +154,7 @@ export const productCategories: ProductCategory[] = [
 ]
 
 // 表示用のホスト名 (https:// と末尾の / を除く)
-export function productHost(url: string): string {
+export function serviceHost(url: string): string {
   try {
     return new URL(url).host
   } catch {
@@ -166,19 +166,19 @@ export function productHost(url: string): string {
 
 export const STATUS_API = "https://api.status.c30.life"
 
-export type ProductState = "up" | "down" | "maintenance"
+export type ServiceState = "up" | "down" | "maintenance"
 
-export type ProductStatus = {
-  state: ProductState
+export type ServiceStatus = {
+  state: ServiceState
   // 直近の応答時間 (ms)
   latency: number | null
   // 30日の稼働率 (%)
   uptime30d: number | null
 }
 
-export type ProductStatuses = {
-  // キーは product.url（末尾の / を除いたもの）
-  byUrl: Record<string, ProductStatus>
+export type ServiceStatuses = {
+  // キーは service.url（末尾の / を除いたもの）
+  byUrl: Record<string, ServiceStatus>
   checkedAt: string | null
 }
 
@@ -207,7 +207,7 @@ async function getJson<T>(path: string): Promise<T> {
 }
 
 /** 今の稼働状況。メンテナンス中のものは down より先に maintenance にする */
-export async function loadProductStatuses(): Promise<ProductStatuses> {
+export async function loadServiceStatuses(): Promise<ServiceStatuses> {
   const [status, maintenance] = await Promise.all([
     getJson<{ reports: StatusReport[]; uptime?: UptimeRow[] }>("/api/status"),
     getJson<{ services?: MaintenanceEntry[] }>("/api/maintenance").catch(
@@ -225,7 +225,7 @@ export async function loadProductStatuses(): Promise<ProductStatuses> {
       u.uptime_percent_30d ?? null,
     ]),
   )
-  const byUrl: Record<string, ProductStatus> = {}
+  const byUrl: Record<string, ServiceStatus> = {}
   let checkedAt: string | null = null
   for (const report of status.reports) {
     const key = normalizeUrl(report.url)
@@ -246,19 +246,19 @@ export async function loadProductStatuses(): Promise<ProductStatuses> {
 }
 
 export const statusOf = (
-  statuses: ProductStatuses | null,
-  product: Product,
-): ProductStatus | null => statuses?.byUrl[normalizeUrl(product.url)] ?? null
+  statuses: ServiceStatuses | null,
+  service: Service,
+): ServiceStatus | null => statuses?.byUrl[normalizeUrl(service.url)] ?? null
 
-export const productStateLabels: Record<ProductState, string> = {
+export const serviceStateLabels: Record<ServiceState, string> = {
   up: "稼働中",
   down: "停止中",
   maintenance: "メンテナンス中",
 }
 
 /** 頭文字のアイコンに出す2文字（ホスト名の最初の部分から） */
-export function productMonogram(url: string): string {
-  const label = productHost(url).split(".")[0] ?? ""
+export function serviceMonogram(url: string): string {
+  const label = serviceHost(url).split(".")[0] ?? ""
   return (
     label
       .replace(/[^a-z0-9]/gi, "")
@@ -268,9 +268,9 @@ export function productMonogram(url: string): string {
 }
 
 /** 頭文字のアイコンの色相（ホスト名から決める） */
-export function productHue(url: string): number {
+export function serviceHue(url: string): number {
   let hash = 0
-  for (const ch of productHost(url)) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
+  for (const ch of serviceHost(url)) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
   return hash % 360
 }
 

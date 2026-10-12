@@ -1,0 +1,70 @@
+{
+  "mk.c30.life": {
+    "src": "/service-icons/mk.c30.life.png",
+    "light": false
+  },
+  "misskey.art": {
+    "src": "/service-icons/misskey.art.png",
+    "light": false
+  },
+  "soukun.io": {
+    "src": "/service-icons/soukun.io.png",
+    "light": false
+  },
+  "pr.c30.life": {
+    "src": "/service-icons/pr.c30.life.png",
+    "light": false
+  },
+  "relay.tools.c30.life": {
+    "src": "/service-icons/relay.tools.c30.life.png",
+    "light": false
+  },
+  "mitra.c30.life": {
+    "src": "/service-icons/mitra.c30.life.png",
+    "light": true
+  },
+  "mk-juice.dev": {
+    "src": "/service-icons/mk-juice.dev.png",
+    "light": false
+  },
+  "draw.mk-juice.dev": {
+    "src": "/service-icons/draw.mk-juice.dev.png",
+    "light": false
+  },
+  "matrix.c30.jp": {
+    "src": "/service-icons/matrix.c30.jp.png",
+    "light": false
+  },
+  "cinny.c30.jp": {
+    "src": "/service-icons/cinny.c30.jp.png",
+    "light": false
+  },
+  "mpp.c30.life": {
+    "src": "/service-icons/mpp.c30.life.png",
+    "light": false
+  },
+  "bbsan.club": {
+    "src": "/service-icons/bbsan.club.png",
+    "light": false
+  },
+  "pc-stats.eov2.com": {
+    "src": "/service-icons/pc-stats.eov2.com.png",
+    "light": false
+  },
+  "er.c30.life": {
+    "src": "/service-icons/er.c30.life.png",
+    "light": false
+  },
+  "f.c30.life": {
+    "src": "/service-icons/f.c30.life.png",
+    "light": false
+  },
+  "lbc.tools.c30.life": {
+    "src": "/service-icons/lbc.tools.c30.life.png",
+    "light": false
+  },
+  "git.c30.life": {
+    "src": "/service-icons/git.c30.life.png",
+    "light": false
+  }
+}
