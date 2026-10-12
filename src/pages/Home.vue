@@ -203,7 +203,7 @@ function toggleTooltip(event: Event) {
   <!-- Piano Section -->
   <section class="w-full max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto">
     <div
-      class="backdrop-blur-md bg-neutral-900/40 border border-neutral-700/50 rounded-2xl p-3 md:p-4 shadow-2xl overflow-x-auto"
+      class="backdrop-blur-md bg-neutral-900/40 border border-neutral-700/50 rounded-2xl p-3 md:p-4 shadow-2xl"
     >
       <Piano />
     </div>

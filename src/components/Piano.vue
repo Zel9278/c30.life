@@ -1,31 +1,25 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue"
 
-const TOTAL_KEYS = 48
-const KEY_PATTERN = [
-  { name: "C", isBlack: false },
-  { name: "C#", isBlack: true },
-  { name: "D", isBlack: false },
-  { name: "D#", isBlack: true },
-  { name: "E", isBlack: false },
-  { name: "F", isBlack: false },
-  { name: "F#", isBlack: true },
-  { name: "G", isBlack: false },
-  { name: "G#", isBlack: true },
-  { name: "A", isBlack: false },
-  { name: "A#", isBlack: true },
-  { name: "B", isBlack: false },
-]
-const WHITE_KEY_WIDTH = 14
-const WHITE_KEY_HEIGHT = 70
-const BLACK_KEY_WIDTH = Math.round(WHITE_KEY_WIDTH * 0.6)
-const BLACK_KEY_HEIGHT = Math.round(WHITE_KEY_HEIGHT * 0.6)
+// DAW のピアノロールと同じく、1半音を1レーンにする（C2〜B5 の4オクターブ）。
+// 文字のドットはレーンにそのまま乗るので、落ちてきた音符の真下の鍵盤が光る
+const OCTAVES = 4
+const LANES = OCTAVES * 12
+const BLACK = new Set([1, 3, 6, 8, 10])
+const WIDTH = 392
+const ROLL_HEIGHT = 175
+const KEY_HEIGHT = 70
 
-type LayoutKey = {
-  name: string
-  x: number
-  octave: number
-}
+// 白鍵の左右の端（オクターブの中のレーン位置）。黒鍵の下に半レーンずつ入り込む
+const WHITE_KEYS = [
+  { lane: 0, start: 0, end: 1.5 }, // C
+  { lane: 2, start: 1.5, end: 3.5 }, // D
+  { lane: 4, start: 3.5, end: 5 }, // E
+  { lane: 5, start: 5, end: 6.5 }, // F
+  { lane: 7, start: 6.5, end: 8.5 }, // G
+  { lane: 9, start: 8.5, end: 10.5 }, // A
+  { lane: 11, start: 10.5, end: 12 }, // B
+]
 
 const PIXEL_FONT: Record<string, string[]> = {
   C: ["01110", "10001", "10000", "10000", "10000", "10000", "10001", "01110"],
@@ -38,319 +32,236 @@ const PIXEL_FONT: Record<string, string[]> = {
   E: ["11111", "10000", "10000", "11110", "10000", "10000", "10000", "11111"],
 }
 
-const TEXT_SEQUENCE = ["C", "3", "0", ".", "L", "I", "F", "E"]
-
-function buildPixelPattern(text: string[]) {
-  if (text.length === 0) {
-    return [] as string[]
-  }
-
-  const rows = PIXEL_FONT[text[0]]?.length ?? 0
-  const pattern = Array.from({ length: rows }, () => "")
-
-  text.forEach((char, index) => {
-    const glyph = PIXEL_FONT[char]
-    if (!glyph) {
-      return
-    }
-
-    glyph.forEach((rowPattern, rowIdx) => {
-      pattern[rowIdx] += rowPattern
-    })
-
-    if (index !== text.length - 1) {
-      pattern.forEach((rowPattern, rowIdx) => {
-        pattern[rowIdx] = `${rowPattern}0`
-      })
-    }
-  })
-
-  return pattern
-}
-
-const DOT_PATTERN = buildPixelPattern(TEXT_SEQUENCE)
-const PATTERN_COLS = DOT_PATTERN[0]?.length ?? 0
-
-const DOT_COORDS = DOT_PATTERN.flatMap((row, rowIdx) =>
-  row
-    .split("")
-    .flatMap((cell, colIdx) =>
-      cell === "1" ? [{ row: rowIdx, col: colIdx }] : [],
-    ),
+// 文字を横に並べて、1文字ごとに1列あける
+const ROWS = Array.from({ length: 8 }, (_, row) =>
+  [..."C30.LIFE"].map((char) => PIXEL_FONT[char][row]).join("0"),
 )
+const COLS = ROWS[0].length
+const FIRST_LANE = Math.floor((LANES - COLS) / 2)
 
-function buildKeyboardLayout() {
-  const whiteKeys: LayoutKey[] = []
-  const blackKeys: LayoutKey[] = []
-  const allKeys: (LayoutKey & { isBlack: boolean; keyIndex: number })[] = []
+type Note = { lane: number; row: number; length: number }
 
-  let whiteCount = 0
-  for (let i = 0; i < TOTAL_KEYS; i++) {
-    const patternKey = KEY_PATTERN[i % KEY_PATTERN.length]
-    const octave = Math.floor(i / KEY_PATTERN.length)
-
-    if (patternKey.isBlack) {
-      // 黒鍵は直前の白鍵の右側に配置(2つの白鍵の間)
-      const x = whiteCount * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2
-      blackKeys.push({ name: patternKey.name, x, octave })
-      allKeys.push({
-        name: patternKey.name,
-        x,
-        octave,
-        isBlack: true,
-        keyIndex: i,
-      })
-    } else {
-      const x = whiteCount * WHITE_KEY_WIDTH
-      whiteKeys.push({ name: patternKey.name, x, octave })
-      allKeys.push({
-        name: patternKey.name,
-        x,
-        octave,
-        isBlack: false,
-        keyIndex: i,
-      })
-      whiteCount += 1
+// 縦に続くドットは1つの長い音符にする
+const NOTES: Note[] = []
+for (let col = 0; col < COLS; col++) {
+  let row = 0
+  while (row < ROWS.length) {
+    if (ROWS[row][col] !== "1") {
+      row++
+      continue
     }
-  }
-
-  return {
-    whiteKeys,
-    blackKeys,
-    allKeys,
-    width: whiteKeys.length * WHITE_KEY_WIDTH,
+    const start = row
+    while (row < ROWS.length && ROWS[row][col] === "1") row++
+    NOTES.push({ lane: FIRST_LANE + col, row: start, length: row - start })
   }
 }
 
-const canvasRef = ref<HTMLCanvasElement | null>(null)
-const animationFrameId = ref<number | null>(null)
-const startTimeRef = ref<number | null>(null)
-const lastFrameTime = ref<number>(0)
-const TARGET_FPS = 30
-const FRAME_INTERVAL = 1000 / TARGET_FPS
+const COLORS = {
+  roll: "#141416",
+  blackLane: "#0d0d0f",
+  laneLine: "rgb(255 255 255 / 0.04)",
+  octaveLine: "rgb(255 255 255 / 0.1)",
+  note: "#60a5fa",
+  noteEdge: "#93c5fd",
+  hitLine: "rgb(96 165 250 / 0.5)",
+  keyBed: "#525252",
+  white: "#e5e5e5",
+  whiteActive: "#93c5fd",
+  black: "#171717",
+  blackActive: "#3b82f6",
+}
 
-// Helper function to draw rounded rectangle
-function roundRect(
+const containerRef = ref<HTMLDivElement | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+
+let cleanup: (() => void) | null = null
+
+function fillRoundRect(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  width: number,
-  height: number,
-  radius: number,
+  w: number,
+  h: number,
+  r: number | number[],
 ) {
   ctx.beginPath()
-  ctx.moveTo(x + radius, y)
-  ctx.lineTo(x + width - radius, y)
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius)
-  ctx.lineTo(x + width, y + height - radius)
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
-  ctx.lineTo(x + radius, y + height)
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius)
-  ctx.lineTo(x, y + radius)
-  ctx.quadraticCurveTo(x, y, x + radius, y)
-  ctx.closePath()
+  ctx.roundRect(x, y, w, h, r)
+  ctx.fill()
 }
 
 onMounted(() => {
+  const container = containerRef.value
   const canvas = canvasRef.value
-  if (!canvas) {
-    return
+  const ctx = canvas?.getContext("2d")
+  if (!container || !canvas || !ctx) return
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
+
+  let width = 0
+  let lane = 0
+  let rowHeight = 0
+  let rollHeight = 0
+  let keyHeight = 0
+  let visible = true
+  let frame: number | null = null
+  let start: number | null = null
+
+  const resize = () => {
+    // 前と同じ大きさ（白鍵14px×28鍵）。入りきらない幅では縮める
+    const scale = Math.min(1, container.clientWidth / WIDTH)
+    width = WIDTH * scale
+    lane = width / LANES
+    rowHeight = lane * 1.3
+    rollHeight = Math.round(ROLL_HEIGHT * scale)
+    keyHeight = Math.round(KEY_HEIGHT * scale)
+    const height = rollHeight + keyHeight
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = Math.round(width * dpr)
+    canvas.height = Math.round(height * dpr)
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   }
 
-  const ctx = canvas.getContext("2d")
-  if (!ctx) {
-    return
+  // offset は文字の下端が進んだ距離
+  const draw = (offset: number) => {
+    const patternHeight = ROWS.length * rowHeight
+    // 上から入ってきて鍵盤に吸い込まれ、少し間をあけて繰り返す
+    const cycle = rollHeight + patternHeight * 1.6
+    const bottom = offset % cycle
+
+    const active = new Set<number>()
+
+    // ロールの背景：黒鍵のレーンを暗くし、オクターブの境目に線を引く
+    ctx.fillStyle = COLORS.roll
+    ctx.fillRect(0, 0, width, rollHeight)
+    for (let i = 0; i < LANES; i++) {
+      const x = i * lane
+      if (BLACK.has(i % 12)) {
+        ctx.fillStyle = COLORS.blackLane
+        ctx.fillRect(x, 0, lane, rollHeight)
+      }
+      if (i > 0) {
+        ctx.fillStyle = i % 12 === 0 ? COLORS.octaveLine : COLORS.laneLine
+        ctx.fillRect(Math.round(x), 0, 1, rollHeight)
+      }
+    }
+
+    // 音符。row 0 が文字の一番上で、下の行ほど先に鍵盤へ届く
+    const gap = Math.max(1, lane * 0.12)
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(0, 0, width, rollHeight)
+    ctx.clip()
+    for (const note of NOTES) {
+      const noteBottom =
+        bottom - (ROWS.length - note.row - note.length) * rowHeight
+      const noteTop = noteBottom - note.length * rowHeight
+      if (noteBottom < 0 || noteTop > rollHeight) continue
+      if (noteBottom >= rollHeight) active.add(note.lane)
+
+      const x = note.lane * lane + gap
+      const w = lane - gap * 2
+      const y = noteTop + gap
+      const h = note.length * rowHeight - gap * 2
+      const r = Math.min(3, w / 3)
+      ctx.fillStyle = COLORS.note
+      fillRoundRect(ctx, x, y, w, h, r)
+      // 下端（先に鳴る側）を明るくして、向きがわかるようにする
+      const edge = Math.max(2, gap)
+      ctx.fillStyle = COLORS.noteEdge
+      fillRoundRect(ctx, x, y + h - edge, w, edge, [0, 0, r, r])
+    }
+    ctx.restore()
+
+    ctx.fillStyle = COLORS.hitLine
+    ctx.fillRect(0, rollHeight - 2, width, 2)
+
+    // 鍵盤。白鍵の隙間から見える下地の上に、白鍵、黒鍵の順に描く
+    const top = rollHeight
+    const keyGap = Math.max(1, lane * 0.08)
+    ctx.fillStyle = COLORS.keyBed
+    ctx.fillRect(0, top, width, keyHeight)
+    for (let octave = 0; octave < OCTAVES; octave++) {
+      const base = octave * 12
+      for (const key of WHITE_KEYS) {
+        ctx.fillStyle = active.has(base + key.lane)
+          ? COLORS.whiteActive
+          : COLORS.white
+        const x = (base + key.start) * lane + keyGap / 2
+        const w = (key.end - key.start) * lane - keyGap
+        fillRoundRect(ctx, x, top, w, keyHeight - 1, [0, 0, 3, 3])
+      }
+    }
+    const blackHeight = keyHeight * 0.62
+    for (let i = 0; i < LANES; i++) {
+      if (!BLACK.has(i % 12)) continue
+      ctx.fillStyle = active.has(i) ? COLORS.blackActive : COLORS.black
+      fillRoundRect(ctx, i * lane, top, lane, blackHeight, [0, 0, 2, 2])
+    }
   }
 
-  const layout = buildKeyboardLayout()
-  if (PATTERN_COLS === 0 || DOT_PATTERN.length === 0) {
-    return
+  // 1秒に約8行
+  const speed = () => rowHeight * 8
+
+  const tick = (timestamp: number) => {
+    start ??= timestamp
+    draw(((timestamp - start) / 1000) * speed())
+    frame = window.requestAnimationFrame(tick)
   }
 
-  const { whiteKeys, blackKeys, allKeys, width: displayWidth } = layout
-  const patternRows = DOT_PATTERN.length
-
-  const getKeyIndexForCol = (col: number): number => {
-    return Math.floor((col / PATTERN_COLS) * TOTAL_KEYS)
+  const stop = () => {
+    if (frame != null) window.cancelAnimationFrame(frame)
+    frame = null
   }
 
-  const cellWidth = displayWidth / PATTERN_COLS
-  const cellHeight = cellWidth * 1.2
-  const rollHeight = Math.max(
-    Math.round(patternRows * cellHeight),
-    WHITE_KEY_HEIGHT * 2.5,
-  )
-  const rollGap = 8
-  const keyboardOffsetY = rollHeight + rollGap
-  const totalHeight = keyboardOffsetY + WHITE_KEY_HEIGHT
-  const noteWidth = cellWidth * 0.85
-  const noteHeight = cellHeight * 0.75
-  const noteInsetX = (cellWidth - noteWidth) / 2
-  const noteInsetY = (cellHeight - noteHeight) / 2
-  const patternHeight = patternRows * cellHeight
-  const speed = 55 // pixels per second
-
-  const activeWhiteKeys = new Set<number>()
-  const activeBlackKeys = new Set<number>()
-
-  const dpr = window.devicePixelRatio ?? 1
-  const scaledWidth = Math.ceil(displayWidth * dpr)
-  const scaledHeight = Math.ceil(totalHeight * dpr)
-
-  if (canvas.width !== scaledWidth || canvas.height !== scaledHeight) {
-    canvas.width = scaledWidth
-    canvas.height = scaledHeight
-  }
-
-  canvas.style.width = `${displayWidth}px`
-  canvas.style.height = `${totalHeight}px`
-
-  const drawFrame = (timestamp: number) => {
-    // Frame rate limiting
-    if (timestamp - lastFrameTime.value < FRAME_INTERVAL) {
-      animationFrameId.value = window.requestAnimationFrame(drawFrame)
+  const play = () => {
+    stop()
+    if (reducedMotion.matches) {
+      // 動かさずに、文字がロールの真ん中にある絵を出す
+      draw((rollHeight + ROWS.length * rowHeight) / 2)
       return
     }
-    lastFrameTime.value = timestamp
-
-    if (startTimeRef.value == null) {
-      startTimeRef.value = timestamp
-    }
-
-    ctx.setTransform(1, 0, 0, 1, 0, 0)
-    ctx.scale(dpr, dpr)
-    ctx.clearRect(0, 0, displayWidth, totalHeight)
-
-    // Background (simple solid color instead of gradient)
-    ctx.fillStyle = "#111827"
-    ctx.fillRect(0, 0, displayWidth, rollHeight)
-
-    const elapsedSeconds = (timestamp - startTimeRef.value) / 1000
-    const offset = (elapsedSeconds * speed) % (patternHeight + rollHeight)
-    const startY = offset - patternHeight
-
-    activeWhiteKeys.clear()
-    activeBlackKeys.clear()
-
-    // Draw notes (simplified - no glow effect)
-    ctx.fillStyle = "#34d399"
-    DOT_COORDS.forEach((dot) => {
-      const y = startY + dot.row * cellHeight + noteInsetY
-      const x = dot.col * cellWidth + noteInsetX
-      const dotBottom = y + noteHeight
-
-      if (!(y + noteHeight < 0 || y > rollHeight)) {
-        roundRect(ctx, x, y, noteWidth, noteHeight, 3)
-        ctx.fill()
-      }
-
-      const collisionMargin = 18
-
-      if (
-        dotBottom >= rollHeight - collisionMargin &&
-        dotBottom <= rollHeight + collisionMargin
-      ) {
-        const keyIndex = getKeyIndexForCol(dot.col)
-        const targetKey = allKeys[keyIndex]
-
-        if (targetKey) {
-          if (targetKey.isBlack) {
-            const blackKeyIndex = blackKeys.findIndex(
-              (k) =>
-                k.name === targetKey.name &&
-                k.x === targetKey.x &&
-                k.octave === targetKey.octave,
-            )
-            if (blackKeyIndex !== -1) {
-              activeBlackKeys.add(blackKeyIndex)
-            }
-          } else {
-            const whiteKeyIndex = whiteKeys.findIndex(
-              (k) =>
-                k.name === targetKey.name &&
-                k.x === targetKey.x &&
-                k.octave === targetKey.octave,
-            )
-            if (whiteKeyIndex !== -1) {
-              activeWhiteKeys.add(whiteKeyIndex)
-            }
-          }
-        }
-      }
-    })
-
-    // Draw hit line at the bottom of roll area
-    ctx.fillStyle = "rgba(52, 211, 153, 0.6)"
-    ctx.fillRect(0, rollHeight - 2, displayWidth, 2)
-
-    // Keyboard background
-    const keyboardTop = keyboardOffsetY
-    ctx.fillStyle = "#1e293b"
-    ctx.fillRect(0, keyboardTop, displayWidth, WHITE_KEY_HEIGHT)
-
-    ctx.lineWidth = 1 / dpr
-
-    // Draw white keys (simplified)
-    whiteKeys.forEach((key, index) => {
-      const x = key.x
-      const isActive = activeWhiteKeys.has(index)
-
-      // Key body
-      ctx.fillStyle = isActive ? "#6ee7b7" : "#f1f5f9"
-      roundRect(
-        ctx,
-        x + 0.5,
-        keyboardTop,
-        WHITE_KEY_WIDTH - 1,
-        WHITE_KEY_HEIGHT - 3,
-        3,
-      )
-      ctx.fill()
-
-      // Key border
-      ctx.strokeStyle = isActive ? "#059669" : "#94a3b8"
-      ctx.lineWidth = 0.5 / dpr
-      roundRect(
-        ctx,
-        x + 0.5,
-        keyboardTop,
-        WHITE_KEY_WIDTH - 1,
-        WHITE_KEY_HEIGHT - 3,
-        3,
-      )
-      ctx.stroke()
-    })
-
-    // Draw black keys (simplified)
-    blackKeys.forEach((key, index) => {
-      const x = key.x
-      const isActive = activeBlackKeys.has(index)
-      const blackKeyTop = keyboardTop
-
-      // Key body
-      ctx.fillStyle = isActive ? "#10b981" : "#1f2937"
-      roundRect(ctx, x, blackKeyTop, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT, 2)
-      ctx.fill()
-    })
-
-    animationFrameId.value = window.requestAnimationFrame(drawFrame)
+    if (visible) frame = window.requestAnimationFrame(tick)
   }
 
-  animationFrameId.value = window.requestAnimationFrame(drawFrame)
-})
+  resize()
+  // 最初は文字が上から入ってくるところから
+  play()
 
-onUnmounted(() => {
-  if (animationFrameId.value != null) {
-    cancelAnimationFrame(animationFrameId.value)
+  const resizeObserver = new ResizeObserver(() => {
+    resize()
+    play()
+  })
+  resizeObserver.observe(container)
+
+  // 画面外にあるあいだは描かない
+  const intersectionObserver = new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting
+    play()
+  })
+  intersectionObserver.observe(container)
+
+  reducedMotion.addEventListener("change", play)
+
+  cleanup = () => {
+    stop()
+    resizeObserver.disconnect()
+    intersectionObserver.disconnect()
+    reducedMotion.removeEventListener("change", play)
   }
 })
+
+onUnmounted(() => cleanup?.())
 </script>
 
 <template>
-  <div class="flex justify-center w-full">
+  <div ref="containerRef" class="flex w-full justify-center">
     <canvas
       ref="canvasRef"
-      class="h-auto max-w-5xl rounded-lg shadow-2xl border border-slate-700/50 bg-slate-900"
+      class="block rounded-lg border border-neutral-700/50 shadow-2xl"
+      role="img"
+      aria-label="c30.life の文字が流れるピアノロール"
     />
   </div>
 </template>
