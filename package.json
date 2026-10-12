@@ -13,7 +13,8 @@
     "wrangler": "wrangler",
     "wrangler:dev": "wrangler pages dev dist",
     "r2:list": "cf r2 objects list --bucket-name c30-life-files",
-    "r2:sync": "node scripts/r2-sync.mjs"
+    "r2:sync": "node scripts/r2-sync.mjs",
+    "product-icons": "node scripts/product-icons.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
