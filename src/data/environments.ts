@@ -29,7 +29,7 @@ export const pc: PcSpec = {
   ram: "16GB",
   storage: "512 GB NVMe + 1TB External SSD + 4TB External HDD",
   os: "Fedora Linux 44 (KDE Plasma Desktop Edition) x86_64",
-  earPhone: "3ｍ earphone",
+  earPhone: "Yinyoo KBEAR K01 monkey",
   mouse: "Logicool G203 LIGHTSYNC",
   tablet: "none",
   controller: "Xbox One Controller",
