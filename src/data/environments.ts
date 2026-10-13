@@ -31,7 +31,7 @@ export const pc: PcSpec = {
   os: "Fedora Linux 44 (KDE Plasma Desktop Edition) x86_64",
   earPhone: "Yinyoo KBEAR K01 monkey",
   mouse: "Logicool G203 LIGHTSYNC",
-  tablet: "none",
+  tablet: "Intuos Art medium CTH-690",
   controller: "Xbox One Controller",
 }
 
